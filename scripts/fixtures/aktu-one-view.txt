@@ -1,0 +1,87 @@
+AKTU-One-View
+Student Result
+Institute Code &
+Name : (091 ) SAMPLE INSTITUTE OF TECHNOLOGY,LUCKNOW
+Course Code &
+Name : (04) B.TECH Branch Code &
+Name :
+(153) COMPUTER SCIENCE AND
+ENGINEERING(ARTIFICIAL
+INTELLIGENCE & MACHINE
+LEARNING)
+RollNo : 2400001530001 EnrollmentNo : 240000153000001
+Name : TEST STUDENT Hindi Name : टेस्ट
+Father's Name : TEST PARENT Gender : M
+Print One
+View
+One View Result
+Session : 2024-25(REGULAR) Semesters : 1,2 Result : PASS Marks : 1529/1800 COP : Audit 1 : Cleared
+Semester : 1 Even/Odd : Odd
+Total Subjects : 9 Theory Subjects : 5
+Practical Subjects : 4 Total Marks Obt. : 772
+Result Status : CP( 0) SGPA : 8.73
+Date of Declaration : 30/06/25
+Code Name Type Internal External Back Paper Grade
+BAS102 Engineering Chemistry Theory 30 27 -- C
+BAS103 Engineering Mathematics-I Theory 30 60 -- A+
+BEC101 Fundamentals of Electronics Engineering Theory 30 59 -- A
+BCS101 Programming for Problem Solving Theory 29 56 -- A
+BAS104 Environment and Ecology Theory 30 46 -- B+
+BAS152 Engineering Chemistry Lab Practical 49 41 -- A+
+BEC151 Basic Electronics Engineering Lab Practical 49 50 -- A+
+BCS151 Programming for Problem Solving Lab Practical 46 46 -- A+
+BWS151 Workshop Practice Lab Practical 49 45 -- A+
+31/10/2025, 19:20 One View by AKTU SDC Team
+about:blank 1/2
+Semester : 2 Even/Odd : Even
+Total Subjects : 10 Theory Subjects : 5
+Practical Subjects : 4 Total Marks Obt. : 757
+Result Status : PASS SGPA : 8.64
+Date of Declaration : 31/10/25
+Code Name Type Internal External Back Paper Grade
+BAS201 Engineering Physics Theory 30 47 -- B+
+BAS203 Engineering Mathematics-II Theory 30 50 -- A
+BEE201 Fundamentals of Electrical Engineering Theory 30 56 -- A
+BME201 Fundamentals of Mechanical Engineering Theory 30 45 -- B+
+BAS205 Soft Skills Theory 30 39 -- B
+BAS251 Engineering Physics Lab Practical 45 46 -- A+
+BEE251 Basic Electrical Engineering Lab Practical 46 46 -- A+
+BAS255 English Language Lab Practical 49 47 -- A+
+BCE251 Engineering Graphics & Design Lab Practical 47 44 -- A+
+BVA251 Sports and Yoga CA 85 --
+Session : 2025-26(REGULAR) Semesters : 3,4 Result : PASS Marks : 1569/1900 COP : Audit 1 : Cleared
+Semester : 3 Even/Odd : Odd
+Total Subjects : 10 Theory Subjects : 6
+Practical Subjects : 4 Total Marks Obt. : 837
+Result Status : CP( 0) SGPA : 8.64
+Date of Declaration : 17/02/26
+Code Name Type Internal External Back Paper Grade
+BAS303 Mathematics-IV Theory 30 68 -- A+
+BVE301 Universal Human Values and Professional Ethics Theory 24 42 -- B
+BCS301 Data Structure Theory 30 42 -- B+
+BCS302 Computer Organization and Architecture Theory 27 50 -- B+
+BCS303 Discrete Structures & Theory of Logic Theory 30 50 -- A
+BCC302 Python programming Theory 28 40 -- B
+BCS351 Data Structure Lab Practical 45 49 -- A+
+BCS352 Computer Organization and Architecture Lab Practical 49 48 -- A+
+BCS353 Web Designing Workshop Practical 42 49 -- A+
+BCC351 Internship Assessment /Mini Project Practical 94 -- -- A+
+Semester : 4 Even/Odd : Even
+Total Subjects : 10 Theory Subjects : 6
+Practical Subjects : 3 Total Marks Obt. : 732
+Result Status : PASS SGPA : 8.22
+Date of Declaration : 29/06/26
+Code Name Type Internal External Back Paper Grade
+BOE409 Electronics Engineering Theory 30 47 -- B+
+BAS401 Technical Communication Theory 30 48 -- B+
+BCS401 Operating System Theory 29 48 -- B+
+BCS402 Theory of Automata and Formal Languages Theory 30 56 -- A
+BCS403 Object Oriented Programming with Java Theory 30 38 -- B
+BCC401 Cyber Security Theory 25 37 -- B
+BCS451 Operating System Lab Practical 48 45 -- A+
+BCS452 Object Oriented Programming with Java Lab Practical 48 46 -- A+
+BCS453 Cyber Security Workshop Practical 49 48 -- A+
+BVA451 Sports and Yoga - II CA 69 -- --
+MOOCs Certifications
+Note: University doesn't own for the errors or omissions, if any, in this statement.
+Designed & Developed by AKTU-SDC Team

@@ -1,0 +1,435 @@
+id,title,primary_code,codes,options,credits,kind,year,semester,branch_code,sort_order
+1,Engineering Physics (BAS101) / Engineering Chemistry (BAS102),BAS101,"[""BAS101"", ""BAS102""]","[""Engineering Physics (BAS101)"", ""Engineering Chemistry (BAS102)""]",4,theory,1,1,,1
+2,Engineering Mathematics-I (BAS103),BAS103,"[""BAS103""]",[],4,theory,1,1,,2
+3,Fundamentals of Electrical Engineering (BEE101) / Fundamentals of Electronics Engineering (BEC101),BEE101,"[""BEE101"", ""BEC101""]","[""Fundamentals of Electrical Engineering (BEE101)"", ""Fundamentals of Electronics Engineering (BEC101)""]",3,theory,1,1,,3
+4,Programming for Problem Solving (BCS101) / Fundamentals of Mechanical Engineering (BME101),BCS101,"[""BCS101"", ""BME101""]","[""Programming for Problem Solving (BCS101)"", ""Fundamentals of Mechanical Engineering (BME101)""]",3,theory,1,1,,4
+5,Environment and Ecology (BAS104) / Soft Skills (BAS105),BAS104,"[""BAS104"", ""BAS105""]","[""Environment and Ecology (BAS104)"", ""Soft Skills (BAS105)""]",3,theory,1,1,,5
+6,Engineering Physics Lab (BAS151) / Engineering Chemistry Lab (BAS152),BAS151,"[""BAS151"", ""BAS152""]","[""Engineering Physics Lab (BAS151)"", ""Engineering Chemistry Lab (BAS152)""]",1,lab,1,1,,6
+7,Basic Electrical Engineering Lab (BEE151) / Basic Electronics Engineering Lab (BEC151),BEE151,"[""BEE151"", ""BEC151""]","[""Basic Electrical Engineering Lab (BEE151)"", ""Basic Electronics Engineering Lab (BEC151)""]",1,lab,1,1,,7
+8,Programming for Problem Solving Lab (BCS151) / English Language Lab (BAS155),BCS151,"[""BCS151"", ""BAS155""]","[""Programming for Problem Solving Lab (BCS151)"", ""English Language Lab (BAS155)""]",1,lab,1,1,,8
+9,Engineering Graphics & Design Lab (BCE151) / Workshop Practice Lab (BWS151),BCE151,"[""BCE151"", ""BWS151""]","[""Engineering Graphics & Design Lab (BCE151)"", ""Workshop Practice Lab (BWS151)""]",2,lab,1,1,,9
+10,Engineering Chemistry (BAS202) / Engineering Physics (BAS201),BAS202,"[""BAS202"", ""BAS201""]","[""Engineering Chemistry (BAS202)"", ""Engineering Physics (BAS201)""]",4,theory,1,2,,10
+11,Engineering Mathematics-II (BAS203),BAS203,"[""BAS203""]",[],4,theory,1,2,,11
+12,Fundamentals of Electronics Engineering (BEC201) / Fundamentals of Electrical Engineering (BEE201),BEC201,"[""BEC201"", ""BEE201""]","[""Fundamentals of Electronics Engineering (BEC201)"", ""Fundamentals of Electrical Engineering (BEE201)""]",3,theory,1,2,,12
+13,Fundamentals of Mechanical Engineering (BME201) / Programming for Problem Solving (BCS201),BME201,"[""BME201"", ""BCS201""]","[""Fundamentals of Mechanical Engineering (BME201)"", ""Programming for Problem Solving (BCS201)""]",3,theory,1,2,,13
+14,Soft Skills (BAS205) / Environment and Ecology (BAS204),BAS205,"[""BAS205"", ""BAS204""]","[""Soft Skills (BAS205)"", ""Environment and Ecology (BAS204)""]",3,theory,1,2,,14
+15,Engineering Chemistry Lab (BAS252) / Engineering Physics Lab (BAS251),BAS252,"[""BAS252"", ""BAS251""]","[""Engineering Chemistry Lab (BAS252)"", ""Engineering Physics Lab (BAS251)""]",1,lab,1,2,,15
+16,Basic Electronics Engineering Lab (BEC251) / Basic Electrical Engineering Lab (BEE251),BEC251,"[""BEC251"", ""BEE251""]","[""Basic Electronics Engineering Lab (BEC251)"", ""Basic Electrical Engineering Lab (BEE251)""]",1,lab,1,2,,16
+17,English Language Lab (BAS255) / Programming for Problem Solving Lab (BCS251),BAS255,"[""BAS255"", ""BCS251""]","[""English Language Lab (BAS255)"", ""Programming for Problem Solving Lab (BCS251)""]",1,lab,1,2,,17
+18,Workshop Practice Lab (BWS251) / Engineering Graphics & Design Lab (BCE251),BWS251,"[""BWS251"", ""BCE251""]","[""Workshop Practice Lab (BWS251)"", ""Engineering Graphics & Design Lab (BCE251)""]",2,lab,1,2,,18
+19,Sports and Yoga (BVA251) / NSS (BVA252),BVA251,"[""BVA251"", ""BVA252""]","[""Sports and Yoga (BVA251)"", ""NSS (BVA252)""]",0,theory,1,2,,19
+20,Science Based Open Elective/BSC (Maths- III/Math IV/ Math V) (BOE3**/ BAS303),BOE3**,"[""BOE3**"", ""BAS303""]","[""Science Based Open Elective (BOE3**)"", ""BSC (BAS303)""]",4,theory,2,3,CSE,20
+21,Universal Human Value and Professional Ethics/ Technical Communication (BVE301/ BAS301),BVE301,"[""BVE301"", ""BAS301""]","[""Universal Human Value and Professional Ethics (BVE301)"", ""Technical Communication (BAS301)""]",3,theory,2,3,CSE,21
+22,Data Structure (BCS301),BCS301,"[""BCS301""]",[],4,theory,2,3,CSE,22
+23,Computer Organization and Architecture (BCS302),BCS302,"[""BCS302""]",[],4,theory,2,3,CSE,23
+24,Discrete Structures & of Logic (BCS303),BCS303,"[""BCS303""]",[],3,theory,2,3,CSE,24
+25,Data Structure Lab (BCS351),BCS351,"[""BCS351""]",[],1,lab,2,3,CSE,25
+26,Computer Organization and Architecture Lab (BCS352),BCS352,"[""BCS352""]",[],1,lab,2,3,CSE,26
+27,Web Designing Workshop (BCS353),BCS353,"[""BCS353""]",[],1,lab,2,3,CSE,27
+28,Cyber Security/Python programming (BCC301/ BCC302),BCC301,"[""BCC301"", ""BCC302""]","[""Cyber Security (BCC301)"", ""Python programming (BCC302)""]",2,theory,2,3,CSE,28
+29,Internship Assessment /Mini Project (BCC351),BCC351,"[""BCC351""]","[""Internship Assessment"", ""Mini Project (BCC351)""]",2,project,2,3,CSE,29
+30,BSC(Maths-III/Math IV/ Math V)/Science Based Open Elective (BAS403/ BOE4**),BAS403,"[""BAS403"", ""BOE4**""]","[""BSC (BAS403)"", ""Science Based Open Elective (BOE4**)""]",4,theory,2,4,CSE,30
+31,Technical Communication / Universal Human Value and Professional Ethics (BAS401/ BVE401),BAS401,"[""BAS401"", ""BVE401""]","[""Technical Communication (BAS401)"", ""Universal Human Value and Professional Ethics (BVE401)""]",3,theory,2,4,CSE,31
+32,Operating System (BCS401),BCS401,"[""BCS401""]",[],4,theory,2,4,CSE,32
+33,Theory of Automata and Formal Languages (BCS402),BCS402,"[""BCS402""]",[],4,theory,2,4,CSE,33
+34,Object Oriented Programming with Java (BCS403),BCS403,"[""BCS403""]",[],3,theory,2,4,CSE,34
+35,Operating System Lab (BCS451),BCS451,"[""BCS451""]",[],1,lab,2,4,CSE,35
+36,Object Oriented Programming with Java Lab (BCS452),BCS452,"[""BCS452""]",[],1,lab,2,4,CSE,36
+37,Cyber Security Workshop (BCS453),BCS453,"[""BCS453""]",[],1,lab,2,4,CSE,37
+38,Python Programming/Cyber Security (BCC402/ BCC401),BCC402,"[""BCC402"", ""BCC401""]","[""Python Programming (BCC402)"", ""Cyber Security (BCC401)""]",2,theory,2,4,CSE,38
+39,Science Based Open Elective/BSC (Maths- III/Math IV/ Math V) (BOE3**/ BAS303),BOE3**,"[""BOE3**"", ""BAS303""]","[""Science Based Open Elective (BOE3**)"", ""BSC (BAS303)""]",4,theory,2,3,CSEDS,39
+40,Universal Human Value and Professional Ethics/ Technical Communication (BVE301/ BAS301),BVE301,"[""BVE301"", ""BAS301""]","[""Universal Human Value and Professional Ethics (BVE301)"", ""Technical Communication (BAS301)""]",3,theory,2,3,CSEDS,40
+41,Data Structure (BCS301),BCS301,"[""BCS301""]",[],4,theory,2,3,CSEDS,41
+42,Computer Organization and Architecture (BCS302),BCS302,"[""BCS302""]",[],4,theory,2,3,CSEDS,42
+43,Discrete Structures & of Logic (BCS303),BCS303,"[""BCS303""]",[],3,theory,2,3,CSEDS,43
+44,Data Structure Lab (BCS351),BCS351,"[""BCS351""]",[],1,lab,2,3,CSEDS,44
+45,Computer Organization and Architecture Lab (BCS352),BCS352,"[""BCS352""]",[],1,lab,2,3,CSEDS,45
+46,Web Designing Workshop (BCS353),BCS353,"[""BCS353""]",[],1,lab,2,3,CSEDS,46
+47,Cyber Security/Python programming (BCC301/ BCC302),BCC301,"[""BCC301"", ""BCC302""]","[""Cyber Security (BCC301)"", ""Python programming (BCC302)""]",2,theory,2,3,CSEDS,47
+48,Internship Assessment /Mini Project (BCC351),BCC351,"[""BCC351""]","[""Internship Assessment"", ""Mini Project (BCC351)""]",2,project,2,3,CSEDS,48
+49,BSC(Maths-III/Math IV/ Math V)/Science Based Open Elective (BAS403/ BOE4**),BAS403,"[""BAS403"", ""BOE4**""]","[""BSC (BAS403)"", ""Science Based Open Elective (BOE4**)""]",4,theory,2,4,CSEDS,49
+50,Technical Communication / Universal Human Value and Professional Ethics (BAS401/ BVE401),BAS401,"[""BAS401"", ""BVE401""]","[""Technical Communication (BAS401)"", ""Universal Human Value and Professional Ethics (BVE401)""]",3,theory,2,4,CSEDS,50
+51,Operating System (BCS401),BCS401,"[""BCS401""]",[],4,theory,2,4,CSEDS,51
+52,Theory of Automata and Formal Languages (BCS402),BCS402,"[""BCS402""]",[],4,theory,2,4,CSEDS,52
+53,Object Oriented Programming with Java (BCS403),BCS403,"[""BCS403""]",[],3,theory,2,4,CSEDS,53
+54,Operating System Lab (BCS451),BCS451,"[""BCS451""]",[],1,lab,2,4,CSEDS,54
+55,Object Oriented Programming with Java Lab (BCS452),BCS452,"[""BCS452""]",[],1,lab,2,4,CSEDS,55
+56,Cyber Security Workshop (BCS453),BCS453,"[""BCS453""]",[],1,lab,2,4,CSEDS,56
+57,Python Programming/Cyber Security (BCC402/ BCC401),BCC402,"[""BCC402"", ""BCC401""]","[""Python Programming (BCC402)"", ""Cyber Security (BCC401)""]",2,theory,2,4,CSEDS,57
+58,Science Based Open Elective/BSC (Maths- III/Math IV/ Math V) (BOE3**/ BAS303),BOE3**,"[""BOE3**"", ""BAS303""]","[""Science Based Open Elective (BOE3**)"", ""BSC (BAS303)""]",4,theory,2,3,CSEAIML,58
+59,Universal Human Value and Professional Ethics/ Technical Communication (BVE301/ BAS301),BVE301,"[""BVE301"", ""BAS301""]","[""Universal Human Value and Professional Ethics (BVE301)"", ""Technical Communication (BAS301)""]",3,theory,2,3,CSEAIML,59
+60,Data Structure (BCS301),BCS301,"[""BCS301""]",[],4,theory,2,3,CSEAIML,60
+61,Computer Organization and Architecture (BCS302),BCS302,"[""BCS302""]",[],4,theory,2,3,CSEAIML,61
+62,Discrete Structures & of Logic (BCS303),BCS303,"[""BCS303""]",[],3,theory,2,3,CSEAIML,62
+63,Data Structure Lab (BCS351),BCS351,"[""BCS351""]",[],1,lab,2,3,CSEAIML,63
+64,Computer Organization and Architecture Lab (BCS352),BCS352,"[""BCS352""]",[],1,lab,2,3,CSEAIML,64
+65,Web Designing Workshop (BCS353),BCS353,"[""BCS353""]",[],1,lab,2,3,CSEAIML,65
+66,Cyber Security/Python programming (BCC301/ BCC302),BCC301,"[""BCC301"", ""BCC302""]","[""Cyber Security (BCC301)"", ""Python programming (BCC302)""]",2,theory,2,3,CSEAIML,66
+67,Internship Assessment /Mini Project (BCC351),BCC351,"[""BCC351""]","[""Internship Assessment"", ""Mini Project (BCC351)""]",2,project,2,3,CSEAIML,67
+68,BSC(Maths-III/Math IV/ Math V)/Science Based Open Elective (BAS403/ BOE4**),BAS403,"[""BAS403"", ""BOE4**""]","[""BSC (BAS403)"", ""Science Based Open Elective (BOE4**)""]",4,theory,2,4,CSEAIML,68
+69,Technical Communication / Universal Human Value and Professional Ethics (BAS401/ BVE401),BAS401,"[""BAS401"", ""BVE401""]","[""Technical Communication (BAS401)"", ""Universal Human Value and Professional Ethics (BVE401)""]",3,theory,2,4,CSEAIML,69
+70,Operating System (BCS401),BCS401,"[""BCS401""]",[],4,theory,2,4,CSEAIML,70
+71,Theory of Automata and Formal Languages (BCS402),BCS402,"[""BCS402""]",[],4,theory,2,4,CSEAIML,71
+72,Object Oriented Programming with Java (BCS403),BCS403,"[""BCS403""]",[],3,theory,2,4,CSEAIML,72
+73,Operating System Lab (BCS451),BCS451,"[""BCS451""]",[],1,lab,2,4,CSEAIML,73
+74,Object Oriented Programming with Java Lab (BCS452),BCS452,"[""BCS452""]",[],1,lab,2,4,CSEAIML,74
+75,Cyber Security Workshop (BCS453),BCS453,"[""BCS453""]",[],1,lab,2,4,CSEAIML,75
+76,Python Programming/Cyber Security (BCC402/ BCC401),BCC402,"[""BCC402"", ""BCC401""]","[""Python Programming (BCC402)"", ""Cyber Security (BCC401)""]",2,theory,2,4,CSEAIML,76
+77,Science Based Open Elective/BSC (Maths- III/Math IV/ Math V) (BOE3**/ BAS303),BOE3**,"[""BOE3**"", ""BAS303""]","[""Science Based Open Elective (BOE3**)"", ""BSC (BAS303)""]",4,theory,2,3,IT,77
+78,Universal Human Value and Professional Ethics/ Technical Communication (BVE301/ BAS301),BVE301,"[""BVE301"", ""BAS301""]","[""Universal Human Value and Professional Ethics (BVE301)"", ""Technical Communication (BAS301)""]",3,theory,2,3,IT,78
+79,Data Structure (BCS301),BCS301,"[""BCS301""]",[],4,theory,2,3,IT,79
+80,Computer Organization and Architecture (BCS302),BCS302,"[""BCS302""]",[],4,theory,2,3,IT,80
+81,Discrete Structures & of Logic (BCS303),BCS303,"[""BCS303""]",[],3,theory,2,3,IT,81
+82,Data Structure Lab (BCS351),BCS351,"[""BCS351""]",[],1,lab,2,3,IT,82
+83,Computer Organization and Architecture Lab (BCS352),BCS352,"[""BCS352""]",[],1,lab,2,3,IT,83
+84,Web Designing Workshop (BCS353),BCS353,"[""BCS353""]",[],1,lab,2,3,IT,84
+85,Cyber Security/Python programming (BCC301/ BCC302),BCC301,"[""BCC301"", ""BCC302""]","[""Cyber Security (BCC301)"", ""Python programming (BCC302)""]",2,theory,2,3,IT,85
+86,Internship Assessment /Mini Project (BCC351),BCC351,"[""BCC351""]","[""Internship Assessment"", ""Mini Project (BCC351)""]",2,project,2,3,IT,86
+87,BSC(Maths-III/Math IV/ Math V)/Science Based Open Elective (BAS403/ BOE4**),BAS403,"[""BAS403"", ""BOE4**""]","[""BSC (BAS403)"", ""Science Based Open Elective (BOE4**)""]",4,theory,2,4,IT,87
+88,Technical Communication / Universal Human Value and Professional Ethics (BAS401/ BVE401),BAS401,"[""BAS401"", ""BVE401""]","[""Technical Communication (BAS401)"", ""Universal Human Value and Professional Ethics (BVE401)""]",3,theory,2,4,IT,88
+89,Operating System (BCS401),BCS401,"[""BCS401""]",[],4,theory,2,4,IT,89
+90,Theory of Automata and Formal Languages (BCS402),BCS402,"[""BCS402""]",[],4,theory,2,4,IT,90
+91,Object Oriented Programming with Java (BCS403),BCS403,"[""BCS403""]",[],3,theory,2,4,IT,91
+92,Operating System Lab (BCS451),BCS451,"[""BCS451""]",[],1,lab,2,4,IT,92
+93,Object Oriented Programming with Java Lab (BCS452),BCS452,"[""BCS452""]",[],1,lab,2,4,IT,93
+94,Cyber Security Workshop (BCS453),BCS453,"[""BCS453""]",[],1,lab,2,4,IT,94
+95,Python Programming/Cyber Security (BCC402/ BCC401),BCC402,"[""BCC402"", ""BCC401""]","[""Python Programming (BCC402)"", ""Cyber Security (BCC401)""]",2,theory,2,4,IT,95
+96,Science Based Open Elective/BSC (Maths- III/Math IV/ Math V) (BOE3**/ BAS303),BOE3**,"[""BOE3**"", ""BAS303""]","[""Science Based Open Elective (BOE3**)"", ""BSC (BAS303)""]",4,theory,2,3,ECE,96
+97,Universal Human Value and Professional Ethics/Technical Communication (BVE301/ BAS301),BVE301,"[""BVE301"", ""BAS301""]","[""Universal Human Value and Professional Ethics (BVE301)"", ""Technical Communication (BAS301)""]",3,theory,2,3,ECE,97
+98,Electronic Devices (BEC301),BEC301,"[""BEC301""]",[],4,theory,2,3,ECE,98
+99,Digital System Design (BEC302),BEC302,"[""BEC302""]",[],4,theory,2,3,ECE,99
+100,Network Analysis and Synthesis (BEC303),BEC303,"[""BEC303""]",[],3,theory,2,3,ECE,100
+101,Electronic Devices Lab (BEC351),BEC351,"[""BEC351""]",[],1,lab,2,3,ECE,101
+102,Digital System Design Lab (BEC352),BEC352,"[""BEC352""]",[],1,lab,2,3,ECE,102
+103,Network Analysis and Synthesis lab (BEC353),BEC353,"[""BEC353""]",[],1,lab,2,3,ECE,103
+104,Cyber Security/Python programming (BCC301/ BCC302),BCC301,"[""BCC301"", ""BCC302""]","[""Cyber Security (BCC301)"", ""Python programming (BCC302)""]",2,theory,2,3,ECE,104
+105,Internship Assessment /Mini Project (BCC351),BCC351,"[""BCC351""]","[""Internship Assessment"", ""Mini Project (BCC351)""]",2,project,2,3,ECE,105
+106,BSC(Maths-III/Math IV/ Math V)/Science Based Open Elective (BAS403 / BOE4**),BAS403,"[""BAS403"", ""BOE4**""]","[""BSC (BAS403)"", ""Science Based Open Elective (BOE4**)""]",4,theory,2,4,ECE,106
+107,Technical Communication / Universal Human Value and Professional Ethics (BAS401 / BVE401),BAS401,"[""BAS401"", ""BVE401""]","[""Technical Communication (BAS401)"", ""Universal Human Value and Professional Ethics (BVE401)""]",3,theory,2,4,ECE,107
+108,Communication Engineering (BEC401),BEC401,"[""BEC401""]",[],4,theory,2,4,ECE,108
+109,Analog Circuits (BEC402),BEC402,"[""BEC402""]",[],4,theory,2,4,ECE,109
+110,Signal System (BEC403),BEC403,"[""BEC403""]",[],3,theory,2,4,ECE,110
+111,Communication Engineering Lab (BEC451),BEC451,"[""BEC451""]",[],1,lab,2,4,ECE,111
+112,Analog Circuits Lab (BEC452),BEC452,"[""BEC452""]",[],1,lab,2,4,ECE,112
+113,Signal System Lab (BEC453),BEC453,"[""BEC453""]",[],1,lab,2,4,ECE,113
+114,Python Programming/Cyber Security (BCC402/ BCC401),BCC402,"[""BCC402"", ""BCC401""]","[""Python Programming (BCC402)"", ""Cyber Security (BCC401)""]",2,theory,2,4,ECE,114
+115,Science Based Open Elective/BSC (Maths-III/Math IV/ Math V) (BOE3**/ BAS303),BOE3**,"[""BOE3**"", ""BAS303""]","[""Science Based Open Elective (BOE3**)"", ""BSC (BAS303)""]",4,theory,2,3,ME,115
+116,Universal Human Value and Professional Ethics/Technical Communication (BVE301/ BAS301),BVE301,"[""BVE301"", ""BAS301""]","[""Universal Human Value and Professional Ethics (BVE301)"", ""Technical Communication (BAS301)""]",3,theory,2,3,ME,116
+117,Thermodynamics (BME301),BME301,"[""BME301""]",[],4,theory,2,3,ME,117
+118,Fluid Mechanics & Fluid Machines (BME302),BME302,"[""BME302""]",[],4,theory,2,3,ME,118
+119,Materials Engineering (BME303),BME303,"[""BME303""]",[],3,theory,2,3,ME,119
+120,Fluid Mechanics Lab (BME351),BME351,"[""BME351""]",[],1,lab,2,3,ME,120
+121,Material Testing Lab (BME352),BME352,"[""BME352""]",[],1,lab,2,3,ME,121
+122,Computer Aided Machine Drawing-I Lab (BME353),BME353,"[""BME353""]",[],1,lab,2,3,ME,122
+123,Cyber Security/Python programming (BCC301/ BCC302),BCC301,"[""BCC301"", ""BCC302""]","[""Cyber Security (BCC301)"", ""Python programming (BCC302)""]",2,theory,2,3,ME,123
+124,Internship Assessment /Mini Project (BCC351),BCC351,"[""BCC351""]","[""Internship Assessment"", ""Mini Project (BCC351)""]",2,project,2,3,ME,124
+125,BSC (Maths-III/Math IV/ Math V)/Science Based Open Elective (BAS403/ BOE4**),BAS403,"[""BAS403"", ""BOE4**""]","[""BSC (BAS403)"", ""Science Based Open Elective (BOE4**)""]",4,theory,2,4,ME,125
+126,Technical Communication/ Universal Human Value and Professional Ethics (BAS401/ BVE401),BAS401,"[""BAS401"", ""BVE401""]","[""Technical Communication (BAS401)"", ""Universal Human Value and Professional Ethics (BVE401)""]",3,theory,2,4,ME,126
+127,Applied Thermodynamics (BME401),BME401,"[""BME401""]",[],4,theory,2,4,ME,127
+128,Engineering Mechanics & Strength Material (BME402),BME402,"[""BME402""]",[],4,theory,2,4,ME,128
+129,Manufacturing Processes (BME403),BME403,"[""BME403""]",[],3,theory,2,4,ME,129
+130,Applied Thermodynamics Lab (BME451),BME451,"[""BME451""]",[],1,lab,2,4,ME,130
+131,Manufacturing Processes Lab (BME452),BME452,"[""BME452""]",[],1,lab,2,4,ME,131
+132,Computer Aided Machine Drawing-II Lab (BME453),BME453,"[""BME453""]",[],1,lab,2,4,ME,132
+133,Python Programming/Cyber Security (BCC402/ BCC401),BCC402,"[""BCC402"", ""BCC401""]","[""Python Programming (BCC402)"", ""Cyber Security (BCC401)""]",2,theory,2,4,ME,133
+134,Science Based Open Elective/BSC (Maths- III/Math IV/ Math V) (BOE3**/ BAS302),BOE3**,"[""BOE3**"", ""BAS302""]","[""Science Based Open Elective (BOE3**)"", ""BSC (BAS302)""]",4,theory,2,3,CE,134
+135,Technical Communication Universal Human Value and Professional Ethics/ (BVE301/ BAS301),BVE301,"[""BVE301"", ""BAS301""]","[""Technical Communication Universal Human Value and Professional Ethics (BVE301)"", "" (BAS301)""]",3,theory,2,3,CE,135
+136,Engineering Mechanics (BCE301),BCE301,"[""BCE301""]",[],4,theory,2,3,CE,136
+137,Surveying and Geomatics (BCE302),BCE302,"[""BCE302""]",[],4,theory,2,3,CE,137
+138,Fluid Mechanics (BCE303),BCE303,"[""BCE303""]",[],3,theory,2,3,CE,138
+139,Building Planning & Drawing Lab (BCE351),BCE351,"[""BCE351""]",[],1,lab,2,3,CE,139
+140,Surveying and Geomatics Lab (BCE352),BCE352,"[""BCE352""]",[],1,lab,2,3,CE,140
+141,Fluid Mechanics Lab (BCE353),BCE353,"[""BCE353""]",[],1,lab,2,3,CE,141
+142,Cyber Security/Python programming (BCC301 / BCC302),BCC301,"[""BCC301"", ""BCC302""]","[""Cyber Security (BCC301)"", ""Python programming (BCC302)""]",2,theory,2,3,CE,142
+143,Internship Assessment Mini Project (BCC351),BCC351,"[""BCC351""]",[],2,project,2,3,CE,143
+144,BSC(Maths-III/Math IV/ Math V)/Science Based Open Elective (BAS402/ BOE4**),BAS402,"[""BAS402"", ""BOE4**""]","[""BSC (BAS402)"", ""Science Based Open Elective (BOE4**)""]",4,theory,2,4,CE,144
+145,Technical Communication / Universal Human Value and Professional Ethics (BAS401/ BVE401),BAS401,"[""BAS401"", ""BVE401""]","[""Technical Communication (BAS401)"", ""Universal Human Value and Professional Ethics (BVE401)""]",3,theory,2,4,CE,145
+146,"Materials, Testing & Construction Practices (BCE401)",BCE401,"[""BCE401""]",[],4,theory,2,4,CE,146
+147,Introduction to Solid Mechanics (BCE402),BCE402,"[""BCE402""]",[],4,theory,2,4,CE,147
+148,Hydraulic Engineering and Machines (BCE403),BCE403,"[""BCE403""]",[],3,theory,2,4,CE,148
+149,Material Testing Lab (BCE451),BCE451,"[""BCE451""]",[],1,lab,2,4,CE,149
+150,Solid Mechanics Lab (BCE452),BCE452,"[""BCE452""]",[],1,lab,2,4,CE,150
+151,Hydraulics & Hydraulic Machine Lab (BCE453),BCE453,"[""BCE453""]",[],1,lab,2,4,CE,151
+152,Python Programming/Cyber Security (BCC402/ BCC401),BCC402,"[""BCC402"", ""BCC401""]","[""Python Programming (BCC402)"", ""Cyber Security (BCC401)""]",2,theory,2,4,CE,152
+153,Science Based Open Elective/BSC (Maths- III/Math IV/ Math V) (BOE3**/ BAS303),BOE3**,"[""BOE3**"", ""BAS303""]","[""Science Based Open Elective (BOE3**)"", ""BSC (BAS303)""]",4,theory,2,3,EE,153
+154,Universal Human Value and Professional Ethics/ Technical Communication (BVE301/ BAS301),BVE301,"[""BVE301"", ""BAS301""]","[""Universal Human Value and Professional Ethics (BVE301)"", ""Technical Communication (BAS301)""]",3,theory,2,3,EE,154
+155,Electromagnetic Field Theory (BEE301),BEE301,"[""BEE301""]",[],4,theory,2,3,EE,155
+156,Electrical Measurements & Instrumentation (BEE302),BEE302,"[""BEE302""]",[],4,theory,2,3,EE,156
+157,Basic Signals & Systems (BEE303),BEE303,"[""BEE303""]",[],3,theory,2,3,EE,157
+158,Electrical Circuit Simulation Lab (BEE351),BEE351,"[""BEE351""]",[],1,lab,2,3,EE,158
+159,Measurements and Instrumentation Lab (BEE352),BEE352,"[""BEE352""]",[],1,lab,2,3,EE,159
+160,Electrical Workshop (BEE353),BEE353,"[""BEE353""]",[],1,lab,2,3,EE,160
+161,Cyber Security/Python programming (BCC301/ BCC302),BCC301,"[""BCC301"", ""BCC302""]","[""Cyber Security (BCC301)"", ""Python programming (BCC302)""]",2,theory,2,3,EE,161
+162,Internship Assessment /Mini Project (BCC351),BCC351,"[""BCC351""]","[""Internship Assessment"", ""Mini Project (BCC351)""]",2,project,2,3,EE,162
+163,BSC (Maths-III/Math IV/ Math V)/Science Based Open Elective (BAS403/ BOE4**),BAS403,"[""BAS403"", ""BOE4**""]","[""BSC (BAS403)"", ""Science Based Open Elective (BOE4**)""]",4,theory,2,4,EE,163
+164,Technical Communication / Universal Human Value and Professional Ethics (BAS401/ BVE401),BAS401,"[""BAS401"", ""BVE401""]","[""Technical Communication (BAS401)"", ""Universal Human Value and Professional Ethics (BVE401)""]",3,theory,2,4,EE,164
+165,Digital Electronics (BEE401),BEE401,"[""BEE401""]",[],4,theory,2,4,EE,165
+166,Electrical Machines-I (BEE402),BEE402,"[""BEE402""]",[],4,theory,2,4,EE,166
+167,Networks Analysis & Synthesis (BEE403),BEE403,"[""BEE403""]",[],3,theory,2,4,EE,167
+168,Network Analysis & Synthesis Lab (BEE451),BEE451,"[""BEE451""]",[],1,lab,2,4,EE,168
+169,Electrical Machines-I Lab (BEE452),BEE452,"[""BEE452""]",[],1,lab,2,4,EE,169
+170,Digital Electronics Lab (BEE453),BEE453,"[""BEE453""]",[],1,lab,2,4,EE,170
+171,Python Programming/Cyber Security (BCC402/ BCC401),BCC402,"[""BCC402"", ""BCC401""]","[""Python Programming (BCC402)"", ""Cyber Security (BCC401)""]",2,theory,2,4,EE,171
+172,Science Based Open Elective/BSC (Maths- III/Math IV/ Math V) (BOE3**/ BAS303),BOE3**,"[""BOE3**"", ""BAS303""]","[""Science Based Open Elective (BOE3**)"", ""BSC (BAS303)""]",4,theory,2,3,EEE,172
+173,Universal Human Value and Professional Ethics/Technical Communication (BVE301/ BAS301),BVE301,"[""BVE301"", ""BAS301""]","[""Universal Human Value and Professional Ethics (BVE301)"", ""Technical Communication (BAS301)""]",3,theory,2,3,EEE,173
+174,Electronic Devices (BEC301),BEC301,"[""BEC301""]",[],4,theory,2,3,EEE,174
+175,Digital System Design (BEC302),BEC302,"[""BEC302""]",[],4,theory,2,3,EEE,175
+176,Network Analysis and Synthesis (BEC303),BEC303,"[""BEC303""]",[],3,theory,2,3,EEE,176
+177,Electronic Devices Lab (BEC351),BEC351,"[""BEC351""]",[],1,lab,2,3,EEE,177
+178,Digital System Design Lab (BEC352),BEC352,"[""BEC352""]",[],1,lab,2,3,EEE,178
+179,Network Analysis and Synthesis lab (BEC353),BEC353,"[""BEC353""]",[],1,lab,2,3,EEE,179
+180,Cyber Security/Python programming (BCC301/ BCC302),BCC301,"[""BCC301"", ""BCC302""]","[""Cyber Security (BCC301)"", ""Python programming (BCC302)""]",2,theory,2,3,EEE,180
+181,Internship Assessment /Mini Project (BCC351),BCC351,"[""BCC351""]","[""Internship Assessment"", ""Mini Project (BCC351)""]",2,project,2,3,EEE,181
+182,BSC(Maths-III/Math IV/ Math V)/Science Based Open Elective (BAS403 / BOE4**),BAS403,"[""BAS403"", ""BOE4**""]","[""BSC (BAS403)"", ""Science Based Open Elective (BOE4**)""]",4,theory,2,4,EEE,182
+183,Technical Communication / Universal Human Value and Professional Ethics (BAS401 / BVE401),BAS401,"[""BAS401"", ""BVE401""]","[""Technical Communication (BAS401)"", ""Universal Human Value and Professional Ethics (BVE401)""]",3,theory,2,4,EEE,183
+184,Communication Engineering (BEC401),BEC401,"[""BEC401""]",[],4,theory,2,4,EEE,184
+185,Analog Circuits (BEC402),BEC402,"[""BEC402""]",[],4,theory,2,4,EEE,185
+186,Signal System (BEC403),BEC403,"[""BEC403""]",[],3,theory,2,4,EEE,186
+187,Communication Engineering Lab (BEC451),BEC451,"[""BEC451""]",[],1,lab,2,4,EEE,187
+188,Analog Circuits Lab (BEC452),BEC452,"[""BEC452""]",[],1,lab,2,4,EEE,188
+189,Signal System Lab (BEC453),BEC453,"[""BEC453""]",[],1,lab,2,4,EEE,189
+190,Python Programming/Cyber Security (BCC402/ BCC401),BCC402,"[""BCC402"", ""BCC401""]","[""Python Programming (BCC402)"", ""Cyber Security (BCC401)""]",2,theory,2,4,EEE,190
+191,Database Management System (BCS501),BCS501,"[""BCS501""]",[],4,theory,3,5,CSE,191
+192,Web Technology (BCS502),BCS502,"[""BCS502""]",[],4,theory,3,5,CSE,192
+193,Design and Analysis of Algorithm (BCS503),BCS503,"[""BCS503""]",[],4,theory,3,5,CSE,193
+194,Departmental Elective-I (Deptt- Elective-I),,[],[],3,theory,3,5,CSE,194
+195,Departmental Elective-II (Deptt.- Elective-II),,[],[],3,theory,3,5,CSE,195
+196,Database Management System Lab (BCS551),BCS551,"[""BCS551""]",[],1,lab,3,5,CSE,196
+197,Web Technology Lab (BCS552),BCS552,"[""BCS552""]",[],1,lab,3,5,CSE,197
+198,Design and Analysis of Algorithm Lab (BCS553),BCS553,"[""BCS553""]",[],1,lab,3,5,CSE,198
+199,Mini Project or Internship Assessment (BCS554),BCS554,"[""BCS554""]",[],2,project,3,5,CSE,199
+200,Software Engineering (BCS601),BCS601,"[""BCS601""]",[],4,theory,3,6,CSE,200
+201,Compiler Design (BCS602),BCS602,"[""BCS602""]",[],4,theory,3,6,CSE,201
+202,Computer Networks (BCS603),BCS603,"[""BCS603""]",[],4,theory,3,6,CSE,202
+203,Departmental Elective-III (Deptt- Elective-III),,[],[],3,theory,3,6,CSE,203
+204,Open Elective-I (Open Elective-I),,[],[],3,theory,3,6,CSE,204
+205,Software Engineering Lab (BCS651),BCS651,"[""BCS651""]",[],1,lab,3,6,CSE,205
+206,Compiler Design Lab (BCS652),BCS652,"[""BCS652""]",[],1,lab,3,6,CSE,206
+207,Computer Networks Lab (BCS653),BCS653,"[""BCS653""]",[],1,lab,3,6,CSE,207
+208,Database Management System (BCS501),BCS501,"[""BCS501""]",[],4,theory,3,5,CSEDS,208
+209,Introduction to Data Analytics and Visualization (BCDS501),BCDS501,"[""BCDS501""]",[],4,theory,3,5,CSEDS,209
+210,Design and Analysis of Algorithm (BCS503),BCS503,"[""BCS503""]",[],4,theory,3,5,CSEDS,210
+211,Departmental Elective-I (Dept. Elective-I),,[],[],3,theory,3,5,CSEDS,211
+212,Departmental Elective-II (Dept. Elective-II),,[],[],3,theory,3,5,CSEDS,212
+213,Database Management System Lab (BCS551),BCS551,"[""BCS551""]",[],1,lab,3,5,CSEDS,213
+214,Data Analytics and Visualization Lab (BCDS551),BCDS551,"[""BCDS551""]",[],1,lab,3,5,CSEDS,214
+215,Design and Analysis of Algorithm Lab (BCS553),BCS553,"[""BCS553""]",[],1,lab,3,5,CSEDS,215
+216,Mini Project or Internship Assessment (BCS554),BCS554,"[""BCS554""]",[],2,project,3,5,CSEDS,216
+217,Software Engineering (BCS601),BCS601,"[""BCS601""]",[],4,theory,3,6,CSEDS,217
+218,Big Data and Analytics (BCDS601),BCDS601,"[""BCDS601""]",[],4,theory,3,6,CSEDS,218
+219,Computer Networks (BCS603),BCS603,"[""BCS603""]",[],4,theory,3,6,CSEDS,219
+220,Departmental Elective-III (Dept. Elective-III),,[],[],3,theory,3,6,CSEDS,220
+221,Open Elective-I (Open Elective-I),,[],[],3,theory,3,6,CSEDS,221
+222,Software Engineering Lab (BCS652),BCS652,"[""BCS652""]",[],1,lab,3,6,CSEDS,222
+223,Big Data and Analytics Lab (BCDS651),BCDS651,"[""BCDS651""]",[],1,lab,3,6,CSEDS,223
+224,Computer Networks Lab (BCS653),BCS653,"[""BCS653""]",[],1,lab,3,6,CSEDS,224
+225,Database Management System (BCS501),BCS501,"[""BCS501""]",[],4,theory,3,5,CSEAIML,225
+226,Artificial Intelligence (BCAI501),BCAI501,"[""BCAI501""]",[],4,theory,3,5,CSEAIML,226
+227,Design and Analysis of Algorithm (BCS503),BCS503,"[""BCS503""]",[],4,theory,3,5,CSEAIML,227
+228,Departmental Elective-I (BCAI051/ BCS058/ BCS052/ BCS054),BCAI051,"[""BCAI051"", ""BCS058"", ""BCS052"", ""BCS054""]",[],4,theory,3,5,CSEAIML,228
+229,Departmental Elective-II (BCAM051/ BCAI052/ BCS056/ BCS057),BCAM051,"[""BCAM051"", ""BCAI052"", ""BCS056"", ""BCS057""]",[],4,theory,3,5,CSEAIML,229
+230,Database Management System Lab (BCS551),BCS551,"[""BCS551""]",[],1,lab,3,5,CSEAIML,230
+231,Artificial Intelligence Lab (BCAI551),BCAI551,"[""BCAI551""]",[],1,lab,3,5,CSEAIML,231
+232,Design and Analysis of Algorithm Lab (BCS553),BCS553,"[""BCS553""]",[],1,lab,3,5,CSEAIML,232
+233,Mini Project or Internship Assessment (BCS554),BCS554,"[""BCS554""]",[],2,project,3,5,CSEAIML,233
+234,Software Engineering (BCS601),BCS601,"[""BCS601""]",[],4,theory,3,6,CSEAIML,234
+235,Machine Learning Techniques (BCAI601),BCAI601,"[""BCAI601""]",[],4,theory,3,6,CSEAIML,235
+236,Computer Networks (BCS603),BCS603,"[""BCS603""]",[],4,theory,3,6,CSEAIML,236
+237,Departmental Elective-III (BCAI061/ BCDS061/ BCAM061/ BCAM062),BCAI061,"[""BCAI061"", ""BCDS061"", ""BCAM061"", ""BCAM062""]",[],3,theory,3,6,CSEAIML,237
+238,Open Elective-I (Open Elective-I),,[],[],3,theory,3,6,CSEAIML,238
+239,Software Engineering Lab (BCS651),BCS651,"[""BCS651""]",[],1,lab,3,6,CSEAIML,239
+240,Machine Learning Lab (BCAI651),BCAI651,"[""BCAI651""]",[],1,lab,3,6,CSEAIML,240
+241,Computer Networks Lab (BCS653),BCS653,"[""BCS653""]",[],1,lab,3,6,CSEAIML,241
+242,Database Management System (BCS501),BCS501,"[""BCS501""]",[],4,theory,3,5,IT,242
+243,Web Technology (BCS502),BCS502,"[""BCS502""]",[],4,theory,3,5,IT,243
+244,Design and Analysis of Algorithm (BCS503),BCS503,"[""BCS503""]",[],4,theory,3,5,IT,244
+245,Departmental Elective-I (BCS051- 054),,[],[],3,theory,3,5,IT,245
+246,Departmental Elective-II (BCS055- 058),,[],[],3,theory,3,5,IT,246
+247,Database Management System Lab (BCS551),BCS551,"[""BCS551""]",[],1,lab,3,5,IT,247
+248,Web Technology Lab (BCS552),BCS552,"[""BCS552""]",[],1,lab,3,5,IT,248
+249,Design and Analysis of Algorithm Lab (BCS553),BCS553,"[""BCS553""]",[],1,lab,3,5,IT,249
+250,Mini Project or Internship Assessment (BCS554),BCS554,"[""BCS554""]",[],2,project,3,5,IT,250
+251,Software Engineering (BCS601),BCS601,"[""BCS601""]",[],4,theory,3,6,IT,251
+252,Data Analytics (BIT601),BIT601,"[""BIT601""]",[],4,theory,3,6,IT,252
+253,Computer Networks (BCS603),BCS603,"[""BCS603""]",[],4,theory,3,6,IT,253
+254,Departmental Elective-III (BCS061- 064),,[],[],3,theory,3,6,IT,254
+255,Open Elective-I (Open Elective-I),,[],[],3,theory,3,6,IT,255
+256,Software Engineering Lab (BCS651),BCS651,"[""BCS651""]",[],1,lab,3,6,IT,256
+257,Data Analytics Lab (BIT651),BIT651,"[""BIT651""]",[],1,lab,3,6,IT,257
+258,Computer Networks Lab (BCS653),BCS653,"[""BCS653""]",[],1,lab,3,6,IT,258
+259,Power System - I (BEE501),BEE501,"[""BEE501""]",[],4,theory,3,5,ECE,259
+260,Control System (BEE502),BEE502,"[""BEE502""]",[],4,theory,3,5,ECE,260
+261,Electrical Machines-II (BEE503),BEE503,"[""BEE503""]",[],4,theory,3,5,ECE,261
+262,Departmental Elective-I (BE*051- BE*054),,[],[],3,theory,3,5,ECE,262
+263,Departmental Elective-II (BEE055- BEE058),,[],[],3,theory,3,5,ECE,263
+264,Power System-I Lab (BEE551),BEE551,"[""BEE551""]",[],1,lab,3,5,ECE,264
+265,Control System Lab (BEE552),BEE552,"[""BEE552""]",[],1,lab,3,5,ECE,265
+266,Electrical Machines - IILab (BEE553),BEE553,"[""BEE553""]",[],1,lab,3,5,ECE,266
+267,Mini Project or Internship Assessment (BEN554),BEN554,"[""BEN554""]",[],1,project,3,5,ECE,267
+268,Power System-II (BEE601),BEE601,"[""BEE601""]",[],4,theory,3,6,ECE,268
+269,Microprocessor (BEE602),BEE602,"[""BEE602""]",[],4,theory,3,6,ECE,269
+270,Power Electronics (BEE603),BEE603,"[""BEE603""]",[],4,theory,3,6,ECE,270
+271,Departmental Elective- III (BEE*06*),,[],[],3,theory,3,6,ECE,271
+272,Open Elective-I (BOE06*),BOE06*,"[""BOE06*""]",[],3,theory,3,6,ECE,272
+273,Power System-II Lab (BEE651),BEE651,"[""BEE651""]",[],1,lab,3,6,ECE,273
+274,Microprocessor Lab (BEE652),BEE652,"[""BEE652""]",[],1,lab,3,6,ECE,274
+275,Power Electronics Lab (BEE653),BEE653,"[""BEE653""]",[],1,lab,3,6,ECE,275
+276,Heat & Mass Transfer (ΒΜΕ 501),,[],[],4,theory,3,5,ME,276
+277,Machine Design (BME 502),,[],[],4,theory,3,5,ME,277
+278,Industrial Engineering (BME 503),,[],[],4,theory,3,5,ME,278
+279,Departmental Elective-I (Dept Elective-I),,[],[],3,theory,3,5,ME,279
+280,Departmental Elective-II (Dept Elective-II),,[],[],3,theory,3,5,ME,280
+281,Heat Transfer Lab (ΒΜΕ 551),,[],[],1,lab,3,5,ME,281
+282,Machine Design Lab (BME 552),,[],[],1,lab,3,5,ME,282
+283,Internet of Things Lab (BME 553),,[],[],1,lab,3,5,ME,283
+284,Mini Project/Internship Assessment (ΒΜΕ 554),,[],"[""Mini Project"", ""Internship Assessment (\u0392\u039c\u0395 554)""]",1,project,3,5,ME,284
+285,Refrigeration & Air Conditioning (BME 601),,[],[],4,theory,3,6,ME,285
+286,CAD/CAM (BME 602),,[],"[""CAD"", ""CAM (BME 602)""]",4,theory,3,6,ME,286
+287,Theory of Machines (BME 603),,[],[],4,theory,3,6,ME,287
+288,Departmental Elective-III (Dept Elective-III),,[],[],3,theory,3,6,ME,288
+289,Open Elective-I (Open Elective-I),,[],[],3,theory,3,6,ME,289
+290,Refrigeration & Air Conditioning Lab (BME 651),,[],[],1,lab,3,6,ME,290
+291,CAD/CAM Lab (BME 652),,[],"[""CAD"", ""CAM Lab (BME 652)""]",1,lab,3,6,ME,291
+292,Theory of Machines Lab (BME 653),,[],[],1,lab,3,6,ME,292
+293,Geotechnical Engineering (BCE-501),,[],[],4,theory,3,5,CE,293
+294,Structural Analysis (BCE-502),,[],[],4,theory,3,5,CE,294
+295,Quantity Estimation and Construction Management (BCE-503),,[],[],4,theory,3,5,CE,295
+296,Departmental Elective-I (BCE-051 to 054),,[],[],3,theory,3,5,CE,296
+297,Departmental Elective-II (BCE-055 to 058),,[],[],3,theory,3,5,CE,297
+298,CAD Lab (BCE-551),,[],[],1,lab,3,5,CE,298
+299,Geotechnical Engineering Lab (BCE-552),,[],[],1,lab,3,5,CE,299
+300,Quantity Estimation and Management Lab (BCE-553),,[],[],1,lab,3,5,CE,300
+301,Mini Project or Internship Assessment (BCE-554),,[],[],1,project,3,5,CE,301
+302,Design of Concrete Structures (BCE601),BCE601,"[""BCE601""]",[],4,theory,3,6,CE,302
+303,Transportation Engineering (BCE602),BCE602,"[""BCE602""]",[],4,theory,3,6,CE,303
+304,Environmental Engineering (BCE603),BCE603,"[""BCE603""]",[],4,theory,3,6,CE,304
+305,Departmental Elective-III (BCE061 to 064),,[],[],3,theory,3,6,CE,305
+306,Open Elective-I (Open Elective-I),,[],[],3,theory,3,6,CE,306
+307,Structural Detailing Lab (BCE651),BCE651,"[""BCE651""]",[],1,lab,3,6,CE,307
+308,Transportation Engineering Lab (BCE652),BCE652,"[""BCE652""]",[],1,lab,3,6,CE,308
+309,Environmental Engineering Lab (BCE653),BCE653,"[""BCE653""]",[],1,lab,3,6,CE,309
+310,Power System - I (BEE501),BEE501,"[""BEE501""]",[],4,theory,3,5,EE,310
+311,Control System (BEE502),BEE502,"[""BEE502""]",[],4,theory,3,5,EE,311
+312,Electrical Machines-II (BEE503),BEE503,"[""BEE503""]",[],4,theory,3,5,EE,312
+313,Departmental Elective-I (BEE051- BEE054),,[],[],3,theory,3,5,EE,313
+314,Departmental Elective-II (BEE055- BEE058),,[],[],3,theory,3,5,EE,314
+315,Power System-I Lab (BEE551),BEE551,"[""BEE551""]",[],1,lab,3,5,EE,315
+316,Control System Lab (BEE552),BEE552,"[""BEE552""]",[],1,lab,3,5,EE,316
+317,Electrical Machines - II Lab (BEE553),BEE553,"[""BEE553""]",[],1,lab,3,5,EE,317
+318,Mini Project or Internship Assessment (BEE554),BEE554,"[""BEE554""]",[],1,project,3,5,EE,318
+319,Power System-II (BEE601),BEE601,"[""BEE601""]",[],4,theory,3,6,EE,319
+320,Microprocessor (BEE602),BEE602,"[""BEE602""]",[],4,theory,3,6,EE,320
+321,Power Electronics (BEE603),BEE603,"[""BEE603""]",[],4,theory,3,6,EE,321
+322,Departmental Elective- III (BEE06*),BEE06*,"[""BEE06*""]",[],3,theory,3,6,EE,322
+323,Open Elective-I (BOE06*),BOE06*,"[""BOE06*""]",[],3,theory,3,6,EE,323
+324,Power System-II Lab (BEE651),BEE651,"[""BEE651""]",[],1,lab,3,6,EE,324
+325,Microprocessor Lab (BEE652),BEE652,"[""BEE652""]",[],1,lab,3,6,EE,325
+326,Power Electronics Lab (BEE653),BEE653,"[""BEE653""]",[],1,lab,3,6,EE,326
+327,Power System - I (BEE501),BEE501,"[""BEE501""]",[],4,theory,3,5,EEE,327
+328,Control System (BEE502),BEE502,"[""BEE502""]",[],4,theory,3,5,EEE,328
+329,Electrical Machines-II (BEE503),BEE503,"[""BEE503""]",[],4,theory,3,5,EEE,329
+330,Departmental Elective-I (BE*051- BE*054),,[],[],3,theory,3,5,EEE,330
+331,Departmental Elective-II (BEE055- BEE058),,[],[],3,theory,3,5,EEE,331
+332,Power System-I Lab (BEE551),BEE551,"[""BEE551""]",[],1,lab,3,5,EEE,332
+333,Control System Lab (BEE552),BEE552,"[""BEE552""]",[],1,lab,3,5,EEE,333
+334,Electrical Machines - IILab (BEE553),BEE553,"[""BEE553""]",[],1,lab,3,5,EEE,334
+335,Mini Project or Internship Assessment (BEN554),BEN554,"[""BEN554""]",[],1,project,3,5,EEE,335
+336,Power System-II (BEE601),BEE601,"[""BEE601""]",[],4,theory,3,6,EEE,336
+337,Microprocessor (BEE602),BEE602,"[""BEE602""]",[],4,theory,3,6,EEE,337
+338,Power Electronics (BEE603),BEE603,"[""BEE603""]",[],4,theory,3,6,EEE,338
+339,Departmental Elective- III (BEE*06*),,[],[],3,theory,3,6,EEE,339
+340,Open Elective-I (BOE06*),BOE06*,"[""BOE06*""]",[],3,theory,3,6,EEE,340
+341,Power System-II Lab (BEE651),BEE651,"[""BEE651""]",[],1,lab,3,6,EEE,341
+342,Microprocessor Lab (BEE652),BEE652,"[""BEE652""]",[],1,lab,3,6,EEE,342
+343,Power Electronics Lab (BEE653),BEE653,"[""BEE653""]",[],1,lab,3,6,EEE,343
+344,Artificial Intelligence (BCS701),BCS701,"[""BCS701""]",[],3,theory,4,7,CSE,344
+345,Departmental Elective-IV (Deptt- Elective-IV),,[],[],3,theory,4,7,CSE,345
+346,Open Elective-II (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,7,CSE,346
+347,Artificial Intelligence LAB (BCS751),BCS751,"[""BCS751""]",[],1,lab,4,7,CSE,347
+348,Mini Project or Internship Assessment (BCS752),BCS752,"[""BCS752""]",[],2,project,4,7,CSE,348
+349,Project-I (BCS753),BCS753,"[""BCS753""]",[],5,project,4,7,CSE,349
+350,Startup and Entrepreneurial Activity Assessment (BCS754),BCS754,"[""BCS754""]",[],2,project,4,7,CSE,350
+351,Open Elective-III (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,CSE,351
+352,Open Elective-IV (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,CSE,352
+353,Project-II (BCS851),BCS851,"[""BCS851""]",[],10,project,4,8,CSE,353
+354,Deep Learning (BAI701),BAI701,"[""BAI701""]",[],3,theory,4,7,CSEDS,354
+355,Deptt- Elective-IV (B**07*),,[],[],3,theory,4,7,CSEDS,355
+356,Open Elective-II (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,7,CSEDS,356
+357,Deep Learning Lab (BAI751),BAI751,"[""BAI751""]",[],1,lab,4,7,CSEDS,357
+358,Mini Projects or Internship Assessment (BCS752),BCS752,"[""BCS752""]",[],2,project,4,7,CSEDS,358
+359,Project-1 (BCS753),BCS753,"[""BCS753""]",[],5,project,4,7,CSEDS,359
+360,Startup and Entrepreneurial Activity Assessment (BCS754),BCS754,"[""BCS754""]",[],2,project,4,7,CSEDS,360
+361,Open Elective-III (BOENM**),BOENM**,"[""BOENM**""]",[],3,theory,4,8,CSEDS,361
+362,Open Elective-IV (BOENM**),BOENM**,"[""BOENM**""]",[],3,theory,4,8,CSEDS,362
+363,Project-II (BCS851),BCS851,"[""BCS851""]",[],10,project,4,8,CSEDS,363
+364,Deep Learning (BAI701),BAI701,"[""BAI701""]",[],3,theory,4,7,CSEAIML,364
+365,Deptt.- Elective-IV (B**07*),,[],[],3,theory,4,7,CSEAIML,365
+366,Open Elective-II (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,7,CSEAIML,366
+367,Deep Learning Lab (BAI751),BAI751,"[""BAI751""]",[],1,lab,4,7,CSEAIML,367
+368,Mini Projects or Internship Assessment (BCS752),BCS752,"[""BCS752""]",[],2,project,4,7,CSEAIML,368
+369,Project-1 (BCS753),BCS753,"[""BCS753""]",[],5,project,4,7,CSEAIML,369
+370,Startup and Entrepreneurial Activity Assessment (BCS754),BCS754,"[""BCS754""]",[],2,project,4,7,CSEAIML,370
+371,Open Elective-III (BOENM**),BOENM**,"[""BOENM**""]",[],3,theory,4,8,CSEAIML,371
+372,Open Elective-IV (BOENM**),BOENM**,"[""BOENM**""]",[],3,theory,4,8,CSEAIML,372
+373,Project-II (BCS851),BCS851,"[""BCS851""]",[],10,project,4,8,CSEAIML,373
+374,HSMC-1/HSMC-2 (KHU701/KHU702),KHU701,"[""KHU701"", ""KHU702""]","[""HSMC-1 (KHU701)"", ""HSMC-2 (KHU702)""]",3,theory,4,7,IT,374
+375,Departmental Elective-IV (KCS07X),,[],[],3,theory,4,7,IT,375
+376,Departmental Elective-V (KCS07X),,[],[],3,theory,4,7,IT,376
+377,Open Elective-II (KOE07X),,[],[],3,theory,4,7,IT,377
+378,Lab of Elective (4 or 5) (KIT751A),,[],[],1,lab,4,7,IT,378
+379,Mini Project or Internship Assessment (KIT752),KIT752,"[""KIT752""]",[],1,project,4,7,IT,379
+380,Project 1 (KIT753),KIT753,"[""KIT753""]",[],4,project,4,7,IT,380
+381,HSMC-2/HSMC-1 (KHU801/KHU802),KHU801,"[""KHU801"", ""KHU802""]","[""HSMC-2 (KHU801)"", ""HSMC-1 (KHU802)""]",3,theory,4,8,IT,381
+382,Open Elective-III (KOE08X),,[],[],3,theory,4,8,IT,382
+383,Open Elective-IV (KOE08X),,[],[],3,theory,4,8,IT,383
+384,Project (KIT851),KIT851,"[""KIT851""]",[],9,project,4,8,IT,384
+385,VLSI Design (BEC701),BEC701,"[""BEC701""]",[],3,theory,4,7,ECE,385
+386,Departmental Elective-IV (BEC071-074),,[],[],3,theory,4,7,ECE,386
+387,Open Elective-II (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,7,ECE,387
+388,VLSI Design Lab (BEC751),BEC751,"[""BEC751""]",[],1,lab,4,7,ECE,388
+389,Mini Project or Internship Assessment (BEC752),BEC752,"[""BEC752""]",[],2,project,4,7,ECE,389
+390,Project-I (BEC753),BEC753,"[""BEC753""]",[],5,project,4,7,ECE,390
+391,Start-up and Entrepreneurial Activity Assessment (BEC754),BEC754,"[""BEC754""]",[],2,theory,4,7,ECE,391
+392,Open Elective- III (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,ECE,392
+393,Open Elective- IV (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,ECE,393
+394,Project-II (BEC851),BEC851,"[""BEC851""]",[],10,project,4,8,ECE,394
+395,Measurement & Metrology (BME701),BME701,"[""BME701""]",[],3,theory,4,7,ME,395
+396,Departmental Elective-IV (BME070),BME070,"[""BME070""]",[],3,theory,4,7,ME,396
+397,Open Elective-II (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,7,ME,397
+398,Measurement & Metrology Lab (BME751),BME751,"[""BME751""]",[],1,lab,4,7,ME,398
+399,Mini Project or Internship Assessment (BME752),BME752,"[""BME752""]",[],2,project,4,7,ME,399
+400,Project-1 (BME753),BME753,"[""BME753""]",[],5,project,4,7,ME,400
+401,Startup and Entrepreneurial Activity Assessment (BME754),BME754,"[""BME754""]",[],2,project,4,7,ME,401
+402,Open Elective-III (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,ME,402
+403,Open Elective-IV (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,ME,403
+404,Project-II (BME851),BME851,"[""BME851""]",[],10,project,4,8,ME,404
+405,Advanced Structural Design (BCE701),BCE701,"[""BCE701""]",[],3,theory,4,7,CE,405
+406,Departmental Elective-IV (BCE070 to 073),,[],[],3,theory,4,7,CE,406
+407,Open Elective-II (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,7,CE,407
+408,Integrated Civil Engineering Lab (BCE751),BCE751,"[""BCE751""]",[],1,lab,4,7,CE,408
+409,Mini Project or Internship Assessment (BCE752),BCE752,"[""BCE752""]",[],2,project,4,7,CE,409
+410,Project-I (BCE753),BCE753,"[""BCE753""]",[],5,project,4,7,CE,410
+411,Startup and Entrepreneurial Activity Assessment (BCE754),BCE754,"[""BCE754""]",[],2,project,4,7,CE,411
+412,Open Elective-III (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,CE,412
+413,Open Elective-IV (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,CE,413
+414,Project-II (BEE851),BEE851,"[""BEE851""]",[],10,project,4,8,CE,414
+415,Power System Protection (BEE701),BEE701,"[""BEE701""]",[],3,theory,4,7,EE,415
+416,Departmental ElectiveIV (BEE07*),BEE07*,"[""BEE07*""]",[],3,theory,4,7,EE,416
+417,Open Elective-II (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,7,EE,417
+418,Power Systems Protection Lab (BEE751),BEE751,"[""BEE751""]",[],1,lab,4,7,EE,418
+419,Mini Project or Internship Assessment (BEE752),BEE752,"[""BEE752""]",[],2,project,4,7,EE,419
+420,Project I (BEE753),BEE753,"[""BEE753""]",[],5,project,4,7,EE,420
+421,Startup and Entrepreneurial Assessment (BEE754),BEE754,"[""BEE754""]",[],2,project,4,7,EE,421
+422,Open Elective-III (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,EE,422
+423,Open Elective-IV (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,EE,423
+424,Project-II (BEE851),BEE851,"[""BEE851""]",[],10,project,4,8,EE,424
+425,Power System Protection (BEE701),BEE701,"[""BEE701""]",[],3,theory,4,7,EEE,425
+426,Departmental ElectiveIV (BEE07*),BEE07*,"[""BEE07*""]",[],3,theory,4,7,EEE,426
+427,Open Elective-II (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,7,EEE,427
+428,Power Systems Protection Lab (BEE751),BEE751,"[""BEE751""]",[],1,lab,4,7,EEE,428
+429,Mini Project or Internship Assessment (BEE752),BEE752,"[""BEE752""]",[],2,project,4,7,EEE,429
+430,Project I (BEE753),BEE753,"[""BEE753""]",[],5,project,4,7,EEE,430
+431,Startup and Entrepreneurial Assessment (BEE754),BEE754,"[""BEE754""]",[],2,project,4,7,EEE,431
+432,Open Elective-III (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,EEE,432
+433,Open Elective-IV (BOEM**),BOEM**,"[""BOEM**""]",[],3,theory,4,8,EEE,433
+434,Project-II (BEE851),BEE851,"[""BEE851""]",[],10,project,4,8,EEE,434

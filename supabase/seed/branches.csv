@@ -1,0 +1,10 @@
+code,name,sort_order
+CSE,Computer Science & Engineering,1
+CSEAIML,CSE (AI & ML),2
+CSEDS,CSE (Data Science),3
+IT,Information Technology,4
+ECE,Electronics & Communication Engineering,5
+EE,Electrical Engineering,6
+EEE,Electrical & Electronics Engineering,7
+ME,Mechanical Engineering,8
+CE,Civil Engineering,9
