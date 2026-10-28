@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { BookOpen, CalendarDays, CalendarPlus, Check, Clock, Dumbbell, Lightbulb, Plus, RotateCcw, Sparkles, Trash2, Trophy } from "lucide-react";
-import { useState } from "react";
+import { usePersistentState } from "@/lib/persist-state";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,15 +39,15 @@ function toIcs(title: string, plan: StudyPlan) {
 
 export function StudyPlanner({ suggestions, prefill, loggedIn }: { suggestions: string[]; prefill: string[]; loggedIn: boolean }) {
   const today = iso(new Date());
-  const [title, setTitle] = useState("Semester exam plan");
-  const [startDate, setStartDate] = useState(today);
-  const [examDate, setExamDate] = useState(iso(new Date(Date.now() + 14 * 86_400_000)));
-  const [hours, setHours] = useState(5);
-  const [rows, setRows] = useState<SubjectRow[]>(prefill.length ? prefill.map((name) => ({ name, confidence: "okay" })) : [{ name: "", confidence: "okay" }]);
-  const [notes, setNotes] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [plan, setPlan] = useState<StudyPlan | null>(null);
-  const [done, setDone] = useState<Set<string>>(new Set());
+  const [title, setTitle] = usePersistentState("planner:title", "Semester exam plan");
+  const [startDate, setStartDate] = usePersistentState("planner:startDate", today);
+  const [examDate, setExamDate] = usePersistentState("planner:examDate", iso(new Date(Date.now() + 14 * 86_400_000)));
+  const [hours, setHours] = usePersistentState("planner:hours", 5);
+  const [rows, setRows] = usePersistentState<SubjectRow[]>("planner:rows", prefill.length ? prefill.map((name) => ({ name, confidence: "okay" })) : [{ name: "", confidence: "okay" }]);
+  const [notes, setNotes] = usePersistentState("planner:notes", "");
+  const [loading, setLoading] = usePersistentState("planner:loading", false);
+  const [plan, setPlan] = usePersistentState<StudyPlan | null>("planner:plan", null);
+  const [done, setDone] = usePersistentState<Set<string>>("planner:done", new Set());
 
   const update = (i: number, patch: Partial<SubjectRow>) => setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
 

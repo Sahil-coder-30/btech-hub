@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { Camera, Copy, ImagePlus, Mic, MicOff, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { usePersistentState } from "@/lib/persist-state";
 import { Markdown } from "@/components/markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,12 +16,12 @@ import { cn } from "@/lib/utils";
 const MAX_BYTES = 5 * 1024 * 1024;
 
 export function DoubtSolver() {
-  const [question, setQuestion] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [question, setQuestion] = usePersistentState("doubt:question", "");
+  const [file, setFile] = usePersistentState<File | null>("doubt:file", null);
   const [preview, setPreview] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [answer, setAnswer] = useState("");
+  const [loading, setLoading] = usePersistentState("doubt:loading", false);
+  const [answer, setAnswer] = usePersistentState("doubt:answer", "");
   const inputRef = useRef<HTMLInputElement>(null);
   const speech = useSpeech((text) => setQuestion(text));
 

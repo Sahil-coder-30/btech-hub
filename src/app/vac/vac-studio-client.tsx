@@ -28,6 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { Markdown } from "@/components/markdown";
+import { usePersistentState } from "@/lib/persist-state";
 import type { ChatMessage, User } from "@/lib/types";
 import { useSpeech } from "@/lib/use-speech";
 import { cn } from "@/lib/utils";
@@ -89,11 +90,11 @@ export function VacStudioClient({
   user: User | null;
   studentContext: string | null;
 }) {
-  const [sessions, setSessions] = useState<StudioSession[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<string>("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [sessions, setSessions] = usePersistentState<StudioSession[]>("vac:sessions", []);
+  const [activeSessionId, setActiveSessionId] = usePersistentState<string>("vac:activeSessionId", "");
+  const [messages, setMessages] = usePersistentState<ChatMessage[]>("vac:messages", []);
+  const [input, setInput] = usePersistentState("vac:input", "");
+  const [loading, setLoading] = usePersistentState("vac:loading", false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [likedMap, setLikedMap] = useState<Record<number, boolean | null>>({});
 
@@ -109,8 +110,10 @@ export function VacStudioClient({
     if (final) textareaRef.current?.focus();
   });
 
-  // Load sessions from localStorage on mount
+  // Load sessions from localStorage on first visit. When coming back from another page the
+  // state (and any answer that finished meanwhile) is already in memory.
   useEffect(() => {
+    if (activeSessionId) return;
     try {
       const raw = localStorage.getItem(SESSIONS_STORAGE_KEY);
       let loadedSessions: StudioSession[] = raw ? JSON.parse(raw) : [];

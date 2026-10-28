@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Brain, Check, CheckCircle2, RotateCcw, Sparkles, Target, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { usePersistentState } from "@/lib/persist-state";
 import { Markdown } from "@/components/markdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,19 +28,19 @@ export function QuizRunner({
   defaultDifficulty?: "easy" | "medium" | "hard";
   defaultCount?: number;
 }) {
-  const [phase, setPhase] = useState<Phase>("setup");
-  const [subject, setSubject] = useState(subjects[0] ?? "");
-  const [unit, setUnit] = useState("");
-  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(defaultDifficulty);
-  const [count, setCount] = useState(defaultCount);
+  const [phase, setPhase] = usePersistentState<Phase>("quiz:phase", "setup");
+  const [subject, setSubject] = usePersistentState("quiz:subject", subjects[0] ?? "");
+  const [unit, setUnit] = usePersistentState("quiz:unit", "");
+  const [difficulty, setDifficulty] = usePersistentState<"easy" | "medium" | "hard">("quiz:difficulty", defaultDifficulty);
+  const [count, setCount] = usePersistentState("quiz:count", defaultCount);
   // The saved count can be any number from 3 to 15, so make sure it is a choice
   const countOptions = [...new Set([5, 10, 15, defaultCount])].sort((a, b) => a - b);
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [grounded, setGrounded] = useState(false);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const [current, setCurrent] = useState(0);
-  const [result, setResult] = useState<Result | null>(null);
-  const [error, setError] = useState("");
+  const [questions, setQuestions] = usePersistentState<QuizQuestion[]>("quiz:questions", []);
+  const [grounded, setGrounded] = usePersistentState("quiz:grounded", false);
+  const [answers, setAnswers] = usePersistentState<number[]>("quiz:answers", []);
+  const [current, setCurrent] = usePersistentState("quiz:current", 0);
+  const [result, setResult] = usePersistentState<Result | null>("quiz:result", null);
+  const [error, setError] = usePersistentState("quiz:error", "");
 
   const start = async () => {
     setPhase("loading");
