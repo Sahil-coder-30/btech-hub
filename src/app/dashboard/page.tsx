@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { DashboardOverview } from "@/components/dashboard/overview";
 import { DashPage } from "@/components/dashboard/ui";
 import { getCurrentUser } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
 import { getBranches } from "@/lib/data";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ function greetingFor(date: Date) {
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/dashboard");
+  if (!user) redirectToLogin("/dashboard");
 
   const [data, branches] = await Promise.all([getDashboardData(user), getBranches().catch(() => [])]);
   const now = new Date();

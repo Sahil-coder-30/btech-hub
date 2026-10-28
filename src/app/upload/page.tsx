@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { UploadCloud } from "lucide-react";
 import { UploadCenter } from "@/components/features/upload-center";
 import { PageHeader } from "@/components/ui/misc";
 import { getCurrentUser } from "@/lib/auth";
 import { getAllSubjects } from "@/lib/data";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: "Upload notes" };
 export const dynamic = "force-dynamic";
 
 export default async function UploadPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/upload");
+  if (!user) redirectToLogin("/upload");
 
   const subjects = await getAllSubjects();
   const seen = new Set<string>();

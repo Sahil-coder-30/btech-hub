@@ -6,13 +6,14 @@ import { PageHeader } from "@/components/ui/misc";
 import { getCurrentUser } from "@/lib/auth";
 import { getBranches, getSyllabusLinks } from "@/lib/data";
 import { isPineconeConfigured } from "@/lib/env";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: "Admin" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/admin");
+  if (!user) redirectToLogin("/admin");
   if (user.role !== "admin") redirect("/dashboard");
 
   const [branches, syllabus] = await Promise.all([getBranches(), getSyllabusLinks()]);

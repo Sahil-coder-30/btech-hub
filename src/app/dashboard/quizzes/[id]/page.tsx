@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { z } from "zod";
 import { QuizReview, type ReviewQuestion } from "@/components/dashboard/quiz-review";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/supabase";
 import type { QuizAttempt } from "@/lib/types";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: "Quiz review" };
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ function toQuestions(raw: unknown): ReviewQuestion[] {
 export default async function QuizReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect(`/login?next=/dashboard/quizzes/${encodeURIComponent(id)}`);
+  if (!user) redirectToLogin(`/dashboard/quizzes/${encodeURIComponent(id)}`);
   if (!z.string().uuid().safeParse(id).success) notFound();
 
   const { data } = await db()

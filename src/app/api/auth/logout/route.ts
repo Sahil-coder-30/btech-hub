@@ -6,3 +6,13 @@ export async function POST() {
   res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
   return res;
 }
+
+/** Clears a stale session (valid cookie, user row gone) and sends the browser to `next`. */
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const next = url.searchParams.get("next") ?? "/login";
+  const safe = next.startsWith("/") && !next.startsWith("//") ? next : "/login";
+  const res = NextResponse.redirect(new URL(safe, url));
+  res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
+  return res;
+}

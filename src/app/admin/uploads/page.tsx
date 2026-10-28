@@ -4,13 +4,14 @@ import { Inbox } from "lucide-react";
 import { UploadReview } from "@/components/features/upload-review";
 import { PageHeader } from "@/components/ui/misc";
 import { getCurrentUser } from "@/lib/auth";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: "Review uploads" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminUploadsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/admin/uploads");
+  if (!user) redirectToLogin("/admin/uploads");
   if (user.role !== "admin") redirect("/dashboard");
 
   return (

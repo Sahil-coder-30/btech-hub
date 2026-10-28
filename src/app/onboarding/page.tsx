@@ -4,6 +4,7 @@ import { Onboarding } from "@/components/features/onboarding";
 import { getCurrentUser } from "@/lib/auth";
 import { getBranches } from "@/lib/data";
 import { getProfile } from "@/lib/profile";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: "Build your profile" };
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
   const nextPath = typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/onboarding") ? next : "/dashboard";
 
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/onboarding");
+  if (!user) redirectToLogin("/onboarding");
 
   // Already onboarded (e.g. a session signed before the flag existed): refresh the cookie and continue
   if ((user.onboarded_at || user.role === "admin") && !redo) {

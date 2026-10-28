@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { PreferencesProvider } from "@/components/settings/preferences-context";
 import { SettingsNav } from "@/components/settings/settings-nav";
 import { getCurrentUser } from "@/lib/auth";
 import { readPreferences } from "@/lib/settings";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: { default: "Settings", template: "%s · Settings | B.Tech Hub" } };
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 /** Shared shell for every settings tab. Preferences come from the user row, so this costs no extra query. */
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/settings");
+  if (!user) redirectToLogin("/settings");
 
   return (
     <PreferencesProvider initial={readPreferences(user)}>

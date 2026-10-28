@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { HistoryList, type HistoryTab } from "@/components/dashboard/history-list";
 import { getCurrentUser } from "@/lib/auth";
 import { dayKey, planTaskCount, progressOf } from "@/lib/dashboard";
 import { db } from "@/lib/supabase";
 import type { StudyPlan } from "@/lib/types";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: "History" };
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ type PlanRow = { id: string; title: string; exam_date: string | null; created_at
 
 export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/dashboard/history");
+  if (!user) redirectToLogin("/dashboard/history");
 
   const { tab } = await searchParams;
   const initialTab = TABS.includes(tab as HistoryTab) ? (tab as HistoryTab) : "quizzes";

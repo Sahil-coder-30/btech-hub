@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = {
   title: {
@@ -16,7 +16,7 @@ export default async function DashboardLayout({
 }) {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login?next=/dashboard");
+    redirectToLogin("/dashboard");
   }
 
   return <>{children}</>;

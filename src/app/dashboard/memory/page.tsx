@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { DashHeader, DashPage } from "@/components/dashboard/ui";
 import { MemoryManager } from "@/components/features/memory";
 import { getCurrentUser } from "@/lib/auth";
 import { listMemories } from "@/lib/profile";
+import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: "My Memory" };
 export const dynamic = "force-dynamic";
 
 export default async function MemoryPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/dashboard/memory");
+  if (!user) redirectToLogin("/dashboard/memory");
   const memories = await listMemories(user.id);
 
   return (
