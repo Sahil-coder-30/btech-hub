@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 
 /**
  * useState that survives navigation. Values live in a module level map, which a
@@ -37,10 +37,15 @@ export function usePersistentState<T>(key: string, initial: T | (() => T)) {
     return values.get(key) as T;
   };
 
+  // The server snapshot must also be stable. It lives per component, never in the shared map,
+  // so one student's server render can never leak into another's.
+  const serverValue = useRef<{ value: T } | null>(null);
+  const getServerSnapshot = () => (serverValue.current ??= { value: init() }).value;
+
   const value = useSyncExternalStore(
     useCallback((l: () => void) => subscribeTo(key, l), [key]),
     getSnapshot,
-    () => init(),
+    getServerSnapshot,
   );
 
   // Keep the setter identity stable per key so it is safe in effect deps.
