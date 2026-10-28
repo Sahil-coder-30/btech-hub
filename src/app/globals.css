@@ -1975,7 +1975,7 @@
   padding: 24px 24px 16px;
   scroll-behavior: smooth;
 }
-.col {
+.chatcol {
   width: 100%;
   max-width: 780px;
   margin: 0 auto;

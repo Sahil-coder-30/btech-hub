@@ -567,7 +567,7 @@ export function VacStudioClient({
 
         {/* Conversation Thread */}
         <div ref={scrollRef} className="thread" role="log" aria-live="polite" aria-label="Conversation">
-          <div className="col">
+          <div className="chatcol">
             {/* Empty State Hero & Suggestions */}
             {messages.length === 0 && (
               <div style={{ textAlign: "center", padding: "36px 0 16px" }}>
