@@ -16,8 +16,6 @@ export function Navbar({ user: initialUser }: { user: SessionUser | null }) {
   const user = clientUser ?? initialUser;
   const pathname = usePathname() ?? "/";
 
-  const [toolsOpen, setToolsOpen] = useState(false);
-  const [aiOpen, setAiOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
 
   const { resolvedTheme, setTheme } = useTheme();
@@ -26,8 +24,6 @@ export function Navbar({ user: initialUser }: { user: SessionUser | null }) {
   const isDark = resolvedTheme === "dark";
 
   useEffect(() => {
-    setToolsOpen(false);
-    setAiOpen(false);
     setUserOpen(false);
   }, [pathname]);
 
@@ -58,183 +54,6 @@ export function Navbar({ user: initialUser }: { user: SessionUser | null }) {
             <span className="brand-t">B.Tech Hub</span>
           </div>
         </Link>
-
-        {/* Primary Desktop Nav */}
-        <nav className="hide-sm" aria-label="Primary" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-          {/* Tools Menu */}
-          <div
-            style={{ position: "relative" }}
-            onMouseLeave={() => setToolsOpen(false)}
-          >
-            <button
-              type="button"
-              className={`nav-link ${toolsOpen ? "is-on" : ""}`}
-              aria-expanded={toolsOpen}
-              onClick={() => {
-                setToolsOpen((v) => !v);
-                setAiOpen(false);
-              }}
-              onMouseEnter={() => {
-                setToolsOpen(true);
-                setAiOpen(false);
-              }}
-            >
-              Tools
-              <svg className="i i-s chev" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-            {toolsOpen && (
-              <div className="menu">
-                <Link className="menu-item" href="/sgpa">
-                  <span className="menu-ic">
-                    <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
-                      <rect width="16" height="20" x="4" y="2" rx="2" />
-                      <path d="M8 6h8M16 14v4M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span className="menu-t">SGPA Calculator</span>
-                    <span className="menu-d">Marks to weighted SGPA</span>
-                  </span>
-                </Link>
-
-                <Link className="menu-item" href="/cgpa">
-                  <span className="menu-ic">
-                    <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M3 3v18h18" />
-                      <path d="m19 9-5 5-4-4-3 3" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span className="menu-t">CGPA Calculator</span>
-                    <span className="menu-d">Track and forecast CGPA</span>
-                  </span>
-                </Link>
-
-                <Link className="menu-item" href="/resources">
-                  <span className="menu-ic">
-                    <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span className="menu-t">Resources</span>
-                    <span className="menu-d">Notes, PYQs, lectures</span>
-                  </span>
-                </Link>
-
-                <Link className="menu-item" href="/university">
-                  <span className="menu-ic">
-                    <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l8 5H4z" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span className="menu-t">University Info</span>
-                    <span className="menu-d">AKTU rules and scholarship</span>
-                  </span>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* AI Studio Menu */}
-          <div
-            style={{ position: "relative" }}
-            onMouseLeave={() => setAiOpen(false)}
-          >
-            <button
-              type="button"
-              className={`nav-link ${aiOpen ? "is-on" : ""}`}
-              aria-expanded={aiOpen}
-              onClick={() => {
-                setAiOpen((v) => !v);
-                setToolsOpen(false);
-              }}
-              onMouseEnter={() => {
-                setAiOpen(true);
-                setToolsOpen(false);
-              }}
-            >
-              AI Studio
-              <svg className="i i-s chev" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-            {aiOpen && (
-              <div className="menu">
-                <Link className="menu-item" href="/ask">
-                  <span className="menu-ic">
-                    <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <path d="M14 2v6h6" />
-                      <circle cx="11.5" cy="14.5" r="2.5" />
-                      <path d="m13.3 16.3 1.7 1.7" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span className="menu-t">Ask your Syllabus</span>
-                    <span className="menu-d">Chat with your syllabus PDF</span>
-                  </span>
-                </Link>
-
-                <Link className="menu-item" href="/quiz">
-                  <span className="menu-ic">
-                    <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="m3 17 2 2 4-4" />
-                      <path d="m3 7 2 2 4-4" />
-                      <path d="M13 6h8M13 12h8M13 18h8" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span className="menu-t">AI Quiz</span>
-                    <span className="menu-d">Practice and find weak topics</span>
-                  </span>
-                </Link>
-
-                <Link className="menu-item" href="/planner">
-                  <span className="menu-ic">
-                    <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
-                      <rect width="18" height="18" x="3" y="4" rx="2" />
-                      <path d="M16 2v4M8 2v4M3 10h18" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span className="menu-t">Study Planner</span>
-                    <span className="menu-d">Day wise plan to exam day</span>
-                  </span>
-                </Link>
-
-                <Link className="menu-item" href="/doubt">
-                  <span className="menu-ic">
-                    <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z" />
-                      <circle cx="12" cy="13" r="3" />
-                    </svg>
-                  </span>
-                  <span>
-                    <span className="menu-t">Doubt Solver</span>
-                    <span className="menu-d">Snap a question, get steps</span>
-                  </span>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          <Link
-            href="/vac"
-            className={`nav-link ${pathname === "/vac" ? "is-cur" : ""}`}
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-          >
-            <img src="/images/vac-robot.gif" alt="" className="size-4 rounded-full object-cover shrink-0" />
-            <span>Vac AI</span>
-          </Link>
-
-          <Link href="/university" className="nav-link">University</Link>
-          <Link href="/about" className="nav-link">About</Link>
-          <Link href="/faq" className="nav-link">FAQ</Link>
-        </nav>
 
         <div style={{ flex: 1 }} />
 
