@@ -34,6 +34,7 @@ export function PlanView({
   todayIdx,
   plan,
   initialProgress,
+  taskIds,
 }: {
   id: string;
   title: string;
@@ -43,6 +44,8 @@ export function PlanView({
   todayIdx: number;
   plan: StudyPlan;
   initialProgress: PlanProgress;
+  /** Set for plans from the new planner: each tick saves that task's status instead of the progress map */
+  taskIds?: Record<string, string>;
 }) {
   const router = useRouter();
   const [progress, setProgress] = useState<PlanProgress>(initialProgress);
@@ -68,11 +71,19 @@ export function PlanView({
     setProgress(next);
 
     const mine = ++seq.current;
-    const res = await fetch(`/api/dashboard/plans/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ progress: next }),
-    }).catch(() => null);
+    const taskId = taskIds?.[key];
+    const res = await (taskId
+      ? fetch(`/api/planner/${id}/tasks/${taskId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: next[key] ? "done" : "todo" }),
+        })
+      : fetch(`/api/dashboard/plans/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ progress: next }),
+        })
+    ).catch(() => null);
 
     if (res?.ok) {
       saved.current = next;

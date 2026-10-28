@@ -1,4 +1,6 @@
 import { getBranches } from "./data";
+import { tasksToDays } from "./planner/day-view";
+import type { PlanDoc, PlanTask } from "./planner/types";
 import { computeStats, getProfile, getSemesterPlan, type CurrentSubject } from "./profile";
 import { db } from "./supabase";
 import type { QuizAttempt, Resource, SgpaRecord, StudentInsights, StudentStats, StudyPlan, StudyPlanDay, User } from "./types";
@@ -156,6 +158,20 @@ function pickActivePlan(rows: PlanRow[], today: string): ActivePlan | null {
 
 // ---------- Loader ----------
 
+/** Plans from the new planner keep tasks in study_plan_tasks. Fill in days and progress for those. */
+async function withV2Tasks(userId: string, plans: PlanRow[]): Promise<PlanRow[]> {
+  const ids = plans.filter((p) => (p.plan as { version?: number } | null)?.version === 2).map((p) => p.id);
+  if (!ids.length) return plans;
+  const res = await db().from("study_plan_tasks").select("plan_id, id, date, position, subject, subject_code, unit, topic, type, minutes, status, done_at, moved_from").eq("user_id", userId).in("plan_id", ids).order("date").order("position");
+  const tasks = rows<PlanTask & { plan_id: string }>(res);
+  return plans.map((p) => {
+    if (!ids.includes(p.id)) return p;
+    const { plan, progress } = tasksToDays(p.plan as unknown as PlanDoc, tasks.filter((t) => t.plan_id === p.id));
+    return { ...p, plan, progress };
+  });
+}
+
+
 type PlanRow = { id: string; title: string; exam_date: string | null; created_at: string; plan: StudyPlan | null; progress?: unknown };
 
 /** Rows of an optional query, or [] when the table is missing or the query fails. */
@@ -185,7 +201,7 @@ export async function getDashboardData(user: User): Promise<DashboardData> {
 
   const records = rows<SgpaRecord>(sgpa);
   const quizRows = rows<QuizAttempt>(quizzes);
-  const planRows = rows<PlanRow>(plans);
+  const planRows = await withV2Tasks(user.id, rows<PlanRow>(plans));
   const doubtRows = rows<DoubtSummary>(doubts);
 
   const target = profile?.target_cgpa == null ? null : Number(profile.target_cgpa);
