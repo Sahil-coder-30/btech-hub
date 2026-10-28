@@ -317,7 +317,7 @@ async function* streamAnswer(messages: { role: string; content: string }[], sign
     }
     return;
   } catch (err) {
-    if (started || signal.aborted || agentProvider() !== "mistral" || !shouldFallback(err)) throw err;
+    if (started || signal.aborted || agentProvider() === "gemini" || !shouldFallback(err)) throw err;
     console.warn("Main model failed before the first token, using Mistral:", err instanceof Error ? err.message.slice(0, 200) : err);
   }
   for await (const chunk of await agentModel(0.2).stream(messages, { signal })) {

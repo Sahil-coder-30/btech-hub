@@ -1,6 +1,6 @@
 import type { BaseLanguageModelInput, StructuredOutputMethodOptions } from "@langchain/core/language_models/base";
 import { BaseChatModel, type BaseChatModelCallOptions, type BindToolsInput } from "@langchain/core/language_models/chat_models";
-import { AIMessageChunk, type BaseMessage } from "@langchain/core/messages";
+import { AIMessage, AIMessageChunk, ToolMessage, type BaseMessage } from "@langchain/core/messages";
 import { ChatGenerationChunk, type ChatResult } from "@langchain/core/outputs";
 import { RunnableLambda, type Runnable, type RunnableConfig } from "@langchain/core/runnables";
 import { convertToOpenAITool } from "@langchain/core/utils/function_calling";
@@ -34,13 +34,22 @@ const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 const NVIDIA_TIMEOUT_MS = 45_000;
 
 type OpenAITool = ReturnType<typeof convertToOpenAITool>;
-type NvidiaFields = { temperature: number; fallback?: () => BaseChatModel; tools?: OpenAITool[]; toolChoice?: string };
+type NvidiaFields = { temperature: number; model?: string; thinking?: boolean; fallback?: () => BaseChatModel; tools?: OpenAITool[]; toolChoice?: string };
 type NvidiaToolCall = { id: string; function: { name: string; arguments: string } };
 
 const ROLES: Record<string, string> = { system: "system", human: "user", ai: "assistant" };
 
 /** LangChain message to the OpenAI format. PDF parts are not supported, so those calls go to the backup. */
 function toNvidiaMessage(message: BaseMessage) {
+  // The agent loop: the model's tool calls, then one tool message with each result
+  if (ToolMessage.isInstance(message)) return { role: "tool", tool_call_id: message.tool_call_id, content: contentToText(message.content) };
+  if (AIMessage.isInstance(message) && message.tool_calls?.length) {
+    return {
+      role: "assistant",
+      content: contentToText(message.content),
+      tool_calls: message.tool_calls.map((call) => ({ id: call.id, type: "function", function: { name: call.name, arguments: JSON.stringify(call.args) } })),
+    };
+  }
   const role = ROLES[message.getType()] ?? "user";
   if (typeof message.content === "string") return { role, content: message.content };
   const content = (message.content as Record<string, any>[]).map((part) => {
@@ -102,13 +111,13 @@ class ChatNvidia extends BaseChatModel {
       method: "POST",
       headers: { Authorization: `Bearer ${requireEnv("NVIDIA_API_KEY")}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: nvidiaModelName(),
+        model: this.fields.model ?? nvidiaModelName(),
         messages: messages.map(toNvidiaMessage),
         temperature,
         max_tokens: 8192,
         stream,
         // Nemotron thinks before it answers by default. Off keeps replies to a few seconds.
-        chat_template_kwargs: { enable_thinking: false },
+        chat_template_kwargs: { enable_thinking: this.fields.thinking ?? false },
         ...(tools ? { tools, tool_choice: toolChoice ? { type: "function", function: { name: toolChoice } } : "auto" } : {}),
       }),
       signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
@@ -123,7 +132,7 @@ class ChatNvidia extends BaseChatModel {
 
   private backup(err: unknown, signal: AbortSignal | undefined) {
     if (!this.fields.fallback || signal?.aborted) throw err;
-    console.warn("NVIDIA failed, using Gemini:", err instanceof Error ? err.message.slice(0, 200) : err);
+    console.warn("NVIDIA failed, using the backup model:", err instanceof Error ? err.message.slice(0, 200) : err);
     const model = this.fields.fallback();
     return this.fields.tools ? model.bindTools!(this.fields.tools, { tool_choice: this.fields.toolChoice }) : model;
   }
@@ -146,7 +155,7 @@ class ChatNvidia extends BaseChatModel {
         problem = err;
       }
       if (!this.fields.fallback || options?.signal?.aborted) throw problem;
-      console.warn("NVIDIA structured output failed, using Gemini:", problem instanceof Error ? problem.message.slice(0, 200) : problem);
+      console.warn("NVIDIA structured output failed, using the backup model:", problem instanceof Error ? problem.message.slice(0, 200) : problem);
       return this.fields.fallback().withStructuredOutput(schema, config).invoke(input, options);
     });
   }
@@ -193,19 +202,29 @@ class ChatNvidia extends BaseChatModel {
   }
 }
 
+function mistralChat(temperature: number) {
+  return new ChatMistralAI({ model: agentModelName(), apiKey: requireEnv("MISTRAL_API_KEY"), temperature, maxRetries: 2 });
+}
+
 /**
  * Model for the Vac agent. It makes the most calls (several per chat turn), so by default it runs on
  * Mistral's ministral-8b (188 requests/min on the free plan) and keeps Gemini's small daily quota
- * for quizzes, plans, doubts and grounded answers. Set AGENT_PROVIDER=gemini to switch back.
+ * for quizzes, plans, doubts and grounded answers. AGENT_PROVIDER=nvidia runs it on NVIDIA
+ * (NVIDIA_AGENT_MODEL, else NVIDIA_MODEL) with thinking on and Mistral as the backup.
+ * AGENT_PROVIDER=gemini uses chatModel.
  */
 export function agentModel(temperature = 0.3): ChatModel {
   if (agentProvider() === "gemini") return chatModel(temperature);
-  return new ChatMistralAI({
-    model: agentModelName(),
-    apiKey: requireEnv("MISTRAL_API_KEY"),
-    temperature,
-    maxRetries: 2,
-  });
+  if (agentProvider() === "nvidia") {
+    return new ChatNvidia({
+      temperature,
+      model: process.env.NVIDIA_AGENT_MODEL || nvidiaModelName(),
+      // Without thinking the agent skipped tools (no resource links, made up CGPA maths, claimed to save memories)
+      thinking: process.env.NVIDIA_AGENT_THINKING !== "false",
+      fallback: () => mistralChat(temperature),
+    });
+  }
+  return mistralChat(temperature);
 }
 
 type Embedder = { embedQuery: (text: string) => Promise<number[]>; embedDocuments: (texts: string[]) => Promise<number[][]> };

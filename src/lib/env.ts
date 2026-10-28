@@ -27,7 +27,10 @@ export const llmProvider = () => (process.env.LLM_PROVIDER === "gemini" ? "gemin
 export const nvidiaModelName = () => process.env.NVIDIA_MODEL || "nvidia/nemotron-3.5-super-vl-120b-a12b";
 export const embeddingModel = () => process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001";
 /** Vac agent model. Mistral by default so chat does not use up the Gemini daily quota. */
-export const agentProvider = () => (process.env.AGENT_PROVIDER === "gemini" ? "gemini" : "mistral");
+export const agentProvider = () => {
+  const provider = process.env.AGENT_PROVIDER;
+  return provider === "gemini" || provider === "nvidia" ? provider : "mistral";
+};
 export const agentModelName = () => process.env.AGENT_MODEL || "ministral-8b-latest";
 /** Must match the ML service: documents and questions are embedded by the same provider. */
 export const embeddingProvider = () => (process.env.EMBEDDING_PROVIDER === "gemini" ? "gemini" : "mistral");
