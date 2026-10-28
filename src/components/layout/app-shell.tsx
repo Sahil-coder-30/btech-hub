@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
+import { clearClientData } from "@/lib/client-data";
 import {
   LayoutDashboard,
   Bot,
@@ -133,6 +134,7 @@ export function AppShell({
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
+    clearClientData();
     window.location.replace("/");
   };
 

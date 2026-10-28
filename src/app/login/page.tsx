@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertCircle, BarChart3, Bot, CalendarDays, Calculator, Lock } from "lucide-react";
+import { ClearClientData } from "@/components/auth/clear-client-data";
 import { getSession } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "Login" };
@@ -65,6 +66,7 @@ export default async function LoginPage({
 
   return (
     <section className="relative isolate overflow-hidden">
+      <ClearClientData />
       <div className="aurora" />
       <div className="grid-bg absolute inset-0 -z-10" aria-hidden />
 

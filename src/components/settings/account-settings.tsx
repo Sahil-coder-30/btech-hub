@@ -11,6 +11,7 @@ import { SettingRow, SettingsHeader, SettingsSection } from "@/components/settin
 import { Spinner } from "@/components/ui/misc";
 import type { AccountInfo } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
+import { clearClientData } from "@/lib/client-data";
 
 const NAME_MAX = 60;
 
@@ -135,6 +136,7 @@ export function AccountSettings({ initial }: { initial: AccountInfo }) {
   const signOut = async () => {
     setSigningOut(true);
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
+    clearClientData();
     // Full reload so no signed-in state survives in memory
     window.location.replace("/");
   };

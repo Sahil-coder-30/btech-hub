@@ -9,6 +9,7 @@ import { LayoutDashboard, LogOut, Settings, ShieldCheck, UserRound } from "lucid
 import { useAuth } from "@/components/auth/auth-context";
 import { displayName } from "@/lib/settings";
 import type { SessionUser } from "@/lib/types";
+import { clearClientData } from "@/lib/client-data";
 
 export function Navbar({ user: initialUser }: { user: SessionUser | null }) {
   const { user: clientUser } = useAuth();
@@ -37,6 +38,7 @@ export function Navbar({ user: initialUser }: { user: SessionUser | null }) {
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
+    clearClientData();
     // replace() keeps the private page out of history, so back cannot return to it
     window.location.replace("/");
   };

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession } from "@/lib/session";
 
 /** The only pages a guest can open. Every tool, AI feature and portal page needs a login. */
-const PUBLIC_PATHS = ["/", "/login", "/about", "/faq", "/contact", "/privacy", "/terms", "/vac"];
+const PUBLIC_PATHS = ["/", "/login", "/about", "/faq", "/contact", "/privacy", "/terms"];
 
 /** Pages a logged-in user should never land on again (back button included). */
 const GUEST_ONLY_PATHS = ["/", "/login"];
