@@ -28,3 +28,12 @@ export function driveDownloadUrl(url: string) {
   const id = url.match(/\/d\/([^/]+)/)?.[1] ?? new URL(url).searchParams.get("id");
   return id ? `https://drive.google.com/uc?export=download&id=${id}` : url;
 }
+
+/** AI text can carry markdown like **bold** and an "Action 1:" label. Show it as plain text. */
+export function plainText(text: string) {
+  return text
+    .replace(/^\s*(?:\*\*)?\s*(?:action|step)\s*\d+\s*[:.\-]\s*(?:\*\*)?\s*/i, "")
+    .replace(/\*\*|__|`/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}

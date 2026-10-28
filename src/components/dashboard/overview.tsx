@@ -48,7 +48,7 @@ import {
 import { buttonVariants } from "@/components/ui/button";
 import type { DashboardData, PlanProgress } from "@/lib/dashboard";
 import type { Branch, Resource, User } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, plainText } from "@/lib/utils";
 
 type Props = {
   user: User;
@@ -98,7 +98,7 @@ export function DashboardOverview({ user, branches, data, greeting, now }: Props
 
       <QuickActions />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] sm:gap-6">
+      <div className="grid gap-5 lg:items-start lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] sm:gap-6">
         <Panel
           id="sgpa"
           title="Semester journey"
@@ -489,13 +489,13 @@ function CoachPanel({ data, now }: { data: DashboardData; now: number }) {
           {insights.weakAreas.length > 0 && (
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Focus areas</p>
-              <div className="flex flex-wrap gap-1.5">
+              <ul className="space-y-1.5">
                 {insights.weakAreas.slice(0, 4).map((w) => (
-                  <Pill key={w} accent="amber">
-                    {w}
-                  </Pill>
+                  <li key={w} style={accentStyle("amber")} title={plainText(w)} className="line-clamp-3 rounded-xl bg-[color-mix(in_oklab,var(--a)_13%,transparent)] px-3 py-2 text-xs font-medium leading-snug text-[color-mix(in_oklab,var(--a)_80%,var(--fg))]">
+                    {plainText(w)}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
           {insights.actions.length > 0 && (
@@ -505,7 +505,7 @@ function CoachPanel({ data, now }: { data: DashboardData; now: number }) {
                 {insights.actions.slice(0, 3).map((a, i) => (
                   <li key={a} className="flex items-start gap-3 rounded-xl bg-muted/60 p-3">
                     <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-card font-mono text-xs font-semibold text-primary">{i + 1}</span>
-                    <span className="min-w-0 flex-1 text-sm leading-snug">{a}</span>
+                    <span title={plainText(a)} className="line-clamp-4 min-w-0 flex-1 text-sm leading-snug">{plainText(a)}</span>
                     <button type="button" onClick={() => askVac(`Help me with this step from my profile: "${a}"`)} className="shrink-0 rounded-md px-1.5 py-0.5 text-xs font-medium text-primary hover:bg-accent" aria-label={`Ask Vac about: ${a}`}>
                       Ask
                     </button>

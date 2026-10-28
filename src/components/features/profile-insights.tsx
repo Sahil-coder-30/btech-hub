@@ -1,5 +1,6 @@
 "use client";
 
+import { plainText } from "@/lib/utils";
 import { ArrowRight, BookOpen, CheckCircle2, Link2, Sparkles, Target, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +20,7 @@ function List({ icon: Icon, title, items, tone }: { icon: LucideIcon; title: str
         {items.map((item) => (
           <li key={item} className="flex gap-2">
             <span className={tone === "success" ? "mt-2 size-1.5 shrink-0 rounded-full bg-success" : "mt-2 size-1.5 shrink-0 rounded-full bg-warning"} />
-            <span>{item}</span>
+            <span>{plainText(item)}</span>
           </li>
         ))}
       </ul>
@@ -129,7 +130,7 @@ export function ProfileInsights({
             <ol className="space-y-2">
               {insights?.actions.map((a, i) => (
                 <li key={a} className="flex items-start justify-between gap-3 rounded-xl bg-muted/50 px-3 py-2 text-sm">
-                  <span><span className="mr-2 font-semibold text-primary">{i + 1}.</span>{a}</span>
+                  <span><span className="mr-2 font-semibold text-primary">{i + 1}.</span>{plainText(a)}</span>
                   <button onClick={() => askVac(`Help me with this step from my profile: "${a}"`)} className="shrink-0 text-xs font-medium text-primary hover:underline">
                     Ask Vac
                   </button>
