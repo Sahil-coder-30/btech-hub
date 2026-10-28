@@ -45,7 +45,7 @@ const bodySchema = z
  */
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
-  rateLimit(clientKey(request, user.id), 5);
+  rateLimit(`onboarding:${clientKey(request, user.id)}`, 5);
   const body = bodySchema.parse(await request.json());
   const now = new Date().toISOString();
 

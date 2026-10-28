@@ -23,7 +23,7 @@ export const POST = handler(async (request: Request) => {
   // Vac is a logged-in feature, like every AI tool on the site
   const user = await requireUser();
   const { sessionId, messages } = bodySchema.parse(await request.json());
-  rateLimit(clientKey(request, user.id), 20);
+  rateLimit(`chat:${clientKey(request, user.id)}`, 20);
 
   // Only the last few turns are sent to keep the prompt small
   const history = messages.slice(-12);

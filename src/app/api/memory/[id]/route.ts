@@ -20,7 +20,7 @@ const patchSchema = z
 /** PATCH /api/memory/[id]: edit, pin or unpin one memory. */
 export const PATCH = handler(async (request: Request, ctx: Ctx) => {
   const user = await requireUser();
-  rateLimit(clientKey(request, user.id), 60);
+  rateLimit(`memory-edit:${clientKey(request, user.id)}`, 60);
   const id = z.string().uuid().parse((await ctx.params).id);
   const patch = patchSchema.parse(await request.json());
   return NextResponse.json({ memory: await updateMemory(user.id, id, patch) });

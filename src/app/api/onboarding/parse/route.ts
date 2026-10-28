@@ -18,7 +18,7 @@ const MAX_PDF_BYTES = 5 * 1024 * 1024;
  */
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
-  rateLimit(clientKey(request, user.id), 5);
+  rateLimit(`parse:${clientKey(request, user.id)}`, 5);
 
   const form = await request.formData();
   const file = form.get("file");

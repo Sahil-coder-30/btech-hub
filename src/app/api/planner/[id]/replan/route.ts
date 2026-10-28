@@ -22,7 +22,7 @@ const bodySchema = z.object({
 /** POST /api/planner/[id]/replan: move unfinished tasks into the days left. No AI call. */
 export const POST = handler(async (request: Request, ctx: Ctx) => {
   const session = await requireSession();
-  rateLimit(clientKey(request, session.id), 10);
+  rateLimit(`replan:${clientKey(request, session.id)}`, 10);
   const id = z.string().uuid().parse((await ctx.params).id);
   const { availability } = bodySchema.parse(await request.json().catch(() => ({})));
   return NextResponse.json(await replan(session.id, id, availability));

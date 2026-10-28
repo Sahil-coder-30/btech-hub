@@ -19,7 +19,7 @@ export const GET = handler(async () => {
 /** POST /api/memory: the student adds a memory themselves. */
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
-  rateLimit(clientKey(request, user.id), 30);
+  rateLimit(`memory:${clientKey(request, user.id)}`, 30);
   const body = createSchema.parse(await request.json());
   const { memory, status } = await saveMemory(user.id, { ...body, source: "manual" });
   // A new memory never replaces one here, so status is "saved" or "duplicate"

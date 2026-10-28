@@ -30,7 +30,7 @@ const bodySchema = z.object({
 export const POST = handler(async (request: Request) => {
   const session = await requireSession();
   const body = bodySchema.parse(await request.json());
-  rateLimit(clientKey(request, session.id), 10);
+  rateLimit(`quiz-submit:${clientKey(request, session.id)}`, 10);
 
   const score = body.questions.filter((q) => q.chosenIndex === q.correctIndex).length;
   const wrong = body.questions

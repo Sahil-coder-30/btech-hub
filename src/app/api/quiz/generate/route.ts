@@ -20,7 +20,7 @@ const bodySchema = z.object({
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
   const body = bodySchema.parse(await request.json());
-  rateLimit(clientKey(request, user.id), 8);
+  rateLimit(`quiz:${clientKey(request, user.id)}`, 8);
 
   const { study } = readPreferences(user);
   const quiz = await generateQuiz({

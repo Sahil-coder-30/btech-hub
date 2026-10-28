@@ -49,7 +49,7 @@ const bodySchema = z
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
   const body = bodySchema.parse(await request.json());
-  rateLimit(clientKey(request, user.id), 5);
+  rateLimit(`planner:${clientKey(request, user.id)}`, 5);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

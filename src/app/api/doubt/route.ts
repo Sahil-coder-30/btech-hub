@@ -13,7 +13,7 @@ const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/heic"];
 /** POST /api/doubt (multipart): question text and/or a photo of the question. */
 export const POST = handler(async (request: Request) => {
   const session = await requireSession();
-  rateLimit(clientKey(request, session.id), 8);
+  rateLimit(`doubt:${clientKey(request, session.id)}`, 8);
 
   const form = await request.formData();
   const question = String(form.get("question") ?? "").slice(0, 2000).trim();
