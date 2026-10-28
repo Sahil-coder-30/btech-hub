@@ -14,17 +14,20 @@ type Options = {
 };
 
 const EMPTY: { messages: AskMessage[]; busy: boolean } = { messages: [], busy: false };
+const noopSubscribe = () => () => {};
 
 /**
  * Chat state for one syllabus. The chat itself lives in ask-store, so an answer that
  * is still streaming keeps going when the student opens another page.
  */
 export function useAskStream({ branch, year, fileKey, onUnauthorized, onNotReady }: Options) {
-  // localStorage does not exist during server render, so the session is created after mount.
-  const session = useMemo(() => (typeof window === "undefined" ? null : getAskSession(fileKey)), [fileKey]);
+  // localStorage does not exist during server render. `hydrated` is false on the server and
+  // during hydration, so the first client render matches the server HTML.
+  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const session = useMemo(() => (hydrated ? getAskSession(fileKey) : null), [hydrated, fileKey]);
 
   const snapshot = useSyncExternalStore(
-    session ? session.subscribe : () => () => {},
+    session ? session.subscribe : noopSubscribe,
     session ? session.getSnapshot : () => EMPTY,
     () => EMPTY,
   );

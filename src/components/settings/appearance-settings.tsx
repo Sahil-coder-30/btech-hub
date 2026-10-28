@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Monitor, Moon, Sun, Wand2 } from "lucide-react";
 import { usePreferences } from "@/components/settings/preferences-context";
@@ -9,6 +10,10 @@ import { cn } from "@/lib/utils";
 export function AppearanceSettings() {
   const { preferences, update } = usePreferences();
   const { theme, setTheme } = useTheme();
+  // next-themes only knows the stored theme in the browser. Wait for mount so the
+  // first client render matches the server HTML.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const themes = [
     { value: "system", label: "System", icon: Monitor, description: "Follow your device operating system appearance" },
@@ -16,7 +21,7 @@ export function AppearanceSettings() {
     { value: "light", label: "Light", icon: Sun, description: "Crisp, clean high-contrast light theme" },
   ] as const;
 
-  const currentTheme = preferences.appearance?.theme ?? theme ?? "dark";
+  const currentTheme = preferences.appearance?.theme ?? (mounted ? theme : undefined) ?? "dark";
   const reduceMotion = preferences.appearance?.reduceMotion ?? false;
 
   return (
