@@ -1783,6 +1783,32 @@
   position: sticky;
   top: 84px;
 }
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sticky {
+    position: static;
+  }
+}
+@media (max-width: 640px) {
+  .tbl.subj th:nth-child(3),
+  .tbl.subj td:nth-child(3),
+  .tbl.subj th:nth-child(7),
+  .tbl.subj td:nth-child(7) {
+    display: none;
+  }
+  .tbl.subj th,
+  .tbl.subj td {
+    padding: 10px 8px;
+  }
+  .tbl.subj .mk {
+    width: 64px;
+  }
+  .filters {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
 .br {
   display: flex;
   align-items: center;

@@ -295,7 +295,7 @@ export function SgpaCalculator({ subjects, branches, loggedIn }: Props) {
             </div>
 
             <div style={{ overflowX: "auto" }}>
-              <table className="tbl">
+              <table className="tbl subj">
                 <thead>
                   <tr>
                     <th>Code</th>
