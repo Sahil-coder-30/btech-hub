@@ -768,7 +768,7 @@ export function VacStudioClient({
                     send(input);
                   }
                 }}
-                placeholder="Ask Vac anything about your AKTU studies (English or Hinglish)…"
+                placeholder="Ask Vac anything (English or Hinglish)…"
                 aria-label="Your question"
                 autoComplete="off"
               />
