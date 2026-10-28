@@ -53,7 +53,7 @@ export function Footer() {
       <div
         className="wrap g"
         style={{
-          gridTemplateColumns: "minmax(0, 1.4fr) repeat(4, minmax(0, 1fr))",
+          gridTemplateColumns: "minmax(0, 1.4fr) repeat(2, minmax(0, 1fr))",
           gap: "32px",
           paddingTop: "56px",
           paddingBottom: "40px",
@@ -77,30 +77,11 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="eyebrow" style={{ fontSize: "11px" }}>Product</p>
+          <p className="eyebrow" style={{ fontSize: "11px" }}>Company</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "14px" }}>
-            <Link href="/about">Overview</Link>
-            <Link href="/ask">Ask your Syllabus</Link>
-            <Link href="/quiz">AI Quiz</Link>
-            <Link href="/planner">Study Planner</Link>
-          </div>
-        </div>
-
-        <div>
-          <p className="eyebrow" style={{ fontSize: "11px" }}>Tools</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "14px" }}>
-            <Link href="/sgpa">SGPA Calculator</Link>
-            <Link href="/cgpa">CGPA Calculator</Link>
-            <Link href="/resources">Resources</Link>
-          </div>
-        </div>
-
-        <div>
-          <p className="eyebrow" style={{ fontSize: "11px" }}>Support</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "14px" }}>
-            <Link href="/contact">Contact</Link>
+            <Link href="/about">About</Link>
             <Link href="/faq">FAQ</Link>
-            <Link href="/university">University Info</Link>
+            <Link href="/contact">Contact</Link>
           </div>
         </div>
 
