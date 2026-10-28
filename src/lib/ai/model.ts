@@ -2,9 +2,9 @@ import type { BaseLanguageModelInput, StructuredOutputMethodOptions } from "@lan
 import { BaseChatModel, type BaseChatModelCallOptions, type BindToolsInput } from "@langchain/core/language_models/chat_models";
 import { AIMessageChunk, type BaseMessage } from "@langchain/core/messages";
 import { ChatGenerationChunk, type ChatResult } from "@langchain/core/outputs";
-import type { Runnable } from "@langchain/core/runnables";
+import { RunnableLambda, type Runnable, type RunnableConfig } from "@langchain/core/runnables";
 import { convertToOpenAITool } from "@langchain/core/utils/function_calling";
-import type { InteropZodType } from "@langchain/core/utils/types";
+import { interopSafeParseAsync, type InteropZodType } from "@langchain/core/utils/types";
 import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { ChatMistralAI } from "@langchain/mistralai";
 import { agentModelName, agentProvider, embeddingModel, embeddingProvider, geminiModel, llmProvider, nvidiaModelName, requireEnv } from "../env";
@@ -126,6 +126,29 @@ class ChatNvidia extends BaseChatModel {
     console.warn("NVIDIA failed, using Gemini:", err instanceof Error ? err.message.slice(0, 200) : err);
     const model = this.fields.fallback();
     return this.fields.tools ? model.bindTools!(this.fields.tools, { tool_choice: this.fields.toolChoice }) : model;
+  }
+
+  /**
+   * The base implementation returns the raw tool arguments without checking the schema, so a
+   * reply that skips a field (e.g. a quiz question with no `options`) would reach the UI.
+   * Validate here and hand a bad reply to the backup, whose parser validates on its own.
+   */
+  override withStructuredOutput(schema: any, config?: any): any {
+    const raw = super.withStructuredOutput(schema, config);
+    if (config?.includeRaw) return raw;
+    return RunnableLambda.from(async (input: BaseLanguageModelInput, options?: Partial<RunnableConfig>) => {
+      let problem: unknown;
+      try {
+        const parsed = await interopSafeParseAsync(schema, await raw.invoke(input, options));
+        if (parsed.success) return parsed.data;
+        problem = new Error(`NVIDIA reply did not match the "${config?.name ?? "output"}" schema.`);
+      } catch (err) {
+        problem = err;
+      }
+      if (!this.fields.fallback || options?.signal?.aborted) throw problem;
+      console.warn("NVIDIA structured output failed, using Gemini:", problem instanceof Error ? problem.message.slice(0, 200) : problem);
+      return this.fields.fallback().withStructuredOutput(schema, config).invoke(input, options);
+    });
   }
 
   async _generate(messages: BaseMessage[], options: this["ParsedCallOptions"]): Promise<ChatResult> {
