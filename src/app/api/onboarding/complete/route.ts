@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { creditMap, enrichSemester, resultSemesterSchema } from "@/lib/aktu-result";
 import { handler } from "@/lib/api";
-import { requireUser } from "@/lib/auth";
+import { HttpError, requireUser } from "@/lib/auth";
 import { getAllSubjects } from "@/lib/data";
-import { computeStats, getResultRecords, getSemesterPlan, GOALS, invalidateStudentContext, refreshInsights, yearForSemester } from "@/lib/profile";
+import { computeStats, getProfile, getResultRecords, getSemesterPlan, GOALS, invalidateStudentContext, refreshInsights, yearForSemester } from "@/lib/profile";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { sessionCookie, toSessionUser } from "@/lib/session";
 import { db } from "@/lib/supabase";
@@ -48,6 +48,12 @@ export const POST = handler(async (request: Request) => {
   rateLimit(`onboarding:${clientKey(request, user.id)}`, 5);
   const body = bodySchema.parse(await request.json());
   const now = new Date().toISOString();
+
+  // Update profile without a new PDF: the saved result stays, so check the semester against it
+  const [existing, saved] = body.semesters.length ? [null, []] : await Promise.all([getProfile(user.id), getResultRecords(user.id)]);
+  if (saved.some((r) => r.source === "aktu_result" && r.semester >= body.semester)) {
+    throw new HttpError(400, "Current semester must come after your last result.");
+  }
 
   // Keep only electives that really belong to this branch and semester
   const plan = await getSemesterPlan(body.branch_code, body.semester);
@@ -100,7 +106,7 @@ export const POST = handler(async (request: Request) => {
       {
         user_id: user.id,
         batch_year: body.batch_year ?? null,
-        origin: body.semesters.length ? "aktu_result" : "no_result",
+        origin: body.semesters.length ? "aktu_result" : (existing?.origin ?? "no_result"),
         electives,
         goals: body.goals,
         target_cgpa: body.target_cgpa ?? null,

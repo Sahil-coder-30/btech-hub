@@ -32,6 +32,8 @@ type Props = {
   profile: { goals: string[]; target_cgpa: number | null; note: string | null; electives: string[] } | null;
   next: string;
   redo: boolean;
+  /** Semesters from a result uploaded earlier. Set only in the Update profile flow. */
+  savedResult: { semester: number; sgpa: number }[] | null;
 };
 
 type Done = { stats: StudentStats; insights: StudentInsights | null; subjects: CurrentSubject[] };
@@ -61,10 +63,10 @@ const checkBadge = (sem: EnrichedSemester) =>
     <Badge variant="secondary">Not verified</Badge>
   );
 
-export function Onboarding({ user, branches, profile, next, redo }: Props) {
+export function Onboarding({ user, branches, profile, next, redo, savedResult }: Props) {
   const router = useRouter();
 
-  const [step, setStep] = useState<Step>("upload");
+  const [step, setStep] = useState<Step>(savedResult ? "details" : "upload");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -84,7 +86,10 @@ export function Onboarding({ user, branches, profile, next, redo }: Props) {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState<Done | null>(null);
 
-  const lastResultSemester = semesters.length ? Math.max(...semesters.map((s) => s.semester)) : 0;
+  // A newly uploaded result wins. Otherwise use the one saved earlier, if any.
+  const usingSaved = !semesters.length && Boolean(savedResult);
+  const resultSemesters = usingSaved ? savedResult! : semesters;
+  const lastResultSemester = resultSemesters.length ? Math.max(...resultSemesters.map((s) => s.semester)) : 0;
   const first = (result?.name ?? user.name)?.split(" ")[0] ?? "there";
 
   // Subjects and elective slots for the chosen branch and semester
@@ -147,7 +152,7 @@ export function Onboarding({ user, branches, profile, next, redo }: Props) {
 
   const targetNumber = target ? Number(target) : null;
   const targetValid = targetNumber === null || (targetNumber >= 4 && targetNumber <= 10);
-  const sgpas = semesters.map((s) => s.sgpa);
+  const sgpas = resultSemesters.map((s) => s.sgpa);
   const needed = targetNumber && targetValid && sgpas.length ? requiredSgpa(sgpas, targetNumber) : null;
 
   const finish = async () => {
@@ -242,13 +247,21 @@ export function Onboarding({ user, branches, profile, next, redo }: Props) {
                 </p>
               </CardContent>
               <CardFooter className="flex-wrap justify-between">
-                <Button variant="ghost" size="sm" onClick={() => skipResult(true)}>
-                  I&apos;m in 1st semester, no result yet
-                </Button>
-                {uploadError && (
-                  <Button variant="outline" size="sm" onClick={() => skipResult(false)}>
-                    Continue without result
+                {!savedResult && (
+                  <Button variant="ghost" size="sm" onClick={() => skipResult(true)}>
+                    I&apos;m in 1st semester, no result yet
                   </Button>
+                )}
+                {savedResult ? (
+                  <Button variant="outline" size="sm" onClick={() => setStep("details")}>
+                    Keep my saved result
+                  </Button>
+                ) : (
+                  uploadError && (
+                    <Button variant="outline" size="sm" onClick={() => skipResult(false)}>
+                      Continue without result
+                    </Button>
+                  )
                 )}
               </CardFooter>
             </Card>
@@ -362,12 +375,25 @@ export function Onboarding({ user, branches, profile, next, redo }: Props) {
               <CardHeader>
                 <CardTitle>Your current semester</CardTitle>
                 <CardDescription>
-                  {lastResultSemester
-                    ? `Your last result is for semester ${lastResultSemester}, so we guessed semester ${Math.min(8, lastResultSemester + 1)}. Change it if needed.`
-                    : "Tell us where you are right now."}
+                  {usingSaved
+                    ? "Check your branch and current semester. Your saved result is kept."
+                    : lastResultSemester
+                      ? `Your last result is for semester ${lastResultSemester}, so we guessed semester ${Math.min(8, lastResultSemester + 1)}. Change it if needed.`
+                      : "Tell us where you are right now."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
+                {usingSaved && (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-sm">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="size-4 shrink-0 text-success" />
+                      Using your saved result, up to semester {lastResultSemester}
+                    </span>
+                    <Button variant="outline" size="sm" onClick={() => setStep("upload")}>
+                      <UploadCloud /> Upload a new result
+                    </Button>
+                  </div>
+                )}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="o-branch">Branch</Label>

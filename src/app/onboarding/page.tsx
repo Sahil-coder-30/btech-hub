@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Onboarding } from "@/components/features/onboarding";
 import { getCurrentUser } from "@/lib/auth";
 import { getBranches } from "@/lib/data";
-import { getProfile } from "@/lib/profile";
+import { getProfile, getResultRecords } from "@/lib/profile";
 import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = { title: "Build your profile" };
@@ -23,7 +23,9 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
     redirect(`/api/onboarding/sync?next=${encodeURIComponent(nextPath)}`);
   }
 
-  const [branches, profile] = await Promise.all([getBranches(), getProfile(user.id)]);
+  const [branches, profile, records] = await Promise.all([getBranches(), getProfile(user.id), redo ? getResultRecords(user.id) : []]);
+  // When updating, a result uploaded earlier is reused instead of asking for the PDF again
+  const savedResult = records.filter((r) => r.source === "aktu_result").map((r) => ({ semester: r.semester, sgpa: Number(r.sgpa) }));
 
   return (
     <Onboarding
@@ -36,6 +38,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
       }
       next={nextPath}
       redo={Boolean(redo)}
+      savedResult={savedResult.length ? savedResult : null}
     />
   );
 }
