@@ -1,10 +1,9 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HttpError } from "../auth";
-import { agentProvider, embeddingProvider, geminiModel, isPineconeConfigured, requireEnv } from "../env";
+import { agentProvider, embeddingProvider, isPineconeConfigured } from "../env";
 import { db } from "../supabase";
 import { getSyllabusSemesters } from "../syllabus";
 import type { AskStreamEvent, ChatRole, Source, SyllabusInfo } from "../types";
-import { agentModel, contentToText, embedder } from "./model";
+import { agentModel, chatModel, contentToText, embedder } from "./model";
 import { MIN_SCORE, pineconeIndex } from "./rag";
 
 /**
@@ -286,9 +285,9 @@ function chatMessages(history: AskTurn[], question: string) {
 
 // ---------- 4. Streaming answer ----------
 
-/** Gemini without internal retries: on a quota error we switch to Mistral at once instead of waiting. */
-function gemini() {
-  return new ChatGoogleGenerativeAI({ model: geminiModel(), apiKey: requireEnv("GEMINI_API_KEY"), temperature: 0.2, maxRetries: 0 });
+/** Main model (NVIDIA, Gemini as its backup) without internal retries: when both fail we switch to Mistral at once instead of waiting. */
+function answerModel() {
+  return chatModel(0.2, 0);
 }
 
 function errorStatus(err: unknown) {
@@ -310,7 +309,7 @@ function shouldFallback(err: unknown) {
 async function* streamAnswer(messages: { role: string; content: string }[], signal: AbortSignal): AsyncGenerator<string> {
   let started = false;
   try {
-    for await (const chunk of await gemini().stream(messages, { signal })) {
+    for await (const chunk of await answerModel().stream(messages, { signal })) {
       const text = contentToText(chunk.content);
       if (!text) continue;
       started = true;
@@ -319,7 +318,7 @@ async function* streamAnswer(messages: { role: string; content: string }[], sign
     return;
   } catch (err) {
     if (started || signal.aborted || agentProvider() !== "mistral" || !shouldFallback(err)) throw err;
-    console.warn("Gemini failed before the first token, using Mistral:", err instanceof Error ? err.message.slice(0, 200) : err);
+    console.warn("Main model failed before the first token, using Mistral:", err instanceof Error ? err.message.slice(0, 200) : err);
   }
   for await (const chunk of await agentModel(0.2).stream(messages, { signal })) {
     const text = contentToText(chunk.content);

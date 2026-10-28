@@ -7,6 +7,7 @@ type ServerEnvKey =
   | "GEMINI_API_KEY"
   | "PINECONE_API_KEY"
   | "MISTRAL_API_KEY"
+  | "NVIDIA_API_KEY"
   | "PINECONE_INDEX";
 
 /** Reads a required server env var and fails with a clear message if it is missing. */
@@ -21,6 +22,9 @@ export function requireEnv(key: ServerEnvKey): string {
 export const appUrl = () => (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 export const geminiModel = () => process.env.GEMINI_MODEL || "gemini-3.8-flash";
+/** Main model for quizzes, doubts, plans and grounded answers. NVIDIA by default, Gemini is its backup. */
+export const llmProvider = () => (process.env.LLM_PROVIDER === "gemini" ? "gemini" : "nvidia");
+export const nvidiaModelName = () => process.env.NVIDIA_MODEL || "nvidia/nemotron-3.5-super-vl-120b-a12b";
 export const embeddingModel = () => process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001";
 /** Vac agent model. Mistral by default so chat does not use up the Gemini daily quota. */
 export const agentProvider = () => (process.env.AGENT_PROVIDER === "gemini" ? "gemini" : "mistral");
