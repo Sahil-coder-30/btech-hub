@@ -372,7 +372,11 @@ async function computeStudentContext(user: User): Promise<StudentContext> {
 
   const lines: string[] = [];
   const where = [
-    user.semester ? `Semester ${user.semester} (year ${yearForSemester(user.semester)})` : user.year ? `Year ${user.year}` : null,
+    user.semester
+      ? `Studying semester ${user.semester} now (year ${yearForSemester(user.semester)}${records.some((r) => r.semester === user.semester) ? "" : ", no result yet"})`
+      : user.year
+        ? `Year ${user.year}`
+        : null,
     user.branch_code ? `branch ${user.branch_code}` : null,
     profile?.batch_year ? `batch ${profile.batch_year}` : null,
   ];
@@ -381,7 +385,7 @@ async function computeStudentContext(user: User): Promise<StudentContext> {
   if (records.length) {
     const stats = profile?.stats && "cgpa" in profile.stats ? profile.stats : computeStats(records, targetOf(profile));
     lines.push(
-      `- CGPA ${stats.cgpa.toFixed(2)} (about ${stats.percentage.toFixed(1)}%). SGPA: ${list(stats.trend.map((t) => `S${t.semester} ${t.sgpa.toFixed(2)}`))}${stats.trendDirection ? `. Latest change: ${stats.trendDirection}` : ""}.`,
+      `- CGPA ${stats.cgpa.toFixed(2)} (about ${stats.percentage.toFixed(1)}%). SGPA results: ${list(stats.trend.map((t) => `semester ${t.semester} ${t.sgpa.toFixed(2)}`))}. Latest result is semester ${stats.trend.at(-1)?.semester}${stats.trendDirection ? `. Latest change: ${stats.trendDirection}` : ""}.`,
     );
     lines.push(`- Backlogs: ${stats.backlogs}.`);
     if (stats.topSubjects.length) lines.push(`- Past strong subjects (A+): ${list(stats.topSubjects.map((s) => s.name))}.`);

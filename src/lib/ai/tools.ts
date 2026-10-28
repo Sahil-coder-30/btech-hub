@@ -60,12 +60,18 @@ export function buildTools(user: User | null, options: { memoryEnabled?: boolean
 
   const sgpaTool = tool(
     async ({ subjects }) => {
+      // Small models sometimes call this with no real marks when asked "what is my SGPA"
+      if (subjects.every((s) => s.marks === 0)) {
+        return json({ error: "No marks were given. For the student's saved SGPA and CGPA use get_my_progress. Ask for marks only to estimate a new semester." });
+      }
       const result = calculateSgpa(subjects);
       return json({ ...result, tip: result.failed.length ? "Some subjects are below passing marks." : undefined });
     },
     {
       name: "calculate_sgpa",
-      description: "Calculate SGPA from marks out of 100 and credits for each subject, using the AKTU grade scale.",
+      description:
+        "Calculate SGPA from marks out of 100 and credits for each subject, using the AKTU grade scale. " +
+        "Only when the student has given the marks. Never make up marks. For the student's own saved SGPA or CGPA use get_my_progress.",
       schema: z.object({
         subjects: z.array(z.object({ subject: z.string(), credits: z.number().min(0.5), marks: z.number().min(0).max(100) })).min(1),
       }),
@@ -232,10 +238,14 @@ export function buildTools(user: User | null, options: { memoryEnabled?: boolean
         db().from("quiz_attempts").select("subject_title, score, total, weak_topics, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
       ]);
       const sgpas = (sgpa.data ?? []).map((r) => Number(r.sgpa));
+      const cgpa = calculateCgpa(sgpas);
+      // Spelled out so the model does not mix up the last result with the semester in progress
       return json({
-        profile: { name: user.name, branch: user.branch_code, year: user.year },
+        profile: { name: user.name, branch: user.branch_code, year: user.year, currentSemester: user.semester },
         semesters: sgpa.data,
-        cgpa: calculateCgpa(sgpas),
+        latestResult: sgpa.data?.at(-1) ?? null,
+        cgpa,
+        percentage: cgpaToPercentage(cgpa),
         recentQuizzes: quizzes.data,
       });
     },
