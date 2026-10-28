@@ -343,7 +343,7 @@ export function VacStudioClient({
   const earlierSessions = sessions.filter((s) => formatSessionDate(s.updatedAt) === "Earlier");
 
   return (
-    <div className="shell h-[calc(100dvh-64px)] lg:h-screen">
+    <div className={cn("shell h-[calc(100dvh-64px)]", user ? "lg:h-screen" : "lg:h-[calc(100dvh-65px)]")}>
       {/* Mobile Drawer Backdrop */}
       {(showHistoryDrawer || showContextDrawer) && (
         <div
@@ -495,7 +495,7 @@ export function VacStudioClient({
           {/* Mobile Drawer Trigger: Left */}
           <button
             type="button"
-            className="icon-btn lg:hidden"
+            className="icon-btn trig-side"
             onClick={() => setShowHistoryDrawer((p) => !p)}
             aria-label="Toggle chat history"
             title="Chat History"
@@ -542,7 +542,7 @@ export function VacStudioClient({
             {/* Mobile Drawer Trigger: Right */}
             <button
               type="button"
-              className="icon-btn xl:hidden"
+              className="icon-btn trig-ctx"
               onClick={() => setShowContextDrawer((p) => !p)}
               aria-label="Toggle student inspector"
               title="Student Profile & Tools"

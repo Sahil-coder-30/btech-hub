@@ -2237,6 +2237,20 @@
   border-color: var(--border-strong);
   transform: translateX(2px);
 }
+.trig-side,
+.trig-ctx {
+  display: none;
+}
+@media (max-width: 900px) {
+  .trig-side {
+    display: inline-flex;
+  }
+}
+@media (max-width: 1180px) {
+  .trig-ctx {
+    display: inline-flex;
+  }
+}
 .drawer-backdrop {
   position: fixed;
   inset: 65px 0 0 0;
