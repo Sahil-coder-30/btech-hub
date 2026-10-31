@@ -14,7 +14,23 @@ export async function getCurrentUser(): Promise<User | null> {
   const session = await getSession();
   if (!session) return null;
   const { data } = await db().from("users").select("*").eq("id", session.id).maybeSingle();
-  return (data as User) ?? null;
+  if (data) return data as User;
+  if (session.role === "admin") {
+    return {
+      id: session.id,
+      google_id: "admin_local_account",
+      email: session.email,
+      name: session.name ?? "System Administrator",
+      avatar_url: session.avatar_url ?? null,
+      role: "admin",
+      branch_code: null,
+      year: null,
+      semester: null,
+      onboarded_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    };
+  }
+  return null;
 }
 
 export class HttpError extends Error {

@@ -42,5 +42,10 @@ export const adminEmails = () =>
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
+export const adminCredentials = () => ({
+  username: process.env.ADMIN_USERNAME || "admin_btech_hub",
+  password: process.env.ADMIN_PASSWORD || "BTechHub@Admin2026_SecureKey",
+});
+
 export const isPineconeConfigured = () =>
   Boolean(process.env.PINECONE_API_KEY && !process.env.PINECONE_API_KEY.startsWith("your-"));

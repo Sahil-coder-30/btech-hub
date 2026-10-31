@@ -41,7 +41,7 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [form, setForm] = useState({ title: "", subject: "", type: "notes", branch: defaults.branch, year: defaults.year ? String(defaults.year) : "" });
+  const [form, setForm] = useState({ title: "", subject: "", type: "notes", branch: defaults.branch, year: defaults.year ? String(defaults.year) : "", drive_url: "" });
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ upload: Upload; preview: string; seconds: number } | null>(null);
@@ -84,6 +84,7 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
     if (subject?.code) body.set("subject_code", subject.code);
     if (form.branch) body.set("branch_code", form.branch);
     if (form.year) body.set("year", form.year);
+    if (form.drive_url.trim()) body.set("drive_url", form.drive_url.trim());
 
     setBusy(true);
     try {
@@ -93,7 +94,7 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
       setResult(data);
       setFile(null);
       setConsent(false);
-      setForm((s) => ({ ...s, title: "" }));
+      setForm((s) => ({ ...s, title: "", drive_url: "" }));
       toast.success("Uploaded! It goes live after a quick review.");
       load();
     } catch (err) {
@@ -167,6 +168,11 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
                   <option key={s.title} value={s.title} />
                 ))}
               </datalist>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="u-drive">Google Drive link (optional)</Label>
+              <Input id="u-drive" value={form.drive_url} onChange={(e) => setForm({ ...form, drive_url: e.target.value })} placeholder="https://drive.google.com/file/d/..." />
+              <p className="text-[11px] text-muted-foreground">Public share link so students can view or download the full document once approved.</p>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <Select aria-label="Type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>

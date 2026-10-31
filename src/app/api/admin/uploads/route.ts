@@ -60,6 +60,26 @@ export const POST = handler(async (request: Request) => {
     });
     await db().from("user_uploads").update({ ...reviewed, status: "approved", document_id: indexed.document_id }).eq("id", id);
     clearCoverageCache();
+
+    // If a Google Drive link or live file link was attached, optionally promote into the resources catalogue
+    const driveUrl = (upload.analysis as Record<string, any>)?.drive_url;
+    if (driveUrl) {
+      try {
+        await db().from("resources").insert({
+          subject_code: upload.subject_code,
+          subject_title: upload.subject_title || upload.title,
+          year: upload.year || 1,
+          semester: upload.year ? upload.year * 2 - 1 : 1,
+          branch_code: upload.branch_code,
+          type: upload.type,
+          label: upload.title,
+          url: driveUrl,
+        });
+      } catch (rErr) {
+        console.warn("Could not auto-promote approved upload to resources:", rErr);
+      }
+    }
+
     return NextResponse.json({ status: "approved", ...indexed });
   } catch (err) {
     await db().from("user_uploads").update({ ...reviewed, status: "failed", review_note: err instanceof Error ? err.message.slice(0, 400) : "Indexing failed" }).eq("id", id);

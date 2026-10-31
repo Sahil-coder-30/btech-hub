@@ -19,6 +19,7 @@ const metaSchema = z.object({
   branch_code: z.enum(["CSE", "CSEAIML", "CSEDS", "IT", "ECE", "EE", "EEE", "ME", "CE"]).optional().nullable(),
   year: z.coerce.number().int().min(1).max(4).optional().nullable(),
   type: z.enum(["notes", "pyq", "imp_question", "other"]).default("notes"),
+  drive_url: z.string().trim().url().optional().nullable(),
 });
 
 const LIST_COLUMNS =
@@ -35,6 +36,7 @@ export const GET = handler(async () => {
 /**
  * POST /api/uploads (multipart): file + metadata.
  * The ML service reads the file (text layer or OCR) and checks photo quality.
+ * Falls back to local PDF parsing or Gemini Vision when ML service is offline.
  * The upload is stored as pending until an admin approves it for indexing.
  */
 export const POST = handler(async (request: Request) => {
@@ -55,6 +57,7 @@ export const POST = handler(async (request: Request) => {
     branch_code: form.get("branch_code") || null,
     year: form.get("year") || null,
     type: form.get("type") || "notes",
+    drive_url: form.get("drive_url") || form.get("file_url") || null,
   });
 
   const result = await mlExtract(file);
@@ -62,12 +65,21 @@ export const POST = handler(async (request: Request) => {
     throw new HttpError(422, "We could not read enough text from this file. Try a clearer photo or a text based PDF.");
   }
 
+  const analysis = {
+    ...result.analysis,
+    ...(meta.drive_url ? { drive_url: meta.drive_url } : {}),
+  };
+
   const { data, error } = await db()
     .from("user_uploads")
     .insert({
       user_id: user.id,
-      ...meta,
+      title: meta.title,
+      subject_title: meta.subject_title,
       subject_code: meta.subject_code || result.analysis.subject_codes[0] || null,
+      branch_code: meta.branch_code,
+      year: meta.year,
+      type: meta.type,
       file_name: file.name.slice(0, 200),
       mime_type: file.type,
       size_bytes: file.size,
@@ -75,7 +87,7 @@ export const POST = handler(async (request: Request) => {
       ocr_methods: result.methods,
       ocr_confidence: result.ocr_confidence,
       quality: result.quality,
-      analysis: result.analysis,
+      analysis,
       text: result.text.slice(0, MAX_TEXT),
     })
     .select(LIST_COLUMNS)
