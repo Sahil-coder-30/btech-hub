@@ -68,6 +68,9 @@ export function Onboarding({ user, branches, profile, next, redo, savedResult }:
 
   const [step, setStep] = useState<Step>(savedResult ? "details" : "upload");
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState("");
+  const [uploadFileName, setUploadFileName] = useState("");
   const [uploadError, setUploadError] = useState("");
   const [dragging, setDragging] = useState(false);
 
@@ -123,19 +126,58 @@ export function Onboarding({ user, branches, profile, next, redo, savedResult }:
     if (file.size > 5 * 1024 * 1024) return setUploadError("PDF must be under 5 MB.");
     setUploadError("");
     setUploading(true);
+    setUploadProgress(15);
+    setUploadStage("Uploading result PDF...");
+    setUploadFileName(file.name);
+
+    let pct = 15;
+    const stages = [
+      { at: 35, label: "Reading digital document layers..." },
+      { at: 60, label: "Extracting semester marks and subjects..." },
+      { at: 80, label: "Matching AKTU syllabus codes and grades..." },
+      { at: 92, label: "Verifying credits & computing SGPA..." },
+    ];
+
+    const timer = setInterval(() => {
+      pct += Math.max(1, Math.floor((95 - pct) / 6));
+      if (pct > 95) pct = 95;
+      setUploadProgress(pct);
+      const stage = stages.find((s) => pct <= s.at);
+      if (stage) setUploadStage(stage.label);
+    }, 380);
+
     const form = new FormData();
     form.set("file", file);
-    const res = await fetch("/api/onboarding/parse", { method: "POST", body: form }).catch(() => null);
-    setUploading(false);
-    if (!res?.ok) return setUploadError(res ? await errorOf(res) : "Network error. Please try again.");
 
-    const data = (await res.json()) as { result: EnrichedResult; via: "text" | "ai" };
-    setResult(data.result);
-    setSemesters(data.result.semesters);
-    if (data.result.branchCode) setBranch(data.result.branchCode);
-    setSemester(data.result.suggestedSemester);
-    if (data.via === "ai") toast.info("We read this PDF with AI. Please check every grade carefully.");
-    setStep("review");
+    try {
+      const res = await fetch("/api/onboarding/parse", { method: "POST", body: form }).catch(() => null);
+      clearInterval(timer);
+
+      if (!res?.ok) {
+        setUploading(false);
+        setUploadProgress(0);
+        return setUploadError(res ? await errorOf(res) : "Network error. Please try again.");
+      }
+
+      setUploadProgress(100);
+      setUploadStage("Done! Loading your grades...");
+      const data = (await res.json()) as { result: EnrichedResult; via: "text" | "ai" };
+
+      setTimeout(() => {
+        setUploading(false);
+        setResult(data.result);
+        setSemesters(data.result.semesters);
+        if (data.result.branchCode) setBranch(data.result.branchCode);
+        setSemester(data.result.suggestedSemester);
+        if (data.via === "ai") toast.info("We read this PDF with AI. Please check every grade carefully.");
+        setStep("review");
+      }, 450);
+    } catch {
+      clearInterval(timer);
+      setUploading(false);
+      setUploadProgress(0);
+      setUploadError("Something went wrong while reading your PDF. Please try again.");
+    }
   };
 
   const skipResult = (fresher: boolean) => {
@@ -210,30 +252,83 @@ export function Onboarding({ user, branches, profile, next, redo, savedResult }:
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <label
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragging(true);
-                  }}
-                  onDragLeave={() => setDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setDragging(false);
-                    upload(e.dataTransfer.files[0]);
-                  }}
-                  className={cn(
-                    "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition",
-                    dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-                    uploading && "pointer-events-none opacity-70",
-                  )}
-                >
-                  <input type="file" accept="application/pdf" className="sr-only" onChange={(e) => upload(e.target.files?.[0])} />
-                  <span className="grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary">
-                    {uploading ? <Spinner size={24} /> : <UploadCloud className="size-7" />}
-                  </span>
-                  <span className="font-medium">{uploading ? "Reading your result..." : "Drop your result PDF here or click to choose"}</span>
-                  <span className="text-xs text-muted-foreground">PDF only, up to 5 MB</span>
-                </label>
+                {uploading ? (
+                  <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-primary/30 bg-primary/5 px-6 py-10 text-center">
+                    <div className="relative">
+                      <span className="grid size-16 place-items-center rounded-2xl bg-primary/15 text-primary shadow-sm">
+                        <FileText className="size-8 animate-pulse" />
+                      </span>
+                      <span className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                        {uploadProgress}%
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="text-base font-semibold text-foreground">Reading Your Result PDF</h3>
+                      <p className="text-xs text-muted-foreground truncate max-w-xs">{uploadFileName || "result.pdf"}</p>
+                    </div>
+
+                    <div className="w-full max-w-md space-y-2">
+                      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted border border-border/50">
+                        <div
+                          role="progressbar"
+                          aria-valuenow={uploadProgress}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          style={{ width: `${uploadProgress}%` }}
+                          className="h-full rounded-full bg-primary transition-all duration-300 ease-out shadow-sm"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs font-medium">
+                        <span className="flex items-center gap-1.5 text-primary">
+                          <span className="size-1.5 rounded-full bg-primary animate-ping" />
+                          {uploadStage}
+                        </span>
+                        <span className="tabular-nums font-semibold text-primary">{uploadProgress}%</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-1 flex flex-wrap justify-center gap-2 text-[11px] text-muted-foreground">
+                      <span className={cn("px-2 py-0.5 rounded-md border transition-colors", uploadProgress >= 15 ? "border-primary/40 bg-primary/10 text-primary font-medium" : "border-border bg-muted/30")}>
+                        1. Upload
+                      </span>
+                      <span className={cn("px-2 py-0.5 rounded-md border transition-colors", uploadProgress >= 35 ? "border-primary/40 bg-primary/10 text-primary font-medium" : "border-border bg-muted/30")}>
+                        2. Text Layer
+                      </span>
+                      <span className={cn("px-2 py-0.5 rounded-md border transition-colors", uploadProgress >= 60 ? "border-primary/40 bg-primary/10 text-primary font-medium" : "border-border bg-muted/30")}>
+                        3. Extract Marks
+                      </span>
+                      <span className={cn("px-2 py-0.5 rounded-md border transition-colors", uploadProgress >= 80 ? "border-primary/40 bg-primary/10 text-primary font-medium" : "border-border bg-muted/30")}>
+                        4. Verify SGPA
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <label
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragging(true);
+                    }}
+                    onDragLeave={() => setDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragging(false);
+                      upload(e.dataTransfer.files[0]);
+                    }}
+                    className={cn(
+                      "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition",
+                      dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
+                    )}
+                  >
+                    <input type="file" accept="application/pdf" className="sr-only" onChange={(e) => upload(e.target.files?.[0])} />
+                    <span className="grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary">
+                      <UploadCloud className="size-7" />
+                    </span>
+                    <span className="font-medium">Drop your result PDF here or click to choose</span>
+                    <span className="text-xs text-muted-foreground">PDF only, up to 5 MB</span>
+                  </label>
+                )}
 
                 {uploadError && (
                   <p role="alert" className="flex items-start gap-2 rounded-xl border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">

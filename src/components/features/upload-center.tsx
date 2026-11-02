@@ -44,6 +44,8 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
   const [form, setForm] = useState({ title: "", subject: "", type: "notes", branch: defaults.branch, year: defaults.year ? String(defaults.year) : "", drive_url: "" });
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState("");
   const [result, setResult] = useState<{ upload: Upload; preview: string; seconds: number } | null>(null);
   const [uploads, setUploads] = useState<Upload[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -87,10 +89,32 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
     if (form.drive_url.trim()) body.set("drive_url", form.drive_url.trim());
 
     setBusy(true);
+    setUploadProgress(15);
+    setUploadStage("Uploading material...");
+
+    let pct = 15;
+    const stages = [
+      { at: 35, label: "Extracting digital text layer..." },
+      { at: 65, label: "Scanning document contents & structure..." },
+      { at: 85, label: "Extracting subject codes & keywords..." },
+      { at: 93, label: "Indexing study material for search..." },
+    ];
+
+    const timer = setInterval(() => {
+      pct += Math.max(1, Math.floor((95 - pct) / 5));
+      if (pct > 95) pct = 95;
+      setUploadProgress(pct);
+      const stage = stages.find((s) => pct <= s.at);
+      if (stage) setUploadStage(stage.label);
+    }, 400);
+
     try {
       const res = await fetch("/api/uploads", { method: "POST", body });
+      clearInterval(timer);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Upload failed");
+      setUploadProgress(100);
+      setUploadStage("Completed!");
       setResult(data);
       setFile(null);
       setConsent(false);
@@ -98,9 +122,11 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
       toast.success("Uploaded! It goes live after a quick review.");
       load();
     } catch (err) {
+      clearInterval(timer);
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setBusy(false);
+      setUploadProgress(0);
     }
   };
 
@@ -198,10 +224,31 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 size-4 accent-[var(--primary)]" />
               I made this material or have the right to share it, and it contains no personal details.
             </label>
-            <Button size="lg" className="w-full" onClick={submit} disabled={!canSubmit}>
+            {busy && (
+              <div className="space-y-2 rounded-xl border border-primary/25 bg-primary/5 p-3.5">
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <span className="flex items-center gap-1.5 text-primary">
+                    <span className="size-1.5 rounded-full bg-primary animate-ping" />
+                    {uploadStage}
+                  </span>
+                  <span className="tabular-nums font-semibold text-primary">{uploadProgress}%</span>
+                </div>
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted border border-border/40">
+                  <div
+                    role="progressbar"
+                    aria-valuenow={uploadProgress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    style={{ width: `${uploadProgress}%` }}
+                    className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
+                  />
+                </div>
+              </div>
+            )}
+            <Button size="lg" className="w-full" onClick={submit} disabled={!canSubmit || busy}>
               {busy ? (
                 <>
-                  <Spinner size={16} /> Reading with OCR... (about 1 sec per page)
+                  <Spinner size={16} /> Reading with OCR ({uploadProgress}%)...
                 </>
               ) : (
                 <>
