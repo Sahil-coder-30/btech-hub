@@ -148,23 +148,31 @@ function extractRawPdfStreams(buffer: ArrayBuffer): string {
       if (endIdx === -1) break;
 
       const streamData = raw.subarray(startIdx, endIdx);
+      let content = "";
       try {
-        const decompressed = zlib.inflateSync(streamData).toString("latin1");
-        const tjMatches = decompressed.matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)\s*Tj/g);
-        for (const m of tjMatches) {
-          if (m[1]?.trim()) textPieces.push(m[1].replace(/\\([()\\])/g, "$1").trim());
-        }
-        const tjArrayMatches = decompressed.matchAll(/\[([^\]]+)\]\s*TJ/g);
-        for (const m of tjArrayMatches) {
-          const parts = m[1].matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)/g);
-          let joined = "";
-          for (const p of parts) joined += p[1].replace(/\\([()\\])/g, "$1");
-          if (joined.trim()) textPieces.push(joined.trim());
-        }
-      } catch {}
+        content = zlib.inflateSync(streamData).toString("latin1");
+      } catch {
+        content = streamData.toString("latin1");
+      }
+
+      const tjMatches = content.matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)\s*Tj/g);
+      for (const m of tjMatches) {
+        if (m[1]?.trim()) textPieces.push(m[1].replace(/\\([()\\])/g, "$1").trim());
+      }
+      const tjQuoteMatches = content.matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)\s*[\x27\x22]/g);
+      for (const m of tjQuoteMatches) {
+        if (m[1]?.trim()) textPieces.push(m[1].replace(/\\([()\\])/g, "$1").trim());
+      }
+      const tjArrayMatches = content.matchAll(/\[([^\]]+)\]\s*TJ/g);
+      for (const m of tjArrayMatches) {
+        const parts = m[1].matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)/g);
+        let joined = "";
+        for (const p of parts) joined += p[1].replace(/\\([()\\])/g, "$1");
+        if (joined.trim()) textPieces.push(joined.trim());
+      }
       searchPos = endIdx + 9;
     }
-    return textPieces.join(" ");
+    return textPieces.join("\n");
   } catch {
     return "";
   }
