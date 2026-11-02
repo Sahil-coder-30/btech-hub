@@ -141,7 +141,14 @@ export async function solveDoubt(question: string, image?: { mimeType: string; b
 /** Reads a One View result PDF with Gemini when the text parser finds nothing (scans, new layouts). */
 export async function parseResultWithGemini(pdfBase64: string): Promise<ParsedResult> {
   const apiKey = requireEnv("GEMINI_API_KEY");
-  const model = geminiModel();
+  const configuredModel = geminiModel();
+  const candidateModels = [
+    configuredModel,
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-3.8-flash",
+  ].filter((v, i, a) => a.indexOf(v) === i);
 
   const prompt =
     "You extract data from AKTU (Dr. A.P.J. Abdul Kalam Technical University) One View student result PDFs. " +
@@ -152,41 +159,52 @@ export async function parseResultWithGemini(pdfBase64: string): Promise<ParsedRe
     "If the document is not an AKTU result, return an empty semesters list: {\"name\": null, \"course\": null, \"branchName\": null, \"batchYear\": null, \"semesters\": []}. " +
     "Return valid JSON only matching this structure.";
 
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: prompt },
+  let lastError: Error | null = null;
+  for (const model of candidateModels) {
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
             {
-              inline_data: {
-                mime_type: "application/pdf",
-                data: pdfBase64,
-              },
+              parts: [
+                { text: prompt },
+                {
+                  inline_data: {
+                    mime_type: "application/pdf",
+                    data: pdfBase64,
+                  },
+                },
+              ],
             },
           ],
-        },
-      ],
-      generationConfig: {
-        response_mime_type: "application/json",
-      },
-    }),
-    signal: AbortSignal.timeout(45_000),
-  });
+          generationConfig: {
+            response_mime_type: "application/json",
+          },
+        }),
+        signal: AbortSignal.timeout(45_000),
+      });
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini PDF parse failed (${res.status}): ${errText.slice(0, 200)}`);
+      if (!res.ok) {
+        const errText = await res.text();
+        lastError = new Error(`Gemini PDF parse failed on ${model} (${res.status}): ${errText.slice(0, 200)}`);
+        continue;
+      }
+
+      const data = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) continue;
+      const cleaned = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      const json = JSON.parse(cleaned);
+      return parsedResultSchema.parse(json);
+    } catch (err: any) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      continue;
+    }
   }
 
-  const data = await res.json();
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawText) throw new Error("Gemini returned empty response for PDF parse.");
-  const cleaned = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-  const json = JSON.parse(cleaned);
-  return parsedResultSchema.parse(json);
+  throw lastError ?? new Error("Gemini returned empty response for PDF parse.");
 }
 
 // ---------- Student insights ----------
