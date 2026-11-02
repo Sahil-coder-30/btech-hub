@@ -1,0 +1,20 @@
+.git
+.git*
+.next
+node_modules
+.venv
+scripts
+ml-service
+__pycache__
+*.pyc
+*.py
+screen_*.html
+screen_*_code.js
+screen_*_unpacked_template.html
+asset_s0_*.js
+extracted_design.html
+vac_design_styles.css
+*BTech Hub Design.html
+*.tsbuildinfo
+docs
+*.sample

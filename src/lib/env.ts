@@ -19,7 +19,20 @@ export function requireEnv(key: ServerEnvKey): string {
   return value;
 }
 
-export const appUrl = () => (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+export const appUrl = () => {
+  const nextPublicUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (nextPublicUrl && !nextPublicUrl.includes("localhost")) {
+    return nextPublicUrl.replace(/\/$/, "");
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`.replace(/\/$/, "");
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, "");
+  }
+  const fallback = nextPublicUrl || "http://localhost:3000";
+  return (fallback.startsWith("http") ? fallback : `https://${fallback}`).replace(/\/$/, "");
+};
 
 export const geminiModel = () => process.env.GEMINI_MODEL || "gemini-3.8-flash";
 /** Main model for quizzes, doubts, plans and grounded answers. NVIDIA by default, Gemini is its backup. */
