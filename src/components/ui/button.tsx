@@ -37,9 +37,27 @@ export function buttonVariants({
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  loading?: boolean;
   ref?: React.Ref<HTMLButtonElement>;
 };
 
-export function Button({ variant, size, className, type = "button", ...props }: ButtonProps) {
-  return <button type={type} className={buttonVariants({ variant, size, className })} {...props} />;
+export function Button({ variant, size, loading, className, disabled, children, type = "button", ...props }: ButtonProps) {
+  return (
+    <button
+      type={type}
+      disabled={disabled || loading}
+      aria-busy={loading}
+      className={cn(buttonVariants({ variant, size, className }), loading && "cursor-wait opacity-80")}
+      {...props}
+    >
+      {loading ? (
+        <>
+          <span className="inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+          {children}
+        </>
+      ) : (
+        children
+      )}
+    </button>
+  );
 }

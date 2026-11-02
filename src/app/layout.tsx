@@ -4,9 +4,9 @@ import "katex/dist/katex.min.css";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { AppShell } from "@/components/layout/app-shell";
-import { VacChat } from "@/components/chat/vac-chat";
+import { TopProgressBar } from "@/components/layout/top-progress-bar";
+import { LazyWidgets } from "@/components/layout/lazy-widgets";
 import { VacLoginPrompt } from "@/components/chat/vac-login-prompt";
-import { CommandMenu } from "@/components/command-menu";
 import { HistoryGuard } from "@/components/auth/history-guard";
 import { UiPreferencesSync } from "@/components/settings/ui-preferences-sync";
 import { getSession } from "@/lib/auth";
@@ -64,6 +64,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="min-h-dvh bg-background text-foreground antialiased">
+        <TopProgressBar />
         <Providers initialUser={session} theme={ui?.theme} reduceMotion={reduceMotion}>
           <AppShell user={session}>{children}</AppShell>
           {/* Vac and the command console are logged-in features. Guests get a login prompt instead. */}
@@ -71,8 +72,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <>
               <UiPreferencesSync theme={ui?.theme ?? null} reduceMotion={reduceMotion} />
               {/* Students can hide the floating bubble in Settings. The /vac page always works. */}
-              {ui?.widget !== false && <VacChat user={session} />}
-              <CommandMenu />
+              <LazyWidgets session={session} showWidget={ui?.widget !== false} />
             </>
           ) : (
             <VacLoginPrompt />

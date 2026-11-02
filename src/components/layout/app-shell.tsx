@@ -532,6 +532,7 @@ export function AppShell({
                         <Link
                           key={item.href}
                           href={item.href}
+                          prefetch={true}
                           onClick={() => setMobileOpen(false)}
                           className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                             active
@@ -699,6 +700,7 @@ export function AppShell({
                     >
                       <Link
                         href={item.href}
+                        prefetch={true}
                         className={`group flex items-center gap-3 rounded-xl transition-all ${
                           isCollapsed
                             ? "h-10 w-full justify-center px-0"
