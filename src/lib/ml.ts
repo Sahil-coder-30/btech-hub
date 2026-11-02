@@ -196,10 +196,12 @@ async function extractWithGemini(buffer: ArrayBuffer, mimeType: string): Promise
   if (!apiKey || apiKey.startsWith("your-") || apiKey.startsWith("replace-")) return null;
 
   const base64Data = Buffer.from(buffer).toString("base64");
-  const configuredModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
-  const candidateModels = [configuredModel, "gemini-3.8-flash", "gemini-2.5-flash"].filter(
-    (v, i, a) => a.indexOf(v) === i,
-  );
+  const candidateModels = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-3.7-flash",
+    process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+  ].filter((v, i, a) => a.indexOf(v) === i);
 
   for (const model of candidateModels) {
     try {

@@ -141,13 +141,11 @@ export async function solveDoubt(question: string, image?: { mimeType: string; b
 /** Reads a One View result PDF with Gemini when the text parser finds nothing (scans, new layouts). */
 export async function parseResultWithGemini(pdfBase64: string): Promise<ParsedResult> {
   const apiKey = requireEnv("GEMINI_API_KEY");
-  const configuredModel = geminiModel();
   const candidateModels = [
-    configuredModel,
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash",
-    "gemini-3.8-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-3.7-flash",
+    geminiModel(),
   ].filter((v, i, a) => a.indexOf(v) === i);
 
   const prompt =
