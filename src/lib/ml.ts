@@ -180,6 +180,13 @@ function extractRawPdfStreams(buffer: ArrayBuffer): string {
 
 async function extractPdfText(buffer: ArrayBuffer): Promise<{ text: string; pages: number } | null> {
   ensureNodePolyfills();
+  // 1. Fast, zero-dependency raw stream extraction (handles all PDF versions without xref or worker crashes)
+  const rawStreamText = extractRawPdfStreams(buffer);
+  if (rawStreamText.length > 50) {
+    return { text: rawStreamText, pages: Math.max(1, Math.round(buffer.byteLength / 60_000)) };
+  }
+
+  // 2. Legacy fallback reader
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const pdf = require("pdf-parse/lib/pdf-parse.js");
@@ -187,14 +194,7 @@ async function extractPdfText(buffer: ArrayBuffer): Promise<{ text: string; page
     if (res?.text && typeof res.text === "string" && res.text.trim().length > 0) {
       return { text: res.text.trim(), pages: res.numpages || 1 };
     }
-  } catch (err) {
-    console.warn("[extractPdfText] pdf-parse failed, trying raw stream extraction:", err instanceof Error ? err.message : err);
-  }
-
-  const rawStreamText = extractRawPdfStreams(buffer);
-  if (rawStreamText.length > 50) {
-    return { text: rawStreamText, pages: 1 };
-  }
+  } catch {}
 
   return null;
 }
@@ -206,10 +206,10 @@ async function extractWithGemini(buffer: ArrayBuffer, mimeType: string): Promise
   const base64Data = Buffer.from(buffer).toString("base64");
   const candidateModels = [
     "gemini-3.5-flash-lite",
+    "gemini-flash-lite-latest",
     "gemini-3.5-flash",
-    "gemini-3.7-flash",
-    process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
-  ].filter((v, i, a) => a.indexOf(v) === i);
+    "gemini-3.1-flash-lite",
+  ];
 
   for (const model of candidateModels) {
     try {

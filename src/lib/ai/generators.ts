@@ -143,10 +143,10 @@ export async function parseResultWithGemini(pdfBase64: string): Promise<ParsedRe
   const apiKey = requireEnv("GEMINI_API_KEY");
   const candidateModels = [
     "gemini-3.5-flash-lite",
+    "gemini-flash-lite-latest",
     "gemini-3.5-flash",
-    "gemini-3.7-flash",
-    geminiModel(),
-  ].filter((v, i, a) => a.indexOf(v) === i);
+    "gemini-3.1-flash-lite",
+  ];
 
   const prompt =
     "You extract data from AKTU (Dr. A.P.J. Abdul Kalam Technical University) One View student result PDFs. " +

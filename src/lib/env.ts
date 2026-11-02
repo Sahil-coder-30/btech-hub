@@ -34,7 +34,13 @@ export const appUrl = () => {
   return (fallback.startsWith("http") ? fallback : `https://${fallback}`).replace(/\/$/, "");
 };
 
-export const geminiModel = () => process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+export const geminiModel = () => {
+  const model = process.env.GEMINI_MODEL;
+  if (!model || model.includes("1.5") || model.includes("3.8") || model.includes("3.7") || model.includes("2.5")) {
+    return "gemini-3.5-flash-lite";
+  }
+  return model;
+};
 /** Main model for quizzes, doubts, plans and grounded answers. NVIDIA by default, Gemini is its backup. */
 export const llmProvider = () => (process.env.LLM_PROVIDER === "gemini" ? "gemini" : "nvidia");
 export const nvidiaModelName = () => process.env.NVIDIA_MODEL || "nvidia/nemotron-3.5-super-vl-120b-a12b";
