@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Hide the dev-only Next.js badge so it does not cover the navbar.
   devIndicators: false,
-  // Passport must run as a plain Node module, not bundled.
-  serverExternalPackages: ["passport", "passport-google-oauth20"],
+  // Passport and PDF parser must run as plain Node modules, not bundled.
+  serverExternalPackages: ["passport", "passport-google-oauth20", "pdf-parse", "pdfjs-dist"],
   experimental: {
     serverActions: { bodySizeLimit: "10mb" },
   },

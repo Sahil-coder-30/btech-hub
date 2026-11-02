@@ -15,7 +15,7 @@ import type { SyllabusIndexStatus, SyllabusInfo, SyllabusLink } from "./types";
 
 export const SYLLABUS_NOT_SET_UP =
   "Ask your Syllabus is not set up yet. Run supabase/migrations/2026_10_ask_syllabus.sql in the Supabase SQL Editor.";
-const INDEXING_NOT_CONFIGURED = "Syllabus indexing is not configured. Set ML_SERVICE_URL, ML_SERVICE_TOKEN and PINECONE_API_KEY.";
+const INDEXING_NOT_CONFIGURED = "Syllabus indexing is not configured. Set PINECONE_API_KEY.";
 
 /** An `indexing` lock older than this is treated as dead (server restart, crash) and may be taken again. */
 const STALE_LOCK_MS = 8 * 60_000;
@@ -288,7 +288,7 @@ export async function getSyllabusInfo(branchInput: string, year: number): Promis
 // ---------- Indexing pipeline ----------
 
 export function assertIndexingConfigured() {
-  if (!isMlConfigured() || !isPineconeConfigured()) throw new HttpError(503, INDEXING_NOT_CONFIGURED);
+  if (!isPineconeConfigured()) throw new HttpError(503, INDEXING_NOT_CONFIGURED);
 }
 
 /**

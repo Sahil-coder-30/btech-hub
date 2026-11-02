@@ -1,5 +1,61 @@
+import zlib from "node:zlib";
 import { HttpError } from "./auth";
 import { isPineconeConfigured } from "./env";
+
+function ensureNodePolyfills() {
+  if (typeof globalThis.DOMMatrix === "undefined") {
+    (globalThis as any).DOMMatrix = class DOMMatrix {
+      a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+      m11 = 1; m12 = 0; m13 = 0; m14 = 0;
+      m21 = 0; m22 = 1; m23 = 0; m24 = 0;
+      m31 = 0; m32 = 0; m33 = 1; m34 = 0;
+      m41 = 0; m42 = 0; m43 = 0; m44 = 1;
+      is2D = true;
+      isIdentity = true;
+      constructor(init?: any) {
+        if (Array.isArray(init) && init.length >= 6) {
+          this.a = this.m11 = init[0];
+          this.b = this.m12 = init[1];
+          this.c = this.m21 = init[2];
+          this.d = this.m22 = init[3];
+          this.e = this.m41 = init[4];
+          this.f = this.m42 = init[5];
+        }
+      }
+      multiply() { return this; }
+      translate() { return this; }
+      scale() { return this; }
+      transformPoint(p: any) { return p; }
+      inverse() { return this; }
+    };
+  }
+  if (typeof globalThis.Path2D === "undefined") {
+    (globalThis as any).Path2D = class Path2D {
+      addPath() {}
+      closePath() {}
+      moveTo() {}
+      lineTo() {}
+      bezierCurveTo() {}
+      quadraticCurveTo() {}
+      arc() {}
+      arcTo() {}
+      ellipse() {}
+      rect() {}
+    };
+  }
+  if (typeof globalThis.ImageData === "undefined") {
+    (globalThis as any).ImageData = class ImageData {
+      width: number;
+      height: number;
+      data: Uint8ClampedArray;
+      constructor(w: number, h: number) {
+        this.width = w;
+        this.height = h;
+        this.data = new Uint8ClampedArray(w * h * 4);
+      }
+    };
+  }
+}
 
 /** Client for the separately deployed FastAPI ML service (OCR, vision, indexing). */
 
@@ -16,35 +72,7 @@ export type ExtractResult = {
 };
 
 export function isMlConfigured() {
-  const token = process.env.ML_SERVICE_TOKEN;
-  return Boolean(process.env.ML_SERVICE_URL && token && !token.startsWith("generate-"));
-}
-
-function config() {
-  const url = process.env.ML_SERVICE_URL?.replace(/\/$/, "");
-  const token = process.env.ML_SERVICE_TOKEN;
-  if (!url || !token || !isMlConfigured()) {
-    throw new HttpError(503, "Upload processing is not configured. Set ML_SERVICE_URL and ML_SERVICE_TOKEN.");
-  }
-  return { url, token };
-}
-
-async function call<T>(path: string, init: RequestInit, timeoutMs: number): Promise<T> {
-  const { url, token } = config();
-  let res: Response;
-  try {
-    res = await fetch(`${url}${path}`, {
-      ...init,
-      headers: { ...(init.headers ?? {}), Authorization: `Bearer ${token}` },
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-  } catch (err) {
-    const timedOut = err instanceof Error && err.name === "TimeoutError";
-    throw new HttpError(timedOut ? 504 : 502, timedOut ? "Processing took too long. Try a smaller file." : "ML service is not reachable right now.");
-  }
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new HttpError(res.status === 422 ? 422 : 502, (data as { detail?: string }).detail ?? "ML service error.");
-  return data as T;
+  return true;
 }
 
 const SUBJECT_CODE_REGEX = /\b(B[A-Z]{2}\d{3}|K[A-Z]{2}\d{3}|BOE\d{3})\b/gi;
@@ -93,29 +121,73 @@ function extractKeywords(text: string, top = 12): string[] {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([w]) => w).slice(0, top);
 }
 
-async function extractPdfText(buffer: ArrayBuffer): Promise<{ text: string; pages: number } | null> {
+function extractRawPdfStreams(buffer: ArrayBuffer): string {
   try {
-    const pdfModule: any = await import("pdf-parse");
-    const PDFParse = pdfModule.PDFParse || pdfModule.default?.PDFParse || pdfModule.default || pdfModule;
-    if (typeof PDFParse === "function" || typeof PDFParse?.load === "function") {
-      const parser = new PDFParse(new Uint8Array(buffer));
-      if (typeof parser.load === "function") {
-        await parser.load();
-        const res = await parser.getText();
-        if (typeof parser.destroy === "function") await parser.destroy();
-        if (res?.text && typeof res.text === "string" && res.text.trim().length > 0) {
-          return { text: res.text.trim(), pages: res.total || res.pages?.length || 1 };
-        }
-      } else if (typeof PDFParse === "function") {
-        const res = await PDFParse(Buffer.from(buffer));
-        if (res?.text && res.text.trim().length > 0) {
-          return { text: res.text.trim(), pages: res.numpages || 1 };
-        }
+    const raw = Buffer.from(buffer);
+    const textPieces: string[] = [];
+
+    const rawStr = raw.toString("latin1");
+    const directMatches = rawStr.matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)\s*Tj/g);
+    for (const m of directMatches) {
+      if (m[1]?.trim()) textPieces.push(m[1].replace(/\\([()\\])/g, "$1").trim());
+    }
+
+    let searchPos = 0;
+    while (searchPos < raw.length) {
+      const s1 = raw.indexOf("stream\r\n", searchPos);
+      const s2 = raw.indexOf("stream\n", searchPos);
+      let startIdx = -1;
+      if (s1 !== -1 && (s2 === -1 || s1 <= s2)) {
+        startIdx = s1 + 8;
+      } else if (s2 !== -1) {
+        startIdx = s2 + 7;
       }
+      if (startIdx === -1) break;
+
+      const endIdx = raw.indexOf("endstream", startIdx);
+      if (endIdx === -1) break;
+
+      const streamData = raw.subarray(startIdx, endIdx);
+      try {
+        const decompressed = zlib.inflateSync(streamData).toString("latin1");
+        const tjMatches = decompressed.matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)\s*Tj/g);
+        for (const m of tjMatches) {
+          if (m[1]?.trim()) textPieces.push(m[1].replace(/\\([()\\])/g, "$1").trim());
+        }
+        const tjArrayMatches = decompressed.matchAll(/\[([^\]]+)\]\s*TJ/g);
+        for (const m of tjArrayMatches) {
+          const parts = m[1].matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)/g);
+          let joined = "";
+          for (const p of parts) joined += p[1].replace(/\\([()\\])/g, "$1");
+          if (joined.trim()) textPieces.push(joined.trim());
+        }
+      } catch {}
+      searchPos = endIdx + 9;
+    }
+    return textPieces.join(" ");
+  } catch {
+    return "";
+  }
+}
+
+async function extractPdfText(buffer: ArrayBuffer): Promise<{ text: string; pages: number } | null> {
+  ensureNodePolyfills();
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdf = require("pdf-parse/lib/pdf-parse.js");
+    const res = await pdf(Buffer.from(buffer));
+    if (res?.text && typeof res.text === "string" && res.text.trim().length > 0) {
+      return { text: res.text.trim(), pages: res.numpages || 1 };
     }
   } catch (err) {
-    console.warn("[fallbackExtract] PDF parser failed:", err);
+    console.warn("[extractPdfText] pdf-parse failed, trying raw stream extraction:", err instanceof Error ? err.message : err);
   }
+
+  const rawStreamText = extractRawPdfStreams(buffer);
+  if (rawStreamText.length > 50) {
+    return { text: rawStreamText, pages: 1 };
+  }
+
   return null;
 }
 
@@ -124,36 +196,33 @@ async function extractWithGemini(buffer: ArrayBuffer, mimeType: string): Promise
   if (!apiKey || apiKey.startsWith("your-") || apiKey.startsWith("replace-")) return null;
 
   const base64Data = Buffer.from(buffer).toString("base64");
-  const configuredModel = process.env.GEMINI_MODEL;
-  const candidateModels = [
-    "gemini-3.5-flash",
-    configuredModel || "gemini-3.5-flash",
-    "gemini-3-flash-preview",
-  ].filter((v, i, a) => a.indexOf(v) === i);
+  const configuredModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+  const candidateModels = [configuredModel, "gemini-3.8-flash", "gemini-2.5-flash"].filter(
+    (v, i, a) => a.indexOf(v) === i,
+  );
 
   for (const model of candidateModels) {
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
           contents: [
             {
               parts: [
-                { inline_data: { mime_type: mimeType, data: base64Data } },
                 {
                   text: "Extract and transcribe all text from this study material document in reading order. " +
                         "Include headings, formulas, questions, and notes accurately. " +
                         "Output only the transcription without commentary.",
                 },
+                { inline_data: { mime_type: mimeType, data: base64Data } },
               ],
             },
           ],
         }),
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(20_000),
       });
 
       if (!res.ok) continue;
@@ -242,18 +311,8 @@ export async function fallbackExtract(file: File): Promise<ExtractResult> {
   };
 }
 
-/** Sends a PDF or image for text extraction with automatic local & Gemini fallback when ML service is offline. */
-export async function mlExtract(file: File, vision = false): Promise<ExtractResult> {
-  if (isMlConfigured()) {
-    try {
-      const form = new FormData();
-      form.set("file", file, file.name);
-      form.set("vision", String(vision));
-      return await call<ExtractResult>("/v1/extract", { method: "POST", body: form }, 15_000);
-    } catch (err) {
-      console.warn("[mlExtract] ML service offline or failed, using resilient fallback extraction:", err instanceof Error ? err.message : err);
-    }
-  }
+/** Extracts text from a PDF or image using local parser and Gemini vision fallback. */
+export async function mlExtract(file: File, _vision = false): Promise<ExtractResult> {
   return fallbackExtract(file);
 }
 
@@ -340,17 +399,6 @@ export async function mlIndex(body: {
   kind?: string;
   uploaded_by?: string | null;
 }): Promise<{ document_id: string; chunks: number }> {
-  if (isMlConfigured()) {
-    try {
-      return await call<{ document_id: string; chunks: number }>(
-        "/v1/index",
-        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
-        20_000,
-      );
-    } catch (err) {
-      console.warn("[mlIndex] ML service offline or failed, using resilient fallback indexing:", err instanceof Error ? err.message : err);
-    }
-  }
   return fallbackIndex(body);
 }
 
@@ -363,10 +411,10 @@ export type IngestResult = {
 };
 
 /**
- * The one ingestion pipeline: the ML service extracts text (OCR for scans), chunks, embeds,
- * stores vectors in Pinecone and records the document in Supabase.
+ * Serverless ingestion pipeline: extracts text with local parser and Gemini vision,
+ * chunks, embeds into Pinecone, and records the document in Supabase.
  */
-export function mlIngest(input: {
+export async function mlIngest(input: {
   title: string;
   file?: File | null;
   url?: string | null;
@@ -376,23 +424,68 @@ export function mlIngest(input: {
   years?: number[];
   kind?: string;
   uploadedBy?: string | null;
-}) {
-  const form = new FormData();
-  form.set("title", input.title);
-  if (input.file) form.set("file", input.file, input.file.name);
-  if (input.url) form.set("url", input.url);
-  if (input.sourceUrl) form.set("source_url", input.sourceUrl);
-  if (input.subjectCodes?.length) form.set("subject_codes", input.subjectCodes.join(","));
-  if (input.branchCodes?.length) form.set("branch_codes", input.branchCodes.join(","));
-  if (input.years?.length) form.set("years", input.years.join(","));
-  form.set("kind", input.kind ?? "pdf");
-  if (input.uploadedBy) form.set("uploaded_by", input.uploadedBy);
-  return call<IngestResult>("/v1/ingest", { method: "POST", body: form }, 290_000);
+}): Promise<IngestResult> {
+  let fileToExtract = input.file;
+  if (!fileToExtract && input.url) {
+    try {
+      const res = await fetch(input.url, { signal: AbortSignal.timeout(30_000) });
+      const blob = await res.blob();
+      fileToExtract = new File([blob], "document.pdf", { type: blob.type || "application/pdf" });
+    } catch (err) {
+      console.warn("[mlIngest] Failed to download remote document URL:", err);
+    }
+  }
+
+  let text = input.title;
+  let pageCount = 1;
+  let methods = { text_layer: 0, ocr: 0, vision: 0 };
+  let ocrConfidence: number | null = null;
+
+  if (fileToExtract) {
+    const extracted = await fallbackExtract(fileToExtract);
+    text = extracted.text;
+    pageCount = extracted.page_count;
+    methods = extracted.methods;
+    ocrConfidence = extracted.ocr_confidence;
+  }
+
+  const indexRes = await fallbackIndex({
+    text,
+    title: input.title,
+    source_url: input.sourceUrl || input.url || null,
+    subject_codes: input.subjectCodes,
+    branch_codes: input.branchCodes,
+    years: input.years,
+    kind: input.kind,
+    uploaded_by: input.uploadedBy,
+  });
+
+  return {
+    document_id: indexRes.document_id,
+    chunks: indexRes.chunks,
+    page_count: pageCount,
+    methods,
+    ocr_confidence: ocrConfidence,
+  };
 }
 
 /** Removes a document's vectors from Pinecone and its row from Supabase. */
-export function mlDelete(documentId: string) {
-  return call<{ ok: boolean }>(`/v1/index/${encodeURIComponent(documentId)}`, { method: "DELETE" }, 60_000);
+export async function mlDelete(documentId: string): Promise<{ ok: boolean }> {
+  if (isPineconeConfigured()) {
+    try {
+      const { pineconeIndex } = await import("./ai/rag");
+      await pineconeIndex().deleteMany({ filter: { docId: { $eq: documentId } } });
+    } catch (err) {
+      console.warn("[mlDelete] Pinecone delete warning:", err);
+    }
+  }
+  try {
+    const { db } = await import("./supabase");
+    await db().from("documents").delete().eq("id", documentId);
+  } catch (err) {
+    console.warn("[mlDelete] Supabase delete warning:", err);
+  }
+  return { ok: true };
 }
 
 /** Plain text of a PDF, read by the ML service (text layer, or OCR for scanned pages). */
