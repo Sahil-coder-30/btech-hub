@@ -14,9 +14,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const nextPath = decodeURIComponent(req.cookies[NEXT_COOKIE] ?? "/dashboard");
   const clearTemp = [serializeCookie(STATE_COOKIE, "", 0), serializeCookie(NEXT_COOKIE, "", 0)];
 
+  const proto = (req.headers["x-forwarded-proto"] as string) || (process.env.NODE_ENV === "production" ? "https" : "http");
+  const host = (req.headers["x-forwarded-host"] as string) || req.headers.host;
+  const baseUrl = host && !host.includes("localhost") ? `${proto}://${host}` : appUrl();
+  const callbackURL = `${baseUrl}/api/auth/google/callback`;
+
   try {
     const login = await new Promise<GoogleLogin>((resolve, reject) => {
-      getPassport().authenticate("google", { session: false }, (err: unknown, result: GoogleLogin | false) => {
+      getPassport().authenticate("google", { session: false, callbackURL } as any, (err: unknown, result: GoogleLogin | false) => {
         if (err) return reject(err);
         if (!result) return reject(new Error("Google login was cancelled or state did not match."));
         resolve(result);
@@ -30,10 +35,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const safeNext = nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/dashboard";
     // New students build their profile first (admins skip it)
     const target = user.onboarded || user.role === "admin" ? safeNext : `/onboarding?next=${encodeURIComponent(safeNext)}`;
-    res.redirect(302, `${appUrl()}${target}`);
-  } catch (err) {
+    res.redirect(302, `${baseUrl}${target}`);
+  } catch (err: any) {
     console.error("Google auth callback failed:", err);
     res.setHeader("Set-Cookie", clearTemp);
-    res.redirect(302, `${appUrl()}/login?error=callback_failed`);
+    if (req.headers.accept?.includes("application/json") || req.query.format === "json") {
+      return res.status(500).json({
+        status: "error",
+        message: err?.message || "Failed to obtain access token",
+        details: err?.oauthError ? String(err.oauthError) : undefined,
+      });
+    }
+    res.redirect(302, `${baseUrl}/login?error=callback_failed`);
   }
 }
