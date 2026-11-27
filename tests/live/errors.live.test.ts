@@ -149,6 +149,9 @@ describe("auth guards: 401 without a valid session", () => {
     ["GET", "/api/resources"],
     ["GET", "/api/search?q=math"],
     ["POST", "/api/syllabus/prepare"],
+    ["GET", "/api/circulars/211271u3msy4zx"],
+    ["POST", "/api/circulars/211271u3msy4zx"],
+    ["POST", "/api/circulars/211271u3msy4zx/ask"],
   ];
   const userRoutes: [string, string][] = [
     ["PATCH", "/api/me"],
@@ -210,6 +213,8 @@ describe("admin guards: 401 anonymous, 403 student", () => {
     ["POST", "/api/admin/syllabus-index"],
     ["GET", "/api/admin/uploads"],
     ["POST", "/api/admin/uploads"],
+    // Admin or Vercel Cron (Bearer CRON_SECRET). Without either it is an admin route.
+    ["GET", "/api/circulars/sync"],
   ];
   for (const [method, path] of adminRoutes) {
     test(`${method} ${path}`, async () => {
@@ -443,6 +448,20 @@ describe("AI routes (validation only, no paid calls)", () => {
     assert.ok([404, 503].includes(r.status), `got ${r.status}`);
     expectError(r, r.status);
   });
+  test("circulars: bad id or body -> 400, unknown id -> 404", async () => {
+    const ask = "/api/circulars/211271u3msy4zx/ask";
+    expectError(await call("GET", "/api/circulars/bad%20id!", { auth: "student" }), 400, "VALIDATION_ERROR");
+    expectError(await call("POST", ask, { auth: "student", raw: "not json" }), 400, "BAD_REQUEST", "Request body is not valid JSON.");
+    expectError(await call("POST", ask, { auth: "student", json: { question: "w" } }), 400, "VALIDATION_ERROR");
+    expectError(await call("POST", ask, { auth: "student", json: { question: "what?", history: Array(13).fill({ role: "user", content: "x" }) } }), 400, "VALIDATION_ERROR");
+    expectError(await call("GET", "/api/circulars/sync", { auth: "student", headers: { authorization: "Bearer wrong-secret" } }), 403, "FORBIDDEN");
+    // 503 until supabase/migrations/2026_11_circulars.sql has been run
+    for (const r of [await call("GET", "/api/circulars/no-such-circular", { auth: "student" }), await call("POST", "/api/circulars/no-such-circular/ask", { auth: "student", json: { question: "what is this?" } })]) {
+      assert.ok([404, 503].includes(r.status), `got ${r.status}`);
+      expectError(r, r.status);
+    }
+  });
+
   test("POST /api/doubt error ladder", async () => {
     expectError(await call("POST", "/api/doubt", { auth: "student", form: multipart({}) }), 400, "BAD_REQUEST", "Type a question or upload a photo.");
     expectError(await call("POST", "/api/doubt", { auth: "student", form: multipart({ question: "   " }) }), 400, "BAD_REQUEST", "Type a question or upload a photo.");

@@ -15,7 +15,7 @@ import { db } from "./supabase";
  */
 
 const LIST_URL = "https://erp.aktu.ac.in/Webpages/Public/Circular/frmCircularForWebsite.aspx";
-const NOT_SET_UP = "Circulars are not set up yet. Run supabase/migrations/2026_11_circulars.sql in the Supabase SQL Editor.";
+const NOT_SET_UP = "Circulars are not available yet. Please try again later.";
 const STALE_LOCK_MS = 6 * 60_000;
 const MAX_PDF_BYTES = 45 * 1024 * 1024;
 /** Gemini inline requests are capped at 20 MB including base64 overhead. */
@@ -63,7 +63,11 @@ function isMissingTable(error: { code?: string; message?: string } | null) {
 }
 
 function check<T>({ data, error }: { data: T; error: { code?: string; message?: string } | null }): T {
-  if (isMissingTable(error)) throw new HttpError(503, NOT_SET_UP);
+  if (isMissingTable(error)) {
+    // Setup hint for the logs only: table and file names must not reach the client
+    logger.error("circulars table missing: run supabase/migrations/2026_11_circulars.sql");
+    throw new HttpError(503, NOT_SET_UP);
+  }
   if (error) throw error;
   return data;
 }
