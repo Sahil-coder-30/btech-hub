@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import { createHash } from "node:crypto";
 import { handler } from "@/lib/api";
 import { HttpError } from "@/lib/auth";
@@ -79,7 +80,7 @@ export const GET = handler(async (request: Request, { params }: { params: Promis
   try {
     pdf = await getPdf(fileKey, links[0].url);
   } catch (err) {
-    console.error(`syllabus pdf ${fileKey} failed:`, err instanceof Error ? err.message : err);
+    logger.error({ err }, `syllabus pdf ${fileKey} failed`);
     throw new HttpError(502, "Could not load the syllabus PDF right now. Please try again.");
   }
 

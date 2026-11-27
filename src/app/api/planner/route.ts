@@ -59,9 +59,8 @@ export const POST = handler(async (request: Request) => {
         const { id, warnings } = await generatePlan(user, body, (stage) => send({ type: "stage", stage }));
         send({ type: "done", id, warnings });
       } catch (err) {
-        const status = (err as { status?: number }).status;
-        const mapped = status === 422 && err instanceof Error ? { status, body: { error: err.message } } : errorBody(err);
-        send({ type: "error", message: mapped.body.error, status: mapped.status });
+        const { status, body } = errorBody(err);
+        send({ type: "error", message: body.error.message, status });
       } finally {
         controller.close();
       }

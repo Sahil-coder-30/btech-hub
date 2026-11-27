@@ -17,7 +17,7 @@ type Doc = { id: string; title: string; status: string; chunk_count: number; err
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Request failed");
+  if (!res.ok) throw new Error(data?.error?.message ?? "Request failed");
   return data;
 }
 

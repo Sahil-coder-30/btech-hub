@@ -57,7 +57,7 @@ export function UploadReview() {
         body: JSON.stringify({ id, action, note: notes[id] || undefined }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data?.error?.message);
       toast.success(action === "approve" ? `Indexed ${data.chunks} chunks into Pinecone` : "Upload rejected");
       setItems((list) => list?.filter((i) => i.id !== id) ?? null);
     } catch (err) {

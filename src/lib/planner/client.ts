@@ -2,10 +2,12 @@ import type { Availability, CreatePlanBody, PlanRecord, PlanStage, PlanStreamEve
 
 /** Browser calls to the planner API. Every function throws an Error with a readable message. */
 
-/** Validation errors arrive as { error: "Invalid input", details }. Show the first real reason instead. */
-function readableError(data: { error?: string; details?: { formErrors?: string[]; fieldErrors?: Record<string, string[] | undefined> } }) {
-  const field = Object.values(data.details?.fieldErrors ?? {}).find((list) => list?.length)?.[0];
-  return data.details?.formErrors?.[0] ?? field ?? data.error ?? "Something went wrong. Please try again.";
+/** Validation errors arrive as faultkit { error: { message, details: { field: [reasons] } } }. Show the first real reason instead. */
+function readableError(data: { error?: { message?: string; details?: Record<string, string[] | undefined> | null } }) {
+  const details = data.error?.details ?? {};
+  // "_root" holds object-level (refine) reasons, which read better than field ones
+  const reason = details._root?.[0] ?? Object.values(details).find((list) => list?.length)?.[0];
+  return reason ?? data.error?.message ?? "Something went wrong. Please try again.";
 }
 
 async function json<T>(res: Response): Promise<T> {

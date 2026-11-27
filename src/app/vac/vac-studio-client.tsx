@@ -288,7 +288,7 @@ export function VacStudioClient({
             ...m,
             {
               role: "assistant",
-              content: `⚠️ ${data.error ?? "Could not get an answer from Vac right now. Please try asking again."}`,
+              content: `⚠️ ${data?.error?.message ?? "Could not get an answer from Vac right now. Please try asking again."}`,
             },
           ]);
         }

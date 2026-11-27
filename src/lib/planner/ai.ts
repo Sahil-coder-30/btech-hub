@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { agentProvider } from "../env";
@@ -105,7 +106,7 @@ export async function writeTopics(subjects: SubjectContext[], extra: { notes?: s
   try {
     result = await chatModel(0.4).withStructuredOutput(resultSchema, { name: "plan_topics" }).invoke(messages, { timeout: 40_000 });
   } catch (err) {
-    console.warn("Planner topics failed on Gemini:", err instanceof Error ? err.message.slice(0, 160) : err);
+    logger.warn({ err }, "Planner topics failed on Gemini");
     if (agentProvider() !== "gemini") {
       result = await agentModel(0.4)
         .withStructuredOutput(resultSchema, { name: "plan_topics" })

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { handler } from "@/lib/api";
-import { requireAdmin } from "@/lib/auth";
+import { HttpError, requireAdmin } from "@/lib/auth";
 import { getResources } from "@/lib/data";
 import { db } from "@/lib/supabase";
 
@@ -53,7 +53,7 @@ export const PATCH = handler(async (request: Request) => {
 export const DELETE = handler(async (request: Request) => {
   await requireAdmin();
   const id = Number(new URL(request.url).searchParams.get("id"));
-  if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+  if (!id) throw new HttpError(400, "id is required");
   const { error } = await db().from("resources").delete().eq("id", id);
   if (error) throw error;
   return NextResponse.json({ ok: true });

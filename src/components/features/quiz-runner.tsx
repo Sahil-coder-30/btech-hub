@@ -52,7 +52,7 @@ export function QuizRunner({
         body: JSON.stringify({ subject, unit: unit || null, difficulty, count }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data?.error?.message);
       setQuestions(data.questions);
       setGrounded(data.grounded);
       setAnswers(Array(data.questions.length).fill(-1));
@@ -79,7 +79,7 @@ export function QuizRunner({
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data?.error?.message);
       setResult(data);
       setPhase("done");
     } catch (err) {

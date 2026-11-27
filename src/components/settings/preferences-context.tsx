@@ -49,7 +49,7 @@ export function PreferencesProvider({ initial, children }: { initial: Preference
     }
     setPreferences(confirmed.current);
     setSaveState("error");
-    const error = res ? ((await res.json().catch(() => null)) as { error?: string } | null)?.error : null;
+    const error = res ? ((await res.json().catch(() => null)) as { error?: { message?: string } } | null)?.error?.message : null;
     toast.error("Could not save that setting", { description: error ?? "Check your connection and try again." });
     return false;
   }, []);

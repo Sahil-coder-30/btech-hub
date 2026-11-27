@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "faultkit";
 import { cookies } from "next/headers";
 import { adminCredentials } from "@/lib/env";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession } from "@/lib/session";
@@ -43,7 +44,7 @@ export async function loginAdminAction(prevState: AdminLoginState | null, formDa
         { onConflict: "id" }
       );
   } catch (err) {
-    console.warn("Could not upsert admin user row in DB (using session fallback):", err);
+    logger.warn({ err }, "Could not upsert admin user row in DB (using session fallback)");
   }
 
   const sessionUser: SessionUser = {

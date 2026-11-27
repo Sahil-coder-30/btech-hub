@@ -90,7 +90,7 @@ export function PlanView({
       return;
     }
     if (mine === seq.current) setProgress(saved.current);
-    const error = res ? ((await res.json().catch(() => ({}))) as { error?: string }).error : null;
+    const error = res ? ((await res.json().catch(() => ({}))) as { error?: { message?: string } }).error?.message : null;
     toast.error(error ?? "Could not save. Check your connection.");
   };
 

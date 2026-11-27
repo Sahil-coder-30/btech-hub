@@ -438,7 +438,7 @@ export function VacChat({ user }: { user: SessionUser | null }) {
           }),
         });
         const data = await res.json();
-        setMessages((m) => [...m, res.ok ? { role: "assistant", content: data.reply, tools: data.tools } : { role: "assistant", content: `⚠️ ${data.error ?? "Something went wrong."}` }]);
+        setMessages((m) => [...m, res.ok ? { role: "assistant", content: data.reply, tools: data.tools } : { role: "assistant", content: `⚠️ ${data?.error?.message ?? "Something went wrong."}` }]);
       } catch {
         setMessages((m) => [...m, { role: "assistant", content: "⚠️ I could not reach the server. Check your connection and try again." }]);
       } finally {

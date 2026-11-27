@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { creditMap, enrichSemester, resultSemesterSchema } from "@/lib/aktu-result";
@@ -126,7 +127,7 @@ export const POST = handler(async (request: Request) => {
     ({ stats, insights } = await refreshInsights(updated as User, profile as StudentProfile, records));
   } catch (err) {
     // The profile is still useful without AI insights (e.g. Gemini rate limit)
-    console.error("insights failed:", err);
+    logger.error({ err }, "insights failed");
     await db().from("student_profiles").update({ stats }).eq("user_id", user.id);
   }
 
@@ -156,5 +157,5 @@ async function seedMemories(userId: string, body: z.infer<typeof bodySchema>, in
   const { error } = await db()
     .from("student_memories")
     .insert(memories.map((m) => ({ ...m, user_id: userId, source: "onboarding" })));
-  if (error) console.error("memory seed failed:", error.message);
+  if (error) logger.error({ err: error }, "memory seed failed");
 }

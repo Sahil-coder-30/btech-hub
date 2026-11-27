@@ -1,3 +1,4 @@
+import { AppError, errorCodeFromStatus } from "faultkit";
 import { cookies } from "next/headers";
 import { db } from "./supabase";
 import { SESSION_COOKIE, verifySession } from "./session";
@@ -33,11 +34,15 @@ export async function getCurrentUser(): Promise<User | null> {
   return null;
 }
 
-export class HttpError extends Error {
+/**
+ * App error with a user-safe message. Built on faultkit's AppError so every throw gets a standard code.
+ * Always operational: its message is written for users, so 5xx messages (e.g. "not set up yet") are not masked.
+ */
+export class HttpError extends AppError {
   // Plain field, not a parameter property, so Node's built-in TypeScript can run tests on it
   status: number;
   constructor(status: number, message: string) {
-    super(message);
+    super(message, status, errorCodeFromStatus(status), null, true);
     this.status = status;
   }
 }

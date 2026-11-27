@@ -27,9 +27,9 @@ export function useSyllabusInfo(branch: string, year: number, canPrepare: boolea
     inFlight.current = controller;
     try {
       const res = await fetch(`/api/syllabus?branch=${encodeURIComponent(branch)}&year=${year}`, { cache: "no-store", signal: controller.signal });
-      const data = (await res.json().catch(() => null)) as (SyllabusInfo & { error?: string }) | null;
+      const data = (await res.json().catch(() => null)) as (SyllabusInfo & { error?: { message?: string } }) | null;
       if (!res.ok || !data) {
-        setLoadError(res.status === 404 ? data?.error || "We do not have this branch yet." : data?.error || "Could not load this syllabus.");
+        setLoadError(res.status === 404 ? data?.error?.message || "We do not have this branch yet." : data?.error?.message || "Could not load this syllabus.");
         return;
       }
       setInfo(data);
@@ -50,7 +50,7 @@ export function useSyllabusInfo(branch: string, year: number, canPrepare: boolea
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ branch, year }),
       });
-      const data = (await res.json().catch(() => null)) as (SyllabusInfo & { error?: string }) | null;
+      const data = (await res.json().catch(() => null)) as (SyllabusInfo & { error?: { message?: string } }) | null;
       if (res.status === 401) {
         setUnauthorized(true);
         return;
@@ -58,7 +58,7 @@ export function useSyllabusInfo(branch: string, year: number, canPrepare: boolea
       if (!res.ok || !data) {
         setPrepareError({
           status: res.status,
-          message: res.status === 429 ? "Too many requests right now. Try again in about 20 seconds." : data?.error || "Could not start reading this syllabus.",
+          message: res.status === 429 ? "Too many requests right now. Try again in about 20 seconds." : data?.error?.message || "Could not start reading this syllabus.",
         });
         return;
       }

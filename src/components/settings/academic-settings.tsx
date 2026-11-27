@@ -62,7 +62,7 @@ const parseTarget = (value: string) => {
 };
 
 const errorOf = async (res: Response | null) =>
-  res ? (((await res.json().catch(() => null)) as { error?: string } | null)?.error ?? "Something went wrong. Please try again.") : "Network error. Check your connection.";
+  res ? (((await res.json().catch(() => null)) as { error?: { message?: string } } | null)?.error?.message ?? "Something went wrong. Please try again.") : "Network error. Check your connection.";
 
 /** Element to focus for each completeness item that lives on this page. */
 const FIELD_FOR: Record<string, string> = {

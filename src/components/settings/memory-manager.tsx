@@ -22,8 +22,8 @@ type Result<T> = { ok: true; data: T } | { ok: false; status: number; error: str
 async function call<T>(url: string, init?: RequestInit): Promise<Result<T>> {
   const res = await fetch(url, { ...init, headers: init?.body ? { "Content-Type": "application/json" } : undefined }).catch(() => null);
   if (!res) return { ok: false, status: 0, error: "Check your connection and try again." };
-  const body = (await res.json().catch(() => null)) as (T & { error?: string }) | null;
-  if (!res.ok) return { ok: false, status: res.status, error: body?.error ?? "Something went wrong. Please try again." };
+  const body = (await res.json().catch(() => null)) as (T & { error?: { message?: string } }) | null;
+  if (!res.ok) return { ok: false, status: res.status, error: body?.error?.message ?? "Something went wrong. Please try again." };
   return { ok: true, data: body as T };
 }
 

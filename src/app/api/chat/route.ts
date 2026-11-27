@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { runVacAgent } from "@/lib/ai/agent";
@@ -46,7 +47,7 @@ export const POST = handler(async (request: Request) => {
         { session_id: sessionId, user_id: user.id, role: "user", content: userMessage.content, tools_used: [] },
         { session_id: sessionId, user_id: user.id, role: "assistant", content: reply, tools_used: tools ?? [] },
       ])
-      .then(({ error }) => error && console.error("chat log failed:", error.message));
+      .then(({ error }) => error && logger.error({ err: error }, "chat log failed"));
   }
 
   return NextResponse.json({ reply, tools });

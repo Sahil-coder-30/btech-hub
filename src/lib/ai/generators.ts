@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { parsedResultSchema, type ParsedResult } from "../aktu-result";
@@ -250,7 +251,7 @@ export async function generateStudentInsights(input: InsightsInput): Promise<Stu
   } catch (err) {
     // Gemini's small daily quota runs out first. The agent model can write insights too.
     if (agentProvider() === "gemini") throw err;
-    console.warn("Gemini insights failed, using the agent model:", err instanceof Error ? err.message.slice(0, 120) : err);
+    logger.warn({ err }, "Gemini insights failed, using the agent model");
     return agentModel(0.4).withStructuredOutput(insightsSchema, { name: "student_insights" }).invoke(messages, { timeout: 30_000 });
   }
 }

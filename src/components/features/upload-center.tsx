@@ -112,7 +112,7 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
       const res = await fetch("/api/uploads", { method: "POST", body });
       clearInterval(timer);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+      if (!res.ok) throw new Error(data?.error?.message ?? "Upload failed");
       setUploadProgress(100);
       setUploadStage("Completed!");
       setResult(data);

@@ -59,7 +59,7 @@ export function DoubtSolver() {
       if (file) form.set("image", file);
       const res = await fetch("/api/doubt", { method: "POST", body: form });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data?.error?.message);
       setAnswer(data.answer);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not solve");

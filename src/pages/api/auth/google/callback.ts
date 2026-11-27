@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { appUrl } from "@/lib/env";
 import { getPassport, NEXT_COOKIE, STATE_COOKIE, type GoogleLogin } from "@/lib/passport";
@@ -37,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const target = user.onboarded || user.role === "admin" ? safeNext : `/onboarding?next=${encodeURIComponent(safeNext)}`;
     res.redirect(302, `${baseUrl}${target}`);
   } catch (err: any) {
-    console.error("Google auth callback failed:", err);
+    logger.error({ err }, "Google auth callback failed");
     res.setHeader("Set-Cookie", clearTemp);
     if (req.headers.accept?.includes("application/json") || req.query.format === "json") {
       return res.status(500).json({

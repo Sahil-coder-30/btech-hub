@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import { NextResponse } from "next/server";
 import { parseResultWithGemini } from "@/lib/ai/generators";
 import { enrichResult, parseAktuResult } from "@/lib/aktu-result";
@@ -30,7 +31,7 @@ export const POST = handler(async (request: Request) => {
   const base64 = Buffer.from(buffer).toString("base64");
   // The ML service reads the text layer. If it is down, Gemini still reads the PDF below.
   const text = await pdfToText(buffer, "result.pdf").catch((err) => {
-    console.error("result text extraction failed:", err instanceof Error ? err.message : err);
+    logger.error({ err }, "result text extraction failed");
     return "";
   });
 
@@ -39,7 +40,7 @@ export const POST = handler(async (request: Request) => {
   if (!parsed.semesters.length) {
     // Scanned PDFs or a changed layout: let Gemini read the document
     parsed = await parseResultWithGemini(base64).catch((err) => {
-      console.error("AI result parsing failed:", err instanceof Error ? err.message.slice(0, 200) : err);
+      logger.error({ err }, "AI result parsing failed");
       throw new HttpError(503, "We could not read this PDF right now. Try again in a few minutes, or continue without your result.");
     });
     via = "ai";

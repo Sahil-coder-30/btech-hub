@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { clearCoverageCache } from "@/lib/ai/coverage";
@@ -76,7 +77,7 @@ export const POST = handler(async (request: Request) => {
           url: driveUrl,
         });
       } catch (rErr) {
-        console.warn("Could not auto-promote approved upload to resources:", rErr);
+        logger.warn({ err: rErr }, "Could not auto-promote approved upload to resources");
       }
     }
 

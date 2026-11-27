@@ -1,22 +1,23 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { handler } from "@/lib/api";
+import { HttpError } from "@/lib/auth";
 import { adminCredentials } from "@/lib/env";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession } from "@/lib/session";
 import { db } from "@/lib/supabase";
 import type { SessionUser } from "@/lib/types";
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
+export const POST = handler(async (request: Request) => {
+    const body = await request.json().catch(() => null);
     const { username, password } = body ?? {};
 
     if (!username || !password) {
-      return NextResponse.json({ error: "Username and password required" }, { status: 400 });
+      throw new HttpError(400, "Username and password required");
     }
 
     const creds = adminCredentials();
     if (username !== creds.username || password !== creds.password) {
-      return NextResponse.json({ error: "Invalid admin credentials" }, { status: 401 });
+      throw new HttpError(401, "Invalid admin credentials");
     }
 
     const adminId = "00000000-0000-4000-a000-000000000001";
@@ -60,8 +61,5 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, redirect: "/admin" });
-  } catch {
-    return NextResponse.json({ error: "Failed to process admin login" }, { status: 500 });
-  }
-}
+});
 

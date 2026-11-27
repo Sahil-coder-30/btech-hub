@@ -1,3 +1,5 @@
+import { logger } from "faultkit";
+import { errorBody } from "../api";
 import { HttpError } from "../auth";
 import { embeddingProvider, isPineconeConfigured } from "../env";
 import { db } from "../supabase";
@@ -167,7 +169,7 @@ async function keywordSearch(documentId: string, query: string, title: string): 
   const { data, error } = await db().rpc("search_document_pages", { doc: documentId, q: query, k: 4 });
   if (error) {
     // Keyword search is a bonus: the migration may be missing, vectors still work
-    if (!keywordWarned) console.warn("search_document_pages failed:", error.message);
+    if (!keywordWarned) logger.warn({ err: error }, "search_document_pages failed");
     keywordWarned = true;
     return { hits: [], specific: false };
   }
@@ -308,10 +310,9 @@ async function* streamAnswer(messages: { role: string; content: string }[], sign
 }
 
 function errorEvent(err: unknown): AskStreamEvent {
-  if (isRateLimit(err)) return { type: "error", message: "The AI is busy right now. Please try again in about 20 seconds.", status: 429 };
-  if (err instanceof HttpError) return { type: "error", message: err.message, status: err.status };
-  if (err instanceof Error && err.message.startsWith("Missing env var")) return { type: "error", message: err.message, status: 503 };
-  return { type: "error", message: "Something went wrong while answering. Please try again.", status: 500 };
+  if (isRateLimit(err) && !(err instanceof HttpError)) return { type: "error", message: "The AI is busy right now. Please try again in about 20 seconds.", status: 429 };
+  const { status, body } = errorBody(err);
+  return { type: "error", message: body.error.message, status };
 }
 
 /**
@@ -331,7 +332,7 @@ function persistTurns(input: AskInput, answer: string) {
       { session_id: `ask:${input.fileKey}:${input.userId}`, user_id: input.userId, role: "user", content: input.question, tools_used: [] },
       { session_id: `ask:${input.fileKey}:${input.userId}`, user_id: input.userId, role: "assistant", content: answer, tools_used: ["syllabus"] },
     ])
-    .then(({ error }) => error && console.error("ask log failed:", error.message));
+    .then(({ error }) => error && logger.error({ err: error }, "ask log failed"));
 }
 
 const encoder = new TextEncoder();
@@ -360,7 +361,7 @@ export function askSyllabusStream(input: AskInput): ReadableStream<Uint8Array> {
         await answer(input, send, abort.signal);
       } catch (err) {
         if (!abort.signal.aborted) {
-          console.error("ask failed:", err);
+          logger.error({ err }, "ask failed");
           send(errorEvent(err));
         }
       } finally {

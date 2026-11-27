@@ -9,8 +9,11 @@ info:
     **Auth.** Login sets an HttpOnly `bh_session` cookie (HS256 JWT, 7 days). There are no API keys.
     Routes marked `session` need any logged-in user. Routes marked `admin` need `role = admin`.
 
-    **Errors.** Every handler returns `{ "error": string }` on failure. Validation errors (Zod) return
-    `400` with `{ "error": "Invalid input", "details": {...} }`. Unknown errors return a generic `500`.
+    **Errors.** Every handler returns the faultkit envelope on failure:
+    `{ "success": false, "error": { "code", "message", "details", "requestId" }, "requestId" }`.
+    Validation errors (Zod) return `400` with code `VALIDATION_ERROR` and `details` as `{ field: [reasons] }`
+    (object-level reasons under `_root`). Unknown errors return a generic `500` with code
+    `INTERNAL_SERVER_ERROR`. The `x-request-id` response header matches `requestId` for log lookup.
 
     **Rate limits.** In-memory sliding window per user (or per IP for guests), one window per server
     instance. Exceeding it returns `429`. Limits are listed on each operation as `x-rate-limit`.
@@ -965,10 +968,18 @@ components:
   schemas:
     Error:
       type: object
-      required: [error]
+      required: [success, error]
       properties:
-        error: { type: string, example: Please log in first. }
-        details: { type: object, description: Zod flatten() output on 400s. }
+        success: { type: boolean, enum: [false] }
+        error:
+          type: object
+          required: [code, message, details]
+          properties:
+            code: { type: string, example: UNAUTHORIZED, description: "faultkit error code, e.g. VALIDATION_ERROR, NOT_FOUND, RATE_LIMIT_EXCEEDED, MODEL_RATE_LIMIT." }
+            message: { type: string, example: Please log in first. }
+            details: { type: object, nullable: true, description: "Field reasons on VALIDATION_ERROR, else null." }
+            requestId: { type: string }
+        requestId: { type: string }
     BranchCode:
       type: string
       enum: [CSE, CSEAIML, CSEDS, IT, ECE, EE, EEE, ME, CE]

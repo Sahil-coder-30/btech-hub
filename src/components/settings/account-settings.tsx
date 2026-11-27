@@ -16,7 +16,7 @@ import { clearClientData } from "@/lib/client-data";
 const NAME_MAX = 60;
 
 const errorOf = async (res: Response | null) =>
-  res ? (((await res.json().catch(() => null)) as { error?: string } | null)?.error ?? "Something went wrong. Please try again.") : "Network error. Check your connection.";
+  res ? (((await res.json().catch(() => null)) as { error?: { message?: string } } | null)?.error?.message ?? "Something went wrong. Please try again.") : "Network error. Check your connection.";
 
 const initialsOf = (name: string) =>
   name

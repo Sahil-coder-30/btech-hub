@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import { createHash } from "node:crypto";
 import { clearCoverageCache } from "./ai/coverage";
 import { HttpError } from "./auth";
@@ -338,16 +339,16 @@ async function setDoc(fileKey: string, patch: Partial<SyllabusDocRow>) {
     .from("syllabus_documents")
     .update({ ...patch, updated_at: new Date().toISOString() })
     .eq("file_key", fileKey);
-  if (error) console.error("syllabus_documents update failed:", error.message);
+  if (error) logger.error({ err: error }, "syllabus_documents update failed");
   invalidateInfo();
 }
 
 /** Removes older documents of the same PDF (old pipeline, earlier runs) from Pinecone and Supabase. */
 async function deleteLegacyDocuments(fileKey: string, keepId: string) {
   const { data, error } = await db().from("documents").select("id").ilike("source_url", `%${fileKey}%`).neq("id", keepId);
-  if (error) return console.error("legacy syllabus lookup failed:", error.message);
+  if (error) return logger.error({ err: error }, "legacy syllabus lookup failed");
   for (const doc of data ?? []) {
-    await mlDelete(doc.id).catch((err) => console.error(`legacy syllabus delete ${doc.id} failed:`, err instanceof Error ? err.message : err));
+    await mlDelete(doc.id).catch((err) => logger.error({ err }, `legacy syllabus delete ${doc.id} failed`));
   }
 }
 
@@ -396,13 +397,13 @@ async function runIngest(fileKey: string, uploadedBy?: string | null): Promise<I
       .from("syllabus_links")
       .update({ indexed_at: new Date().toISOString() })
       .in("id", links.map((l) => l.id))
-      .then(({ error }) => error && console.error("syllabus_links update failed:", error.message));
+      .then(({ error }) => error && logger.error({ err: error }, "syllabus_links update failed"));
     await deleteLegacyDocuments(fileKey, result.document_id);
     clearCoverageCache();
     invalidateInfo();
     return result;
   } catch (err) {
-    console.error(`syllabus ingest ${fileKey} failed:`, err instanceof Error ? err.message : err);
+    logger.error({ err }, `syllabus ingest ${fileKey} failed`);
     await setDoc(fileKey, { status: "failed", error: safeIndexError(err) });
     throw err;
   }

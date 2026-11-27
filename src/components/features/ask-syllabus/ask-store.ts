@@ -170,10 +170,10 @@ export class AskSession {
       });
 
       if (!res.ok || !res.body) {
-        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        const data = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
         if (res.status === 401) this.callbacks.onUnauthorized();
         if (res.status === 409) this.callbacks.onNotReady();
-        patch((m) => ({ ...m, state: "error", error: askErrorMessage(res.status, data?.error) }));
+        patch((m) => ({ ...m, state: "error", error: askErrorMessage(res.status, data?.error?.message) }));
         return;
       }
 

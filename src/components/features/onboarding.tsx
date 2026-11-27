@@ -38,7 +38,7 @@ type Props = {
 
 type Done = { stats: StudentStats; insights: StudentInsights | null; subjects: CurrentSubject[] };
 
-const errorOf = async (res: Response) => ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Something went wrong. Please try again.";
+const errorOf = async (res: Response) => ((await res.json().catch(() => ({}))) as { error?: { message?: string } }).error?.message ?? "Something went wrong. Please try again.";
 
 function Progress({ step }: { step: Step }) {
   const index = step === "done" ? STEPS.length : STEPS.findIndex((s) => s.id === step);

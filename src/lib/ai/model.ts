@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import type { BaseLanguageModelInput, StructuredOutputMethodOptions } from "@langchain/core/language_models/base";
 import { BaseChatModel, type BaseChatModelCallOptions, type BindToolsInput } from "@langchain/core/language_models/chat_models";
 import { AIMessage, AIMessageChunk, ToolMessage, type BaseMessage } from "@langchain/core/messages";
@@ -131,7 +132,7 @@ class ChatNvidia extends BaseChatModel {
 
   private backup(err: unknown, signal: AbortSignal | undefined) {
     if (!this.fields.fallback || signal?.aborted) throw err;
-    console.warn("NVIDIA failed, using the backup model:", err instanceof Error ? err.message.slice(0, 200) : err);
+    logger.warn({ err }, "NVIDIA failed, using the backup model");
     const model = this.fields.fallback();
     return this.fields.tools ? model.bindTools!(this.fields.tools, { tool_choice: this.fields.toolChoice }) : model;
   }
@@ -154,7 +155,7 @@ class ChatNvidia extends BaseChatModel {
         problem = err;
       }
       if (!this.fields.fallback || options?.signal?.aborted) throw problem;
-      console.warn("NVIDIA structured output failed, using the backup model:", problem instanceof Error ? problem.message.slice(0, 200) : problem);
+      logger.warn({ err: problem }, "NVIDIA structured output failed, using the backup model");
       return this.fields.fallback().withStructuredOutput(schema, config).invoke(input, options);
     });
   }

@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import zlib from "node:zlib";
 import { HttpError } from "./auth";
 import { isPineconeConfigured } from "./env";
@@ -371,7 +372,7 @@ async function fallbackIndex(body: {
       }));
       await pineconeIndex().upsert(vectors.filter((v) => v.values.length));
     } catch (err) {
-      console.warn("[fallbackIndex] Vector indexing warning:", err);
+      logger.warn({ err }, "[fallbackIndex] Vector indexing warning");
     }
   }
 
@@ -390,7 +391,7 @@ async function fallbackIndex(body: {
       kind: body.kind || "upload",
     });
   } catch (err) {
-    console.warn("[fallbackIndex] Document record warning:", err);
+    logger.warn({ err }, "[fallbackIndex] Document record warning");
   }
 
   return { document_id: docId, chunks: chunks.length };
@@ -439,7 +440,7 @@ export async function mlIngest(input: {
       const blob = await res.blob();
       fileToExtract = new File([blob], "document.pdf", { type: blob.type || "application/pdf" });
     } catch (err) {
-      console.warn("[mlIngest] Failed to download remote document URL:", err);
+      logger.warn({ err }, "[mlIngest] Failed to download remote document URL");
     }
   }
 
@@ -483,14 +484,14 @@ export async function mlDelete(documentId: string): Promise<{ ok: boolean }> {
       const { pineconeIndex } = await import("./ai/rag");
       await pineconeIndex().deleteMany({ filter: { docId: { $eq: documentId } } });
     } catch (err) {
-      console.warn("[mlDelete] Pinecone delete warning:", err);
+      logger.warn({ err }, "[mlDelete] Pinecone delete warning");
     }
   }
   try {
     const { db } = await import("./supabase");
     await db().from("documents").delete().eq("id", documentId);
   } catch (err) {
-    console.warn("[mlDelete] Supabase delete warning:", err);
+    logger.warn({ err }, "[mlDelete] Supabase delete warning");
   }
   return { ok: true };
 }

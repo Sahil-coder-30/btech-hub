@@ -1,3 +1,4 @@
+import { logger } from "faultkit";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { appUrl } from "@/lib/env";
 import { appendCookie, getPassport, NEXT_COOKIE } from "@/lib/passport";
@@ -26,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       callbackURL,
     } as any)(req, res, (err: unknown) => (err ? reject(err) : resolve()));
   }).catch((err) => {
-    console.error("Google auth start failed:", err);
+    logger.error({ err }, "Google auth start failed");
     if (!res.headersSent) res.redirect(302, "/login?error=start_failed");
   });
 }

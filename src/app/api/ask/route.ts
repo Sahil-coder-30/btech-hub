@@ -22,7 +22,7 @@ const bodySchema = z.object({
 
 /**
  * POST /api/ask: chat with one official syllabus PDF.
- * Errors before the answer starts are JSON ({ error }). The answer itself streams as NDJSON
+ * Errors before the answer starts are faultkit JSON ({ success: false, error: { code, message } }). The answer itself streams as NDJSON
  * AskStreamEvent lines: meta, delta..., done (or error).
  */
 export const POST = handler(async (request: Request) => {
@@ -31,16 +31,16 @@ export const POST = handler(async (request: Request) => {
   rateLimit(`ask:${clientKey(request, session.id)}`, 20);
 
   if (!isPineconeConfigured()) {
-    return NextResponse.json({ error: "Pinecone is not configured yet. Add PINECONE_API_KEY in .env.local." }, { status: 503 });
+    throw new HttpError(503, "Pinecone is not configured yet. Add PINECONE_API_KEY in .env.local.");
   }
 
   const [link, info] = await Promise.all([findSyllabusLink(body.branch, body.year), getSyllabusInfo(body.branch, body.year)]);
   if (!info) throw new HttpError(404, "Unknown branch.");
   if (!link) throw new HttpError(404, "There is no official syllabus PDF for this branch and year yet.");
 
-  const { documentId, status } = await readySyllabusDocument(link);
+  const { documentId } = await readySyllabusDocument(link);
   if (!documentId) {
-    return NextResponse.json({ error: "This syllabus is not ready for questions yet.", status }, { status: 409 });
+    throw new HttpError(409, "This syllabus is not ready for questions yet.");
   }
 
   const stream = askSyllabusStream({
