@@ -19,7 +19,7 @@ function isCron(request: Request) {
 
 /**
  * GET /api/circulars/sync: pull the AKTU circular list, then summarise the newest few.
- * Called by Vercel Cron 4 times a day, 10:00, 14:00, 17:00 and 22:00 IST (Authorization: Bearer CRON_SECRET),
+ * Called by Vercel Cron once a day at 17:00 IST, when most circulars are out (Authorization: Bearer CRON_SECRET),
  * or opened by a logged-in admin.
  */
 export const GET = handler(async (request: Request) => {
