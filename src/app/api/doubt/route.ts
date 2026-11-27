@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { solveDoubt } from "@/lib/ai/generators";
-import { handler } from "@/lib/api";
+import { handler, readForm } from "@/lib/api";
 import { HttpError, requireSession } from "@/lib/auth";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/supabase";
@@ -15,7 +15,7 @@ export const POST = handler(async (request: Request) => {
   const session = await requireSession();
   rateLimit(`doubt:${clientKey(request, session.id)}`, 8);
 
-  const form = await request.formData();
+  const form = await readForm(request);
   const question = String(form.get("question") ?? "").slice(0, 2000).trim();
   const file = form.get("image");
 

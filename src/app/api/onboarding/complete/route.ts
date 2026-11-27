@@ -2,7 +2,7 @@ import { logger } from "faultkit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { creditMap, enrichSemester, resultSemesterSchema } from "@/lib/aktu-result";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { HttpError, requireUser } from "@/lib/auth";
 import { getAllSubjects } from "@/lib/data";
 import { computeStats, getProfile, getResultRecords, getSemesterPlan, GOALS, invalidateStudentContext, refreshInsights, yearForSemester } from "@/lib/profile";
@@ -47,7 +47,7 @@ const bodySchema = z
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
   rateLimit(`onboarding:${clientKey(request, user.id)}`, 5);
-  const body = bodySchema.parse(await request.json());
+  const body = bodySchema.parse(await readJson(request));
   const now = new Date().toISOString();
 
   // Update profile without a new PDF: the saved result stays, so check the semester against it

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cn, driveDownloadUrl, drivePreviewUrl, plainText, semestersForYear, toRoman } from "@/lib/utils";
+import { cn, driveDownloadUrl, drivePreviewUrl, plainText, safeNextPath, semestersForYear, toRoman } from "@/lib/utils";
 
 test("cn merges conflicting Tailwind classes, last wins", () => {
   assert.equal(cn("p-2", false && "hidden", "p-4"), "p-4");
@@ -21,4 +21,11 @@ test("Drive links become preview and download links", () => {
 
 test("plainText strips markdown and action labels", () => {
   assert.equal(plainText("**Action 1:** Revise   `unit 2` __now__"), "Revise unit 2 now");
+});
+
+test("safeNextPath keeps same-site paths and blocks open redirects", () => {
+  for (const ok of ["/dashboard", "/login?next=/x", "/a/b#c", "/%5Cevil.example"]) assert.equal(safeNextPath(ok, "/f"), ok);
+  for (const bad of ["//evil.example", "/\\evil.example", "/\t/evil.example", "/\n/evil.example", "https://evil.example", "evil", "", undefined, ["/x"]]) {
+    assert.equal(safeNextPath(bad, "/f"), "/f", JSON.stringify(bad));
+  }
 });

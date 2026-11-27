@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { z } from "zod";
-import { errorBody, handler, logger } from "@/lib/api";
+import { errorBody, handler, httpUrl, logger, readForm, readJson } from "@/lib/api";
 import { HttpError } from "@/lib/auth";
 
 const quiet = <T>(fn: () => T) => {
@@ -66,4 +66,40 @@ test("handler turns a thrown error into a faultkit JSON response with a request 
     error: { code: "UNAUTHORIZED", message: "Please log in first.", details: null, requestId: "req-1" },
     requestId: "req-1",
   });
+});
+
+test("third-party errors never pass their status or message to the user", () => {
+  const leak = Object.assign(new Error("[400 Bad Request] API key not valid. key=AIzaSyFAKE"), { status: 400 });
+  const r = quiet(() => errorBody(leak));
+  assert.equal(r.status, 502);
+  assert.equal(r.body.error.code, "BAD_GATEWAY");
+  assert.equal(r.body.error.message, "Something went wrong. Please try again.");
+  // An upstream 401 must not look like "your session ended"
+  assert.equal(quiet(() => errorBody(Object.assign(new Error("Incorrect API key"), { status: 401 }))).status, 502);
+});
+
+test("readJson: broken JSON is 400, oversized is 413", async () => {
+  const req = (body: string) => new Request("http://x", { method: "POST", body });
+  assert.deepEqual(await readJson(req('{"a":1}')), { a: 1 });
+  await assert.rejects(readJson(req("{oops")), (e: unknown) => e instanceof HttpError && e.status === 400);
+  await assert.rejects(readJson(req("x".repeat(1024 * 1024 + 1))), (e: unknown) => e instanceof HttpError && e.status === 413);
+});
+
+test("readForm: a JSON body is 400", async () => {
+  const req = new Request("http://x", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+  await assert.rejects(readForm(req), (e: unknown) => e instanceof HttpError && e.status === 400);
+});
+
+test("handler refuses a declared oversized JSON body with 413", async () => {
+  const res = await handler(async (_req: Request) => new Response("ok"))(
+    new Request("http://x", { method: "POST", headers: { "content-type": "application/json", "content-length": String(2 * 1024 * 1024) }, body: "{}" }),
+  );
+  assert.equal(res.status, 413);
+});
+
+test("httpUrl only accepts http and https links", () => {
+  assert.ok(httpUrl.safeParse("https://drive.google.com/x").success);
+  for (const bad of ["javascript:alert(1)", "JAVASCRIPT:alert(1)", "data:text/html,<script>", "vbscript:x", "ftp://x"]) {
+    assert.equal(httpUrl.safeParse(bad).success, false, bad);
+  }
 });

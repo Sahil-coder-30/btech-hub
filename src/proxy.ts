@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession } from "@/lib/session";
+import { safeNextPath } from "@/lib/utils";
 
 /** The only pages a guest can open. Every tool, AI feature and portal page needs a login. */
 const PUBLIC_PATHS = ["/", "/login", "/about", "/faq", "/contact", "/privacy", "/terms"];
@@ -25,9 +26,7 @@ export async function proxy(request: NextRequest) {
   if (session && GUEST_ONLY_PATHS.includes(pathname)) {
     const next = request.nextUrl.searchParams.get("next");
     const destination =
-      pathname === "/login" && next && next.startsWith("/") && !next.startsWith("//") && next !== "/"
-        ? next
-        : "/dashboard";
+      pathname === "/login" && next !== "/" ? safeNextPath(next, "/dashboard") : "/dashboard";
     return noStore(NextResponse.redirect(new URL(destination, request.url)));
   }
 

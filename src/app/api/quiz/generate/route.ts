@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { generateQuiz } from "@/lib/ai/generators";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { readPreferences } from "@/lib/settings";
@@ -19,7 +19,7 @@ const bodySchema = z.object({
 /** POST /api/quiz/generate: AI generated MCQs, grounded in the syllabus when indexed. */
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
-  const body = bodySchema.parse(await request.json());
+  const body = bodySchema.parse(await readJson(request));
   rateLimit(`quiz:${clientKey(request, user.id)}`, 8);
 
   const { study } = readPreferences(user);

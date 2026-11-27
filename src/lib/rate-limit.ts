@@ -14,8 +14,14 @@ export function rateLimit(key: string, limit = 20, windowMs = 60_000) {
   hits.set(key, recent);
 }
 
+/**
+ * Rate limit key: the user id, else the client IP. IP headers are only trusted behind a proxy that
+ * overwrites them (Vercel does, set TRUST_PROXY=1 for another one). Without that, anyone can send a
+ * fresh X-Forwarded-For on every request and never hit a limit, so all guests share one bucket.
+ */
 export function clientKey(request: Request, userId?: string | null) {
   if (userId) return `u:${userId}`;
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return `ip:${forwarded || request.headers.get("x-real-ip") || "local"}`;
+  if (!process.env.VERCEL && process.env.TRUST_PROXY !== "1") return "ip:untrusted";
+  const ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return `ip:${ip || "local"}`;
 }

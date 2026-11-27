@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { deleteMemory, MEMORY_KINDS, updateMemory } from "@/lib/profile";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
@@ -22,7 +22,7 @@ export const PATCH = handler(async (request: Request, ctx: Ctx) => {
   const user = await requireUser();
   rateLimit(`memory-edit:${clientKey(request, user.id)}`, 60);
   const id = z.string().uuid().parse((await ctx.params).id);
-  const patch = patchSchema.parse(await request.json());
+  const patch = patchSchema.parse(await readJson(request));
   return NextResponse.json({ memory: await updateMemory(user.id, id, patch) });
 });
 

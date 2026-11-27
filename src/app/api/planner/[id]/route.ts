@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { HttpError, requireSession } from "@/lib/auth";
 import { deletePlan, getPlan, updatePlan } from "@/lib/planner/store";
 
@@ -23,7 +23,7 @@ const patchSchema = z
 /** PATCH /api/planner/[id]: rename, archive or restore a plan. */
 export const PATCH = handler(async (request: Request, ctx: Ctx) => {
   const session = await requireSession();
-  await updatePlan(session.id, await planId(ctx), patchSchema.parse(await request.json()));
+  await updatePlan(session.id, await planId(ctx), patchSchema.parse(await readJson(request)));
   return NextResponse.json({ ok: true });
 });
 

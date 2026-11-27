@@ -13,39 +13,36 @@ info:
     `{ "success": false, "error": { "code", "message", "details", "requestId" }, "requestId" }`.
     Validation errors (Zod) return `400` with code `VALIDATION_ERROR` and `details` as `{ field: [reasons] }`
     (object-level reasons under `_root`). Unknown errors return a generic `500` with code
-    `INTERNAL_SERVER_ERROR`. The `x-request-id` response header matches `requestId` for log lookup.
+    `INTERNAL_SERVER_ERROR`. Unknown `/api/*` paths return `404 NOT_FOUND` "API route not found.". The `x-request-id` response header matches `requestId` for log lookup.
     Each operation lists every error status it can return, with the exact `code`, `message` and an example body.
 
     | Status | Codes |
     |---|---|
-    | 400 | `VALIDATION_ERROR`, `BAD_REQUEST` |
+    | 400 | `VALIDATION_ERROR`, `BAD_REQUEST` (also "Request body is not valid JSON." and "Send the form as multipart/form-data.") |
     | 401 | `UNAUTHORIZED` |
     | 403 | `FORBIDDEN` |
     | 404 | `NOT_FOUND` |
     | 405 | `METHOD_NOT_ALLOWED` |
     | 409 | `CONFLICT` |
+    | 413 | `PAYLOAD_TOO_LARGE` "Request body is too large." (any route: JSON over 1 MB, forms over 26 MB) |
     | 422 | `UNPROCESSABLE_ENTITY` |
     | 429 | `RATE_LIMIT_EXCEEDED` (our limiter), `MODEL_RATE_LIMIT` (AI provider quota) |
     | 500 | `INTERNAL_SERVER_ERROR` (message always generic, except a missing env var) |
-    | 502 | `BAD_GATEWAY` |
+    | 502 | `BAD_GATEWAY` (an upstream service such as the AI provider failed; its message is never shown) |
     | 503 | `SERVICE_UNAVAILABLE` (a migration or a service key is missing; the message says which) |
 
     **Rate limits.** In-memory sliding window per user (or per IP for guests), one window per server
     instance. Exceeding it returns `429`. Limits are listed on each operation as `x-rate-limit`.
+    Guests are keyed by IP only behind a proxy that overwrites `X-Forwarded-For` (Vercel, or `TRUST_PROXY=1`);
+    otherwise all guests share one bucket, so the header cannot be spoofed to dodge a limit.
 
     **Streaming.** `/api/ask` and `/api/planner` stream NDJSON (one JSON object per line). Errors before
     the stream starts use the normal envelope and status. An error after it starts arrives as a last line
     `{ "type": "error", "message": "...", "status": 429 }` on an HTTP 200 response.
 
-    **Known gaps.** The error docs describe the intended contract. These cases do not match it yet and
-    fail in `npm run test:live` (tests named `bug:`) until fixed:
-    - Broken JSON bodies and non-multipart uploads return `500` instead of `400 BAD_REQUEST`.
-    - Database errors on bad ids return `500` instead of `400`/`404` (`DELETE /api/uploads?id=abc`,
-      `POST /api/resources/save` with an unknown id, `PATCH /api/admin/resources` with an unknown id).
-    - No request size limits: huge quiz, SGPA and dashboard payloads are accepted or end in `500`.
-    - `POST /api/admin/resources` accepts `javascript:` links.
-    - Unknown `/api/*` paths return the HTML 404 page; unsupported methods return an empty `405`.
-    - The OAuth callback answers `?format=json` failures with a non-envelope `500`.
+    **Known gaps.** The error docs describe the contract, and `npm run test:live` checks it against a running
+    server. One case differs: a method a route does not export (e.g. `PUT /api/me`) gets Next.js's own
+    empty `405`, not the envelope.
 servers:
   - url: http://localhost:3000
     description: Local dev
@@ -90,6 +87,12 @@ paths:
       security: []
       responses:
         "302": { description: "Redirect into the app, or to `/login?error=callback_failed`." }
+        "400":
+          description: "With `?format=json` (or `Accept: application/json`): `BAD_REQUEST` \"Google login was cancelled or state did not match.\". Other OAuth failures give a masked `500` or `502`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: {"success": false, "error": {"code": "BAD_REQUEST", "message": "Google login was cancelled or state did not match.", "details": null, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}
   /api/auth/admin:
     post:
       tags: [Auth]
@@ -2030,7 +2033,7 @@ paths:
               examples:
                 validation_error_1:
                   summary: "The body or query fails validation. `details` maps each field to its reasons; object-level reasons sit under `_root`."
-                  value: {"success": false, "error": {"code": "VALIDATION_ERROR", "message": "Input validation failed. Please check the provided fields.", "details": {"subjects.0.marks": ["Number must be less than or equal to 100"]}, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}
+                  value: {"success": false, "error": {"code": "VALIDATION_ERROR", "message": "Input validation failed. Please check the provided fields.", "details": {"subjects.0.marks": ["Number must be less than or equal to 100"], "semester": ["This semester is not part of that year."]}, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}
                 bad_request_2:
                   summary: "The body is not parseable JSON."
                   value: {"success": false, "error": {"code": "BAD_REQUEST", "message": "Request body is not valid JSON.", "details": null, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}
@@ -2742,16 +2745,6 @@ paths:
       summary: List resources
       responses:
         "200": { description: OK, content: { application/json: { schema: { type: object, properties: { resources: { type: array, items: { $ref: "#/components/schemas/Resource" } } } } } } }
-        "400":
-          description: |-
-            - `VALIDATION_ERROR` "Input validation failed. Please check the provided fields.": `year` or `semester` is not a number.
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Error" }
-              examples:
-                validation_error:
-                  summary: "`year` or `semester` is not a number."
-                  value: {"success": false, "error": {"code": "VALIDATION_ERROR", "message": "Input validation failed. Please check the provided fields.", "details": {"year": ["Expected number, received nan"]}, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}, "requestId": "7f3a9c2e-1b4d-4e8f-9a6b-2c5d8e1f0a3b"}
         "401":
           description: |-
             - `UNAUTHORIZED` "Please log in first.": No session cookie, or it is invalid, expired, or its user no longer exists.

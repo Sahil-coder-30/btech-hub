@@ -2,6 +2,7 @@ import { logger } from "faultkit";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { appUrl } from "@/lib/env";
 import { appendCookie, getPassport, NEXT_COOKIE } from "@/lib/passport";
+import { safeNextPath } from "@/lib/utils";
 
 /**
  * GET /api/auth/google?next=/dashboard
@@ -9,7 +10,7 @@ import { appendCookie, getPassport, NEXT_COOKIE } from "@/lib/passport";
  * Lives in the pages router because Passport expects Node req/res objects.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const next = typeof req.query.next === "string" && req.query.next.startsWith("/") ? req.query.next : "/dashboard";
+  const next = safeNextPath(req.query.next, "/dashboard");
   appendCookie(res, `${NEXT_COOKIE}=${encodeURIComponent(next)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=600`);
   (req as NextApiRequest & { nextRes: NextApiResponse }).nextRes = res;
 

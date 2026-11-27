@@ -2,7 +2,7 @@ import { logger } from "faultkit";
 import { NextResponse } from "next/server";
 import { parseResultWithGemini } from "@/lib/ai/generators";
 import { enrichResult, parseAktuResult } from "@/lib/aktu-result";
-import { handler } from "@/lib/api";
+import { handler, readForm } from "@/lib/api";
 import { HttpError, requireUser } from "@/lib/auth";
 import { getAllSubjects } from "@/lib/data";
 import { pdfToText } from "@/lib/ml";
@@ -21,7 +21,7 @@ export const POST = handler(async (request: Request) => {
   const user = await requireUser();
   rateLimit(`parse:${clientKey(request, user.id)}`, 5);
 
-  const form = await request.formData();
+  const form = await readForm(request);
   const file = form.get("file");
   if (!(file instanceof File) || file.size === 0) throw new HttpError(400, "Upload your AKTU result PDF.");
   if (file.type !== "application/pdf") throw new HttpError(400, "Only PDF files are supported.");

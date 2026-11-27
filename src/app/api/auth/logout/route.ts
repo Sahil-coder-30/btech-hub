@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE } from "@/lib/session";
+import { safeNextPath } from "@/lib/utils";
 
 export async function POST() {
   const res = NextResponse.json({ ok: true });
@@ -12,7 +13,7 @@ export async function POST() {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const next = url.searchParams.get("next") ?? "/login";
-  const safe = next.startsWith("/") && !next.startsWith("//") ? next : "/login";
+  const safe = safeNextPath(next, "/login");
   const res = NextResponse.redirect(new URL(safe, url));
   res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0, expires: new Date(0), httpOnly: true, sameSite: "lax" });
   return res;

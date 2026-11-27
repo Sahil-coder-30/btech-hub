@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { analyseQuiz } from "@/lib/ai/generators";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { requireSession } from "@/lib/auth";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/supabase";
@@ -14,11 +14,12 @@ const bodySchema = z.object({
   questions: z
     .array(
       z.object({
-        question: z.string(),
-        options: z.array(z.string()).length(4),
+        // Generous caps over what the quiz generator writes, so a client cannot store megabytes
+        question: z.string().max(2000),
+        options: z.array(z.string().max(500)).length(4),
         correctIndex: z.number().int().min(0).max(3),
-        explanation: z.string(),
-        topic: z.string(),
+        explanation: z.string().max(4000),
+        topic: z.string().max(200),
         chosenIndex: z.number().int().min(-1).max(3),
       }),
     )
@@ -29,7 +30,7 @@ const bodySchema = z.object({
 /** POST /api/quiz/submit: scores the attempt, finds weak topics with AI and saves it. */
 export const POST = handler(async (request: Request) => {
   const session = await requireSession();
-  const body = bodySchema.parse(await request.json());
+  const body = bodySchema.parse(await readJson(request));
   rateLimit(`quiz-submit:${clientKey(request, session.id)}`, 10);
 
   const score = body.questions.filter((q) => q.chosenIndex === q.correctIndex).length;

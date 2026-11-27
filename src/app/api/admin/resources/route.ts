@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { handler, httpUrl, readJson } from "@/lib/api";
 import { HttpError, requireAdmin } from "@/lib/auth";
 import { getResources } from "@/lib/data";
 import { db } from "@/lib/supabase";
@@ -13,7 +13,7 @@ const resourceSchema = z.object({
   branch_code: z.string().max(10).nullable().optional(),
   type: z.enum(["notes", "pyq", "lecture", "imp_question", "other"]),
   label: z.string().min(1).max(100),
-  url: z.string().url().nullable().optional(),
+  url: httpUrl.nullable().optional(),
 });
 
 /** GET /api/admin/resources?year=&branch=&semester=&q=&missing=1 */
@@ -34,7 +34,7 @@ export const GET = handler(async (request: Request) => {
 /** POST /api/admin/resources: add a resource. */
 export const POST = handler(async (request: Request) => {
   await requireAdmin();
-  const body = resourceSchema.parse(await request.json());
+  const body = resourceSchema.parse(await readJson(request));
   const { data, error } = await db().from("resources").insert(body).select("*").single();
   if (error) throw error;
   return NextResponse.json({ resource: data });
@@ -43,9 +43,10 @@ export const POST = handler(async (request: Request) => {
 /** PATCH /api/admin/resources: update a resource, mostly to fill a "coming soon" link. */
 export const PATCH = handler(async (request: Request) => {
   await requireAdmin();
-  const { id, ...changes } = resourceSchema.partial().extend({ id: z.number().int().positive() }).parse(await request.json());
-  const { data, error } = await db().from("resources").update(changes).eq("id", id).select("*").single();
+  const { id, ...changes } = resourceSchema.partial().extend({ id: z.number().int().positive() }).parse(await readJson(request));
+  const { data, error } = await db().from("resources").update(changes).eq("id", id).select("*").maybeSingle();
   if (error) throw error;
+  if (!data) throw new HttpError(404, "Resource not found.");
   return NextResponse.json({ resource: data });
 });
 

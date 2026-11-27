@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { getCurrentUser, requireUser } from "@/lib/auth";
 import { invalidateStudentContext } from "@/lib/profile";
 import { db } from "@/lib/supabase";
@@ -19,7 +19,7 @@ const patchSchema = z.object({
 /** PATCH /api/me: update branch and year used to personalise Vac and the tools. */
 export const PATCH = handler(async (request: Request) => {
   const user = await requireUser();
-  const body = patchSchema.parse(await request.json());
+  const body = patchSchema.parse(await readJson(request));
   const { data, error } = await db().from("users").update(body).eq("id", user.id).select("*").single();
   if (error) throw error;
   // Branch and year are part of Vac's context

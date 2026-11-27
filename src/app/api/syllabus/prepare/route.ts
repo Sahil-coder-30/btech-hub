@@ -1,6 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { HttpError, requireSession } from "@/lib/auth";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { assertIndexingConfigured, claimSyllabus, findSyllabusLink, getSyllabusInfo, ingestSyllabus } from "@/lib/syllabus";
@@ -20,7 +20,7 @@ const bodySchema = z.object({
  */
 export const POST = handler(async (request: Request) => {
   const session = await requireSession();
-  const { branch, year } = bodySchema.parse(await request.json());
+  const { branch, year } = bodySchema.parse(await readJson(request));
   rateLimit(`prepare:${clientKey(request, session.id)}`, 5);
 
   const link = await findSyllabusLink(branch, year);

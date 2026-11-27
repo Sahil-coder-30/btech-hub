@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { clearMemories, listMemories, MEMORY_KINDS, MEMORY_LIMIT, saveMemory } from "@/lib/profile";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
@@ -20,7 +20,7 @@ export const GET = handler(async () => {
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
   rateLimit(`memory:${clientKey(request, user.id)}`, 30);
-  const body = createSchema.parse(await request.json());
+  const body = createSchema.parse(await readJson(request));
   const { memory, status } = await saveMemory(user.id, { ...body, source: "manual" });
   // A new memory never replaces one here, so status is "saved" or "duplicate"
   return NextResponse.json({ memory, status: status === "duplicate" ? "duplicate" : "saved" });

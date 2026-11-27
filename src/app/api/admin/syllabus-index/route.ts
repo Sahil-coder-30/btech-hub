@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { HttpError, requireAdmin } from "@/lib/auth";
 import { allSyllabusLinks, assertIndexingConfigured, claimSyllabus, ingestSyllabus } from "@/lib/syllabus";
 
@@ -13,7 +13,7 @@ export const maxDuration = 300;
  */
 export const POST = handler(async (request: Request) => {
   const admin = await requireAdmin();
-  const { id } = z.object({ id: z.number().int().positive() }).parse(await request.json());
+  const { id } = z.object({ id: z.number().int().positive() }).parse(await readJson(request));
 
   const link = (await allSyllabusLinks()).find((l) => l.id === id);
   if (!link) throw new HttpError(404, "Syllabus link not found.");

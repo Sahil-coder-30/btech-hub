@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
-import { getSession, requireUser } from "@/lib/auth";
+import { handler, readJson } from "@/lib/api";
+import { getSession, HttpError, requireUser } from "@/lib/auth";
 import { db } from "@/lib/supabase";
 
 /** GET /api/resources/save: ids of resources bookmarked by the user. */
@@ -15,7 +15,7 @@ export const GET = handler(async () => {
 /** POST /api/resources/save: toggles a bookmark. */
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
-  const { resourceId } = z.object({ resourceId: z.number().int().positive() }).parse(await request.json());
+  const { resourceId } = z.object({ resourceId: z.number().int().positive() }).parse(await readJson(request));
 
   const existing = await db()
     .from("saved_resources")
@@ -29,6 +29,8 @@ export const POST = handler(async (request: Request) => {
     return NextResponse.json({ saved: false });
   }
   const { error } = await db().from("saved_resources").insert({ user_id: user.id, resource_id: resourceId });
-  if (error) throw error;
+  // Postgres: 23503 = the resource does not exist, 23505 = a parallel request already saved it
+  if (error?.code === "23503") throw new HttpError(404, "Resource not found.");
+  if (error && error.code !== "23505") throw error;
   return NextResponse.json({ saved: true });
 });

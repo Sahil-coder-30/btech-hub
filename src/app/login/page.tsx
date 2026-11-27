@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AlertCircle, BarChart3, Bot, CalendarDays, Calculator, Lock } from "lucide-react";
 import { ClearClientData } from "@/components/auth/clear-client-data";
 import { getSession } from "@/lib/auth";
+import { safeNextPath } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Login" };
 
@@ -51,7 +52,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const params = await searchParams;
-  const next = params.next && params.next.startsWith("/") && !params.next.startsWith("//") ? params.next : "/dashboard";
+  const next = safeNextPath(params.next, "/dashboard");
 
   let session = null;
   try {

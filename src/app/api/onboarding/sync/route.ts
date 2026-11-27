@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { appUrl } from "@/lib/env";
 import { sessionCookie, toSessionUser } from "@/lib/session";
+import { safeNextPath } from "@/lib/utils";
 
 /**
  * GET /api/onboarding/sync?next=
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.redirect(`${appUrl()}/login`);
 
   const next = new URL(request.url).searchParams.get("next") ?? "/dashboard";
-  const safeNext = next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/onboarding") ? next : "/dashboard";
+  const safeNext = next.startsWith("/onboarding") ? "/dashboard" : safeNextPath(next, "/dashboard");
   if (!user.onboarded_at && user.role !== "admin") {
     return NextResponse.redirect(`${appUrl()}/onboarding?next=${encodeURIComponent(safeNext)}`);
   }

@@ -9,6 +9,19 @@ export const YEAR_LABELS: Record<number, string> = { 1: "First Year", 2: "Second
 
 export const semestersForYear = (year: number) => [year * 2 - 1, year * 2];
 
+/**
+ * True for a path on this site, like "/dashboard?tab=1". Browsers treat "//host", "/\host" and
+ * paths with tabs or newlines as another origin, so those are rejected (open redirect).
+ */
+export function isSafePath(path: unknown): path is string {
+  if (typeof path !== "string" || !path.startsWith("/")) return false;
+  if (/[\\\u0000-\u001f\u007f]/.test(path)) return false;
+  return new URL(path, "http://site.invalid").host === "site.invalid";
+}
+
+/** `next` when it is a safe same-site path, else the fallback. */
+export const safeNextPath = (next: unknown, fallback: string) => (isSafePath(next) ? next : fallback);
+
 /** Goals a student can pick during onboarding. */
 export const STUDENT_GOALS = ["Placements", "GATE", "Higher studies", "Govt jobs", "Startup", "Improve CGPA"] as const;
 

@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getBranches } from "@/lib/data";
 import { getProfile, getResultRecords } from "@/lib/profile";
 import { redirectToLogin } from "@/lib/login-redirect";
+import { safeNextPath } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Build your profile" };
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ type SearchParams = Promise<{ next?: string | string[]; redo?: string | string[]
 
 export default async function OnboardingPage({ searchParams }: { searchParams: SearchParams }) {
   const { next, redo } = await searchParams;
-  const nextPath = typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/onboarding") ? next : "/dashboard";
+  const nextPath = typeof next === "string" && !next.startsWith("/onboarding") ? safeNextPath(next, "/dashboard") : "/dashboard";
 
   const user = await getCurrentUser();
   if (!user) redirectToLogin("/onboarding");

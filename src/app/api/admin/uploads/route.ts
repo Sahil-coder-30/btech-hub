@@ -2,7 +2,7 @@ import { logger } from "faultkit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { clearCoverageCache } from "@/lib/ai/coverage";
-import { handler } from "@/lib/api";
+import { handler, httpUrl, readJson } from "@/lib/api";
 import { HttpError, requireAdmin } from "@/lib/auth";
 import { mlIndex } from "@/lib/ml";
 import { db } from "@/lib/supabase";
@@ -35,7 +35,7 @@ const reviewSchema = z.object({
 /** POST /api/admin/uploads : approve (index into Pinecone through the ML service) or reject. */
 export const POST = handler(async (request: Request) => {
   const admin = await requireAdmin();
-  const { id, action, note } = reviewSchema.parse(await request.json());
+  const { id, action, note } = reviewSchema.parse(await readJson(request));
 
   const { data: upload, error } = await db().from("user_uploads").select("*").eq("id", id).single();
   if (error || !upload) throw new HttpError(404, "Upload not found.");
@@ -64,7 +64,8 @@ export const POST = handler(async (request: Request) => {
 
     // If a Google Drive link or live file link was attached, optionally promote into the resources catalogue
     const driveUrl = (upload.analysis as Record<string, any>)?.drive_url;
-    if (driveUrl) {
+    // Uploads saved before links were validated may hold a javascript: URL
+    if (typeof driveUrl === "string" && httpUrl.safeParse(driveUrl).success) {
       try {
         await db().from("resources").insert({
           subject_code: upload.subject_code,

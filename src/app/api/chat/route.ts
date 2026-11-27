@@ -2,7 +2,7 @@ import { logger } from "faultkit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { runVacAgent } from "@/lib/ai/agent";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { buildStudentContext } from "@/lib/profile";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
@@ -23,7 +23,7 @@ const bodySchema = z.object({
 export const POST = handler(async (request: Request) => {
   // Vac is a logged-in feature, like every AI tool on the site
   const user = await requireUser();
-  const { sessionId, messages } = bodySchema.parse(await request.json());
+  const { sessionId, messages } = bodySchema.parse(await readJson(request));
   rateLimit(`chat:${clientKey(request, user.id)}`, 20);
 
   // Only the last few turns are sent to keep the prompt small

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { handler, httpUrl, readForm } from "@/lib/api";
 import { HttpError, requireUser } from "@/lib/auth";
 import { mlExtract } from "@/lib/ml";
 import { rateLimit } from "@/lib/rate-limit";
@@ -19,7 +19,7 @@ const metaSchema = z.object({
   branch_code: z.enum(["CSE", "CSEAIML", "CSEDS", "IT", "ECE", "EE", "EEE", "ME", "CE"]).optional().nullable(),
   year: z.coerce.number().int().min(1).max(4).optional().nullable(),
   type: z.enum(["notes", "pyq", "imp_question", "other"]).default("notes"),
-  drive_url: z.string().trim().url().optional().nullable(),
+  drive_url: httpUrl.optional().nullable(),
 });
 
 const LIST_COLUMNS =
@@ -43,7 +43,7 @@ export const POST = handler(async (request: Request) => {
   const user = await requireUser();
   rateLimit(`upload:${user.id}`, 6, 10 * 60_000);
 
-  const form = await request.formData();
+  const form = await readForm(request);
   const file = form.get("file");
   if (!(file instanceof File) || file.size === 0) throw new HttpError(400, "Choose a PDF or photo to upload.");
   if (!TYPES.includes(file.type)) throw new HttpError(400, "Only PDF, PNG, JPG, WEBP or HEIC files are allowed.");
@@ -100,8 +100,9 @@ export const POST = handler(async (request: Request) => {
 /** DELETE /api/uploads?id= : a student can withdraw an upload that is still pending. */
 export const DELETE = handler(async (request: Request) => {
   const user = await requireUser();
-  const id = new URL(request.url).searchParams.get("id");
-  if (!id) throw new HttpError(400, "id is required");
+  const raw = new URL(request.url).searchParams.get("id");
+  if (!raw) throw new HttpError(400, "id is required");
+  const id = z.string().uuid().parse(raw);
   const { error } = await db().from("user_uploads").delete().eq("id", id).eq("user_id", user.id).eq("status", "pending");
   if (error) throw error;
   return NextResponse.json({ ok: true });

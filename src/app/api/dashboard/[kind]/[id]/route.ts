@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { handler, readJson } from "@/lib/api";
 import { HttpError, requireSession } from "@/lib/auth";
 import { db } from "@/lib/supabase";
 
@@ -25,14 +25,18 @@ export const DELETE = handler(async (_request: Request, ctx: Ctx) => {
   return NextResponse.json({ ok: true });
 });
 
-const progressSchema = z.object({ progress: z.record(z.string().regex(/^\d+-\d+$/), z.literal(true)) });
+const progressSchema = z.object({
+  progress: z
+    .record(z.string().regex(/^\d+-\d+$/), z.literal(true))
+    .refine((p) => Object.keys(p).length <= 5000, "Too many tasks in one update."),
+});
 
 /** PATCH /api/dashboard/plans/[id]: save which study plan tasks are done. */
 export const PATCH = handler(async (request: Request, ctx: Ctx) => {
   const session = await requireSession();
   const { kind, table, id } = await target(ctx);
   if (kind !== "plans") throw new HttpError(405, "Only study plans can be updated.");
-  const { progress } = progressSchema.parse(await request.json());
+  const { progress } = progressSchema.parse(await readJson(request));
 
   const { data, error } = await db().from(table).update({ progress }).eq("id", id).eq("user_id", session.id).select("id");
   if (error) {

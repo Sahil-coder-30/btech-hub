@@ -15,10 +15,20 @@ test("rateLimit keys are independent", () => {
   assert.doesNotThrow(() => rateLimit(`b:${Math.random()}`, 1));
 });
 
-test("clientKey prefers user id, then first forwarded IP, then real IP", () => {
+test("clientKey: user id first; IP headers only behind a trusted proxy", () => {
   const req = (headers: Record<string, string>) => new Request("http://x", { headers });
-  assert.equal(clientKey(req({ "x-forwarded-for": "1.1.1.1" }), "u1"), "u:u1");
-  assert.equal(clientKey(req({ "x-forwarded-for": " 1.1.1.1 , 2.2.2.2" })), "ip:1.1.1.1");
-  assert.equal(clientKey(req({ "x-real-ip": "3.3.3.3" })), "ip:3.3.3.3");
-  assert.equal(clientKey(req({})), "ip:local");
+  const saved = process.env.TRUST_PROXY;
+  try {
+    assert.equal(clientKey(req({ "x-forwarded-for": "1.1.1.1" }), "u1"), "u:u1");
+    // Spoofable headers are ignored when no proxy sets them
+    delete process.env.TRUST_PROXY;
+    assert.equal(clientKey(req({ "x-forwarded-for": "1.1.1.1" })), "ip:untrusted");
+    process.env.TRUST_PROXY = "1";
+    assert.equal(clientKey(req({ "x-real-ip": "3.3.3.3", "x-forwarded-for": "1.1.1.1" })), "ip:3.3.3.3");
+    assert.equal(clientKey(req({ "x-forwarded-for": " 1.1.1.1 , 2.2.2.2" })), "ip:1.1.1.1");
+    assert.equal(clientKey(req({})), "ip:local");
+  } finally {
+    if (saved === undefined) delete process.env.TRUST_PROXY;
+    else process.env.TRUST_PROXY = saved;
+  }
 });

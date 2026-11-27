@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler } from "@/lib/api";
+import { semestersForYear } from "@/lib/utils";
+import { handler, readJson } from "@/lib/api";
 import { HttpError, requireUser } from "@/lib/auth";
 import { calculateSgpa } from "@/lib/grades";
 import { db } from "@/lib/supabase";
 
-const bodySchema = z.object({
-  year: z.number().int().min(1).max(4),
-  semester: z.number().int().min(1).max(8),
-  branch: z.string().max(10).nullable().optional(),
-  subjects: z.array(z.object({ subject: z.string(), credits: z.number().positive(), marks: z.number().min(0).max(100) })).min(1),
-});
+const bodySchema = z
+  .object({
+    year: z.number().int().min(1).max(4),
+    semester: z.number().int().min(1).max(8),
+    branch: z.string().max(10).nullable().optional(),
+    // A semester has about 10 subjects and no subject is worth more than a few credits
+    subjects: z
+      .array(z.object({ subject: z.string().trim().min(1).max(200), credits: z.number().positive().max(30), marks: z.number().min(0).max(100) }))
+      .min(1)
+      .max(25),
+  })
+  .refine((b) => semestersForYear(b.year).includes(b.semester), { message: "This semester is not part of that year.", path: ["semester"] });
 
 /** GET /api/sgpa: saved SGPA history of the logged-in user. */
 export const GET = handler(async () => {
@@ -23,7 +30,7 @@ export const GET = handler(async () => {
 /** POST /api/sgpa: recalculates on the server (never trust client maths) and saves per semester. */
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
-  const body = bodySchema.parse(await request.json());
+  const body = bodySchema.parse(await readJson(request));
   const result = calculateSgpa(body.subjects);
 
   // The official AKTU result wins over a calculator estimate

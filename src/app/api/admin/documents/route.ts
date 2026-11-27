@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { clearCoverageCache } from "@/lib/ai/coverage";
-import { handler } from "@/lib/api";
+import { handler, readForm } from "@/lib/api";
 import { HttpError, requireAdmin } from "@/lib/auth";
 import { mlDelete, mlIngest } from "@/lib/ml";
 import { db } from "@/lib/supabase";
@@ -24,7 +24,7 @@ export const GET = handler(async () => {
  */
 export const POST = handler(async (request: Request) => {
   const admin = await requireAdmin();
-  const form = await request.formData();
+  const form = await readForm(request);
   const title = String(form.get("title") ?? "").trim();
   const url = String(form.get("url") ?? "").trim();
   const file = form.get("file");

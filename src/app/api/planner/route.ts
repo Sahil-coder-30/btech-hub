@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { errorBody, handler } from "@/lib/api";
+import { errorBody, handler, readJson } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { generatePlan } from "@/lib/planner/generate";
 import { addDays, daysBetween, lastExam, MAX_PLAN_DAYS, todayKey } from "@/lib/planner/schedule";
@@ -48,7 +48,7 @@ const bodySchema = z
  */
 export const POST = handler(async (request: Request) => {
   const user = await requireUser();
-  const body = bodySchema.parse(await request.json());
+  const body = bodySchema.parse(await readJson(request));
   rateLimit(`planner:${clientKey(request, user.id)}`, 5);
 
   const encoder = new TextEncoder();
