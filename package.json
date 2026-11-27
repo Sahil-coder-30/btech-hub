@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
+    "test": "node --no-warnings --import ./tests/setup.ts --test 'tests/*.test.ts'",
     "check:parse": "node --no-warnings scripts/check_aktu_parse.ts",
     "seed:csv": "python3 scripts/build_seed.py ../Old_Code"
   },
@@ -49,5 +50,8 @@
     "@types/react-dom": "^19.2.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=22.18"
   }
 }

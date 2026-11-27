@@ -57,7 +57,10 @@ AGENTS.md
 CLAUDE.md
 
 # Planning Documents & Design Dumps
-docs/
+docs/*
+!docs/PRD.md
+!docs/openapi.yaml
+!docs/color-palette.md
 *-plan.md
 *.plan.md
 

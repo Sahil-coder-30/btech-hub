@@ -34,8 +34,11 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 export class HttpError extends Error {
-  constructor(public status: number, message: string) {
+  // Plain field, not a parameter property, so Node's built-in TypeScript can run tests on it
+  status: number;
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
   }
 }
 

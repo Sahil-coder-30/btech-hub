@@ -1,0 +1,1029 @@
+openapi: 3.1.0
+info:
+  title: B.Tech Hub API
+  version: 2.0.0
+  description: |
+    HTTP API behind the B.Tech Hub web app (Next.js App Router route handlers under `src/app/api`,
+    plus the Google OAuth routes under `src/pages/api/auth/google`).
+
+    **Auth.** Login sets an HttpOnly `bh_session` cookie (HS256 JWT, 7 days). There are no API keys.
+    Routes marked `session` need any logged-in user. Routes marked `admin` need `role = admin`.
+
+    **Errors.** Every handler returns `{ "error": string }` on failure. Validation errors (Zod) return
+    `400` with `{ "error": "Invalid input", "details": {...} }`. Unknown errors return a generic `500`.
+
+    **Rate limits.** In-memory sliding window per user (or per IP for guests), one window per server
+    instance. Exceeding it returns `429`. Limits are listed on each operation as `x-rate-limit`.
+
+    **Streaming.** `/api/ask` and `/api/planner` stream NDJSON (one JSON object per line).
+servers:
+  - url: http://localhost:3000
+    description: Local dev
+  - url: "{baseUrl}"
+    description: Production (value of NEXT_PUBLIC_APP_URL)
+    variables:
+      baseUrl:
+        default: https://your-domain.example
+security:
+  - session: []
+tags:
+  - name: Auth
+  - name: Account
+  - name: Profile
+  - name: AI
+  - name: Planner
+  - name: Quiz
+  - name: Grades
+  - name: Resources
+  - name: Syllabus
+  - name: Uploads
+  - name: Memory
+  - name: Admin
+  - name: Public
+
+paths:
+  # ---------------- Auth ----------------
+  /api/auth/google:
+    get:
+      tags: [Auth]
+      summary: Start Google OAuth
+      security: []
+      parameters:
+        - { name: next, in: query, schema: { type: string, example: /dashboard }, description: Local path to return to after login. }
+      responses:
+        "302": { description: Redirect to Google consent screen. }
+  /api/auth/google/callback:
+    get:
+      tags: [Auth]
+      summary: Google OAuth callback
+      description: Creates or updates the user, sets `bh_session`, then redirects to `next` (or `/onboarding` if not onboarded).
+      security: []
+      responses:
+        "302": { description: Redirect into the app, or to `/login?error=callback_failed`. }
+  /api/auth/admin:
+    post:
+      tags: [Auth]
+      summary: Admin login with username and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string, format: password }
+      responses:
+        "200":
+          description: Logged in. Sets `bh_session`.
+          content: { application/json: { schema: { type: object, properties: { success: { type: boolean }, redirect: { type: string, example: /admin } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Log out (clears the cookie)
+      security: []
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+    get:
+      tags: [Auth]
+      summary: Log out and redirect
+      security: []
+      parameters:
+        - { name: next, in: query, schema: { type: string, default: /login } }
+      responses:
+        "302": { description: Redirect to `next`. }
+
+  # ---------------- Account ----------------
+  /api/me:
+    get:
+      tags: [Account]
+      summary: Current user (null when logged out)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content: { application/json: { schema: { type: object, properties: { user: { oneOf: [{ $ref: "#/components/schemas/User" }, { type: "null" }] } } } } }
+    patch:
+      tags: [Account]
+      summary: Set branch and year
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                branch_code: { oneOf: [{ $ref: "#/components/schemas/BranchCode" }, { type: "null" }] }
+                year: { type: [integer, "null"], minimum: 1, maximum: 4 }
+      responses:
+        "200": { description: Updated user, content: { application/json: { schema: { type: object, properties: { user: { $ref: "#/components/schemas/User" } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/account:
+    delete:
+      tags: [Account]
+      summary: Delete the account and all its data
+      x-rate-limit: 5/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [confirmEmail], properties: { confirmEmail: { type: string, description: Must match the account email. } } }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/account/summary:
+    get:
+      tags: [Account]
+      summary: Counts of stored data per type
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/account/export:
+    get:
+      tags: [Account]
+      summary: Download all of my data as JSON
+      x-rate-limit: 3/min
+      responses:
+        "200": { description: JSON file download (Content-Disposition attachment), content: { application/json: { schema: { type: object } } } }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/account/chats:
+    delete:
+      tags: [Account]
+      summary: Clear Vac chat history
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, deleted: { type: integer } } } } } }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/settings:
+    get:
+      tags: [Account]
+      summary: Preferences and account info
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "401": { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [Account]
+      summary: Update preferences or display name (partial)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                displayName: { type: [string, "null"], minLength: 1, maxLength: 60 }
+                preferences:
+                  type: object
+                  properties:
+                    appearance: { type: object, properties: { theme: { type: string }, reduceMotion: { type: boolean } } }
+                    study: { type: object, properties: { quizDifficulty: { $ref: "#/components/schemas/Difficulty" }, quizCount: { type: integer, minimum: 3, maximum: 15 } } }
+                    privacy: { type: object, properties: { saveChatHistory: { type: boolean } } }
+      responses:
+        "200": { description: Saved. May re-sign the session cookie., content: { application/json: { schema: { type: object, properties: { preferences: { type: object }, account: { type: object } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Onboarding / Profile ----------------
+  /api/onboarding/parse:
+    post:
+      tags: [Profile]
+      summary: Parse an AKTU One View result PDF
+      x-rate-limit: 5/min
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { type: object, required: [file], properties: { file: { type: string, format: binary, description: PDF } } }
+      responses:
+        "200": { description: Parsed result, content: { application/json: { schema: { type: object, properties: { result: { type: object }, via: { type: string } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/onboarding/subjects:
+    get:
+      tags: [Profile]
+      summary: Core subjects and electives for a branch and semester
+      parameters:
+        - { name: branch, in: query, required: true, schema: { $ref: "#/components/schemas/BranchCode" } }
+        - { name: semester, in: query, required: true, schema: { type: integer, minimum: 1, maximum: 8 } }
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "400": { $ref: "#/components/responses/Error" }
+  /api/onboarding/complete:
+    post:
+      tags: [Profile]
+      summary: Finish onboarding and save the academic profile
+      x-rate-limit: 5/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [origin, branch_code, semester, goals]
+              properties:
+                origin: { type: string, enum: [aktu_result, no_result] }
+                branch_code: { $ref: "#/components/schemas/BranchCode" }
+                semester: { type: integer, minimum: 1, maximum: 8 }
+                batch_year: { type: [integer, "null"], minimum: 2000, maximum: 2100 }
+                electives: { type: array, maxItems: 8, items: { type: string, maxLength: 12 } }
+                goals: { type: array, minItems: 1, items: { type: string, enum: [Placements, GATE, Higher studies, Govt jobs, Startup, Improve CGPA] } }
+                target_cgpa: { type: [number, "null"], minimum: 4, maximum: 10 }
+                note: { type: [string, "null"], maxLength: 500 }
+                semesters: { type: array, maxItems: 8, items: { type: object }, description: Parsed result semesters from /api/onboarding/parse. }
+      responses:
+        "200": { description: Saved. Re-signs the session cookie with onboarded = true., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/onboarding/sync:
+    get:
+      tags: [Profile]
+      summary: Refresh the session cookie from the DB, then redirect
+      parameters:
+        - { name: next, in: query, schema: { type: string, default: /dashboard } }
+      responses:
+        "302": { description: Redirect to `next`. }
+  /api/profile:
+    get:
+      tags: [Profile]
+      summary: Academic profile (branch, semester, electives, results)
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "401": { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [Profile]
+      summary: Update academic profile (partial)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                branch: { oneOf: [{ $ref: "#/components/schemas/BranchCode" }, { type: "null" }] }
+                semester: { type: [integer, "null"], minimum: 1, maximum: 8 }
+                batchYear: { type: [integer, "null"], minimum: 2015, maximum: 2035 }
+                electives: { type: array, maxItems: 10, items: { type: string, maxLength: 12 } }
+                targetCgpa: { type: [number, "null"] }
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/profile/context:
+    get:
+      tags: [Profile]
+      summary: Preview of what the AI knows about me
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/profile/insights:
+    post:
+      tags: [Profile]
+      summary: Regenerate AI insights from results
+      x-rate-limit: 3/min
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Memory ----------------
+  /api/memory:
+    get:
+      tags: [Memory]
+      summary: List saved memories
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { memories: { type: array, items: { $ref: "#/components/schemas/Memory" } }, limit: { type: integer, example: 50 } } } } } }
+        "401": { $ref: "#/components/responses/Error" }
+    post:
+      tags: [Memory]
+      summary: Add a memory
+      x-rate-limit: 30/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, content]
+              properties:
+                kind: { $ref: "#/components/schemas/MemoryKind" }
+                content: { type: string, minLength: 3, maxLength: 300 }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { memory: { $ref: "#/components/schemas/Memory" }, status: { type: string, enum: [saved, duplicate] } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [Memory]
+      summary: Delete all memories
+      parameters:
+        - { name: keepPinned, in: query, schema: { type: string, enum: ["true", "false"] } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, deleted: { type: integer } } } } } }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/memory/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    patch:
+      tags: [Memory]
+      summary: Edit a memory (partial)
+      x-rate-limit: 60/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kind: { $ref: "#/components/schemas/MemoryKind" }
+                content: { type: string, minLength: 3, maxLength: 300 }
+                pinned: { type: boolean }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { memory: { $ref: "#/components/schemas/Memory" } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [Memory]
+      summary: Delete one memory
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "401": { $ref: "#/components/responses/Error" }
+
+  # ---------------- AI ----------------
+  /api/chat:
+    post:
+      tags: [AI]
+      summary: Chat with Vac, the tool-using study agent
+      x-rate-limit: 20/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sessionId, messages]
+              properties:
+                sessionId: { type: string, minLength: 8, maxLength: 64 }
+                messages: { type: array, items: { $ref: "#/components/schemas/ChatTurn" } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { reply: { type: string }, tools: { type: array, items: { type: string } } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/ask:
+    post:
+      tags: [AI]
+      summary: Ask a question about one official syllabus PDF (streams NDJSON)
+      description: |
+        Errors before the answer starts come back as normal JSON. After that the body is NDJSON:
+        `{"type":"meta","sources":[...],"cached":bool,"query":string}`, then many
+        `{"type":"delta","text":string}`, then `{"type":"done","answer":string,"grounded":bool}`
+        or `{"type":"error","message":string,"status":int}`.
+      x-rate-limit: 20/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [branch, year, question]
+              properties:
+                branch: { type: string, minLength: 2, maxLength: 10, example: CSE }
+                year: { type: integer, minimum: 1, maximum: 4 }
+                question: { type: string, minLength: 2, maxLength: 1000 }
+                history: { type: array, maxItems: 12, items: { $ref: "#/components/schemas/ChatTurn" } }
+      responses:
+        "200": { description: NDJSON stream, content: { application/x-ndjson: { schema: { type: string } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "409": { description: Syllabus is not indexed yet., content: { application/json: { schema: { type: object, properties: { error: { type: string }, status: { type: object } } } } } }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { description: Pinecone not configured., content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /api/doubt:
+    post:
+      tags: [AI]
+      summary: Solve a doubt from text and/or a photo
+      x-rate-limit: 8/min
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                question: { type: string, maxLength: 2000 }
+                image: { type: string, format: binary }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { answer: { type: string } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/coverage:
+    get:
+      tags: [AI]
+      summary: Subjects that are indexed for RAG
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { documents: { type: integer }, subjects: { type: array, items: { type: object, properties: { title: { type: string }, codes: { type: array, items: { type: string } } } } } } } } } }
+        "401": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Quiz ----------------
+  /api/quiz/generate:
+    post:
+      tags: [Quiz]
+      summary: Generate an MCQ quiz
+      x-rate-limit: 8/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject]
+              properties:
+                subject: { type: string, minLength: 2, maxLength: 200 }
+                unit: { type: [string, "null"], maxLength: 200 }
+                difficulty: { $ref: "#/components/schemas/Difficulty" }
+                count: { type: integer, minimum: 3, maximum: 15 }
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/quiz/submit:
+    post:
+      tags: [Quiz]
+      summary: Submit answers, get score and weak topics
+      x-rate-limit: 10/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject, difficulty, questions]
+              properties:
+                subject: { type: string }
+                subjectCode: { type: [string, "null"] }
+                unit: { type: [string, "null"] }
+                difficulty: { $ref: "#/components/schemas/Difficulty" }
+                questions:
+                  type: array
+                  items:
+                    type: object
+                    required: [question, options, correctIndex, explanation, topic, chosenIndex]
+                    properties:
+                      question: { type: string }
+                      options: { type: array, minItems: 4, maxItems: 4, items: { type: string } }
+                      correctIndex: { type: integer, minimum: 0, maximum: 3 }
+                      explanation: { type: string }
+                      topic: { type: string }
+                      chosenIndex: { type: integer, minimum: -1, maximum: 3, description: -1 means skipped. }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { score: { type: integer }, total: { type: integer }, saved: { type: boolean } }, additionalProperties: true } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Planner ----------------
+  /api/planner:
+    post:
+      tags: [Planner]
+      summary: Create a study plan (streams NDJSON progress)
+      description: |
+        Lines: `{"type":"stage","stage":string}` while working, then `{"type":"done","id":uuid,"warnings":[...]}`
+        or `{"type":"error","message":string,"status":int}`.
+      x-rate-limit: 5/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, subjects, availability]
+              properties:
+                title: { type: string, minLength: 2, maxLength: 120 }
+                subjects:
+                  type: array
+                  items:
+                    type: object
+                    required: [name, confidence, examDate]
+                    properties:
+                      name: { type: string, minLength: 2, maxLength: 200 }
+                      code: { type: [string, "null"], maxLength: 20 }
+                      confidence: { type: string, enum: [weak, okay, strong] }
+                      examDate: { type: string, format: date }
+                availability: { $ref: "#/components/schemas/Availability" }
+                notes: { type: string, maxLength: 500 }
+      responses:
+        "200": { description: NDJSON stream, content: { application/x-ndjson: { schema: { type: string } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/planner/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [Planner]
+      summary: Get a plan with its tasks
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "401": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [Planner]
+      summary: Rename or archive a plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, minLength: 2, maxLength: 120 }
+                status: { type: string, enum: [active, archived] }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [Planner]
+      summary: Delete a plan
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/planner/{id}/replan:
+    post:
+      tags: [Planner]
+      summary: Re-plan the remaining tasks with new availability
+      x-rate-limit: 10/min
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, properties: { availability: { $ref: "#/components/schemas/Availability" } } }
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/planner/{id}/tasks/{taskId}:
+    patch:
+      tags: [Planner]
+      summary: Mark a task done, skipped, or todo
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: taskId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [status], properties: { status: { type: string, enum: [todo, done, skipped] } } }
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/dashboard/{kind}/{id}:
+    parameters:
+      - { name: kind, in: path, required: true, schema: { type: string, enum: [plans, quizzes, doubts] } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    patch:
+      tags: [Planner]
+      summary: Save checklist progress on a saved item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [progress]
+              properties:
+                progress: { type: object, additionalProperties: { const: true }, description: "Keys look like `3-1` (day-item)." }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [Planner]
+      summary: Delete a saved plan, quiz, or doubt
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "401": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Grades ----------------
+  /api/sgpa:
+    get:
+      tags: [Grades]
+      summary: My saved SGPA records
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { records: { type: array, items: { type: object } } } } } } }
+        "401": { $ref: "#/components/responses/Error" }
+    post:
+      tags: [Grades]
+      summary: Calculate and save a semester SGPA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [year, semester, subjects]
+              properties:
+                year: { type: integer, minimum: 1, maximum: 4 }
+                semester: { type: integer, minimum: 1, maximum: 8 }
+                branch: { type: [string, "null"], maxLength: 10 }
+                subjects:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [subject, credits, marks]
+                    properties:
+                      subject: { type: string }
+                      credits: { type: number, exclusiveMinimum: 0 }
+                      marks: { type: number, minimum: 0, maximum: 100 }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { saved: { type: boolean }, sgpa: { type: number } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Resources ----------------
+  /api/resources:
+    get:
+      tags: [Resources]
+      summary: Notes, PYQs and lectures for a year
+      parameters:
+        - { name: year, in: query, schema: { type: integer, minimum: 1, maximum: 4, default: 1 } }
+        - { name: semester, in: query, schema: { type: integer } }
+        - { name: branch, in: query, schema: { type: string } }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { resources: { type: array, items: { $ref: "#/components/schemas/Resource" } } } } } } }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/resources/save:
+    get:
+      tags: [Resources]
+      summary: IDs of my saved resources (empty when logged out)
+      security: []
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { ids: { type: array, items: { type: integer } } } } } } }
+    post:
+      tags: [Resources]
+      summary: Toggle save on a resource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [resourceId], properties: { resourceId: { type: integer, minimum: 1 } } }
+      responses:
+        "200": { description: New saved state., content: { application/json: { schema: { type: object, properties: { saved: { type: boolean } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/search:
+    get:
+      tags: [Resources]
+      summary: Search subjects and resources (command palette)
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 60 } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { subjects: { type: array, items: { type: object } }, resources: { type: array, items: { $ref: "#/components/schemas/Resource" } } } } } } }
+        "401": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Syllabus ----------------
+  /api/syllabus:
+    get:
+      tags: [Syllabus]
+      summary: Syllabus info and indexing status for a branch and year
+      description: Polled every few seconds while indexing.
+      security: []
+      parameters:
+        - { name: branch, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 10 } }
+        - { name: year, in: query, required: true, schema: { type: integer, minimum: 1, maximum: 4 } }
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "400": { $ref: "#/components/responses/Error" }
+  /api/syllabus/prepare:
+    post:
+      tags: [Syllabus]
+      summary: Start indexing a syllabus PDF so it can be asked about
+      x-rate-limit: 5/min
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [branch, year]
+              properties:
+                branch: { type: string, minLength: 2, maxLength: 10 }
+                year: { type: integer, minimum: 1, maximum: 4 }
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/syllabus/pdf/{fileKey}:
+    get:
+      tags: [Syllabus]
+      summary: Proxy the official syllabus PDF (supports ETag)
+      security: []
+      parameters:
+        - { name: fileKey, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: PDF bytes, content: { application/pdf: { schema: { type: string, format: binary } } } }
+        "304": { description: Not modified. }
+        "404": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Uploads ----------------
+  /api/uploads:
+    get:
+      tags: [Uploads]
+      summary: My uploads
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { uploads: { type: array, items: { type: object } } } } } } }
+        "401": { $ref: "#/components/responses/Error" }
+    post:
+      tags: [Uploads]
+      summary: Upload study material for review (OCR runs on the ML service)
+      x-rate-limit: 6 per 10 min
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, consent]
+              properties:
+                file: { type: string, format: binary, description: PDF or image. Either file or drive_url. }
+                drive_url: { type: string, format: uri }
+                consent: { type: string, enum: ["true"] }
+                title: { type: string, minLength: 3, maxLength: 150 }
+                subject_title: { type: string, maxLength: 300 }
+                subject_code: { type: string, maxLength: 20 }
+                branch_code: { $ref: "#/components/schemas/BranchCode" }
+                year: { type: integer, minimum: 1, maximum: 4 }
+                type: { type: string, enum: [notes, pyq, imp_question, other], default: notes }
+      responses:
+        "200": { description: Saved as pending., content: { application/json: { schema: { type: object, properties: { upload: { type: object }, preview: { type: string }, seconds: { type: number } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [Uploads]
+      summary: Delete one of my uploads
+      parameters:
+        - { name: id, in: query, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Admin ----------------
+  /api/admin/stats:
+    get:
+      tags: [Admin]
+      summary: Platform counts
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+  /api/admin/documents:
+    get:
+      tags: [Admin]
+      summary: Indexed RAG documents
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { documents: { type: array, items: { type: object } } } } } } }
+        "403": { $ref: "#/components/responses/Error" }
+    post:
+      tags: [Admin]
+      summary: Index a document (file or URL) into Pinecone
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string }
+                file: { type: string, format: binary }
+                url: { type: string, format: uri }
+                subject_code: { type: string }
+                branch_code: { type: string }
+                year: { type: integer }
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [Admin]
+      summary: Remove a document and its vectors
+      parameters:
+        - { name: id, in: query, required: true, schema: { type: string } }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "403": { $ref: "#/components/responses/Error" }
+  /api/admin/resources:
+    get:
+      tags: [Admin]
+      summary: List resources
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { resources: { type: array, items: { $ref: "#/components/schemas/Resource" } } } } } } }
+        "403": { $ref: "#/components/responses/Error" }
+    post:
+      tags: [Admin]
+      summary: Create a resource
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ResourceInput" } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { resource: { $ref: "#/components/schemas/Resource" } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+    patch:
+      tags: [Admin]
+      summary: Update a resource (partial, needs id)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - { type: object, required: [id], properties: { id: { type: integer, minimum: 1 } } }
+                - { $ref: "#/components/schemas/ResourceInput" }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { resource: { $ref: "#/components/schemas/Resource" } } } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+    delete:
+      tags: [Admin]
+      summary: Delete a resource
+      parameters:
+        - { name: id, in: query, required: true, schema: { type: integer } }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+  /api/admin/uploads:
+    get:
+      tags: [Admin]
+      summary: Student uploads by status
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [pending, approved, rejected], default: pending } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { uploads: { type: array, items: { type: object } } } } } } }
+        "403": { $ref: "#/components/responses/Error" }
+    post:
+      tags: [Admin]
+      summary: Approve (and index) or reject an upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, action]
+              properties:
+                id: { type: string, format: uuid }
+                action: { type: string, enum: [approve, reject] }
+                note: { type: string, maxLength: 500 }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { status: { type: string, enum: [approved, rejected] } }, additionalProperties: true } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+  /api/admin/syllabus-index:
+    post:
+      tags: [Admin]
+      summary: Index one syllabus document by id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [id], properties: { id: { type: integer, minimum: 1 } } }
+      responses:
+        "200": { $ref: "#/components/responses/Json" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+
+  # ---------------- Public ----------------
+  /api/contact:
+    post:
+      tags: [Public]
+      summary: Send a contact message
+      security: []
+      x-rate-limit: 3 per 10 min per IP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, message]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 100 }
+                email: { type: string, format: email, maxLength: 200 }
+                message: { type: string, minLength: 10, maxLength: 3000 }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "400": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /api/visitors:
+    get:
+      tags: [Public]
+      summary: Visitor count
+      security: []
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { count: { type: integer } } } } } }
+    post:
+      tags: [Public]
+      summary: Increment and return visitor count
+      security: []
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { count: { type: integer } } } } } }
+
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: bh_session
+      description: HS256 JWT set by the Google OAuth callback or admin login.
+  responses:
+    Ok:
+      description: OK
+      content: { application/json: { schema: { type: object, properties: { ok: { type: boolean, const: true } } } } }
+    Json:
+      description: OK. Shape depends on the feature; see the handler in src/app/api.
+      content: { application/json: { schema: { type: object } } }
+    Error:
+      description: Error
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string, example: Please log in first. }
+        details: { type: object, description: Zod flatten() output on 400s. }
+    BranchCode:
+      type: string
+      enum: [CSE, CSEAIML, CSEDS, IT, ECE, EE, EEE, ME, CE]
+    Difficulty:
+      type: string
+      enum: [easy, medium, hard]
+    ChatTurn:
+      type: object
+      required: [role, content]
+      properties:
+        role: { type: string, enum: [user, assistant] }
+        content: { type: string, maxLength: 4000 }
+    Availability:
+      type: object
+      required: [weekdayHours, weekendHours]
+      properties:
+        weekdayHours: { type: number, minimum: 0, maximum: 14 }
+        weekendHours: { type: number, minimum: 0, maximum: 14 }
+        offDays: { type: array, maxItems: 60, items: { type: string, format: date } }
+    MemoryKind:
+      type: string
+      enum: [goal, struggle, strength, preference, fact, event]
+    Memory:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: "#/components/schemas/MemoryKind" }
+        content: { type: string }
+        pinned: { type: boolean }
+        created_at: { type: string, format: date-time }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        name: { type: [string, "null"] }
+        avatar_url: { type: [string, "null"] }
+        role: { type: string, enum: [student, admin] }
+        branch_code: { type: [string, "null"] }
+        year: { type: [integer, "null"] }
+        semester: { type: [integer, "null"] }
+        onboarded_at: { type: [string, "null"], format: date-time }
+        created_at: { type: string, format: date-time }
+    ResourceInput:
+      type: object
+      properties:
+        subject_code: { type: [string, "null"], maxLength: 20 }
+        subject_title: { type: string, minLength: 2, maxLength: 300 }
+        year: { type: integer, minimum: 1, maximum: 4 }
+        semester: { type: integer, minimum: 1, maximum: 8 }
+        branch_code: { type: [string, "null"], maxLength: 10 }
+        type: { type: string, enum: [notes, pyq, lecture, imp_question, other] }
+        label: { type: string, minLength: 1, maxLength: 100 }
+        url: { type: [string, "null"], format: uri }
+    Resource:
+      allOf:
+        - { type: object, properties: { id: { type: integer } } }
+        - { $ref: "#/components/schemas/ResourceInput" }
