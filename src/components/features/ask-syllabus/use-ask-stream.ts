@@ -6,9 +6,11 @@ import { getAskSession, type AskMessage } from "./ask-store";
 export { askErrorMessage, storageKeyFor, type AskMessage } from "./ask-store";
 
 type Options = {
-  branch: string;
-  year: number;
+  /** Chat id, also the localStorage key. */
   fileKey: string;
+  endpoint?: string;
+  /** Extra fields sent with each question. */
+  body: Record<string, unknown>;
   onUnauthorized: () => void;
   onNotReady: () => void;
 };
@@ -20,11 +22,11 @@ const noopSubscribe = () => () => {};
  * Chat state for one syllabus. The chat itself lives in ask-store, so an answer that
  * is still streaming keeps going when the student opens another page.
  */
-export function useAskStream({ branch, year, fileKey, onUnauthorized, onNotReady }: Options) {
+export function useAskStream({ fileKey, endpoint, body, onUnauthorized, onNotReady }: Options) {
   // localStorage does not exist during server render. `hydrated` is false on the server and
   // during hydration, so the first client render matches the server HTML.
   const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
-  const session = useMemo(() => (hydrated ? getAskSession(fileKey) : null), [hydrated, fileKey]);
+  const session = useMemo(() => (hydrated ? getAskSession(fileKey, endpoint) : null), [hydrated, fileKey, endpoint]);
 
   const snapshot = useSyncExternalStore(
     session ? session.subscribe : noopSubscribe,
@@ -41,7 +43,7 @@ export function useAskStream({ branch, year, fileKey, onUnauthorized, onNotReady
     };
   }, [session, onUnauthorized, onNotReady]);
 
-  const ctx = { branch, year };
+  const ctx = body;
   return {
     messages: snapshot.messages,
     busy: snapshot.busy,

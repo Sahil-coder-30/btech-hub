@@ -16,6 +16,7 @@ import {
   Sparkles,
   TrendingUp,
   UploadCloud,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -27,6 +28,7 @@ const PAGES: { label: string; href: string; icon: LucideIcon; keywords?: string 
   { label: "SGPA Calculator", href: "/sgpa", icon: Calculator, keywords: "marks grade" },
   { label: "CGPA Calculator", href: "/cgpa", icon: TrendingUp, keywords: "percentage target" },
   { label: "Resources", href: "/resources", icon: Library, keywords: "notes pyq lectures" },
+  { label: "AKTU Circulars", href: "/circulars", icon: Megaphone, keywords: "aktu circular notice notification news exam" },
   { label: "University Info", href: "/university", icon: Landmark, keywords: "aktu scholarship rules" },
   { label: "Ask your Syllabus", href: "/ask", icon: FileSearch, keywords: "syllabus pdf rag ai search chat" },
   { label: "AI Quiz", href: "/quiz", icon: Brain, keywords: "test mcq practice" },

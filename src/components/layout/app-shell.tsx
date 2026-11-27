@@ -33,6 +33,7 @@ import {
   Menu,
   X,
   Sparkle,
+  Megaphone,
 } from "lucide-react";
 import type { SessionUser, User } from "@/lib/types";
 import { Navbar } from "@/components/layout/navbar";
@@ -261,6 +262,14 @@ export function AppShell({
           description: "Handwritten notes, papers & slides",
         },
         {
+          title: "AKTU Circulars",
+          href: "/circulars",
+          icon: Megaphone,
+          description: "Every circular, summed up in two lines",
+          badge: "AI",
+          badgeVariant: "primary",
+        },
+        {
           title: "University Info",
           href: "/university",
           icon: Landmark,
@@ -340,6 +349,7 @@ export function AppShell({
     if (pathname === "/planner") return "Study Planner";
     if (pathname === "/doubt") return "Doubt Solver";
     if (pathname === "/university") return "University Info";
+    if (pathname === "/circulars" || pathname.startsWith("/circulars/")) return "AKTU Circulars";
     if (pathname === "/upload") return "Upload Resource";
     if (pathname === "/admin") return "Admin Panel";
     if (pathname === "/about") return "About";

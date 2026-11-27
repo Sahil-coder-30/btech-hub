@@ -76,7 +76,8 @@ function buildHistory(messages: AskMessage[]) {
 }
 
 
-export type AskContext = { branch: string; year: number };
+/** Extra JSON fields sent with every question, e.g. { branch, year } for /api/ask. */
+export type AskContext = Record<string, unknown>;
 export type AskCallbacks = { onUnauthorized: () => void; onNotReady: () => void };
 type Snapshot = { messages: AskMessage[]; busy: boolean };
 
@@ -93,7 +94,10 @@ export class AskSession {
   /** Set by the mounted page. Empty while the student is on another page. */
   callbacks: AskCallbacks = NOOP_CALLBACKS;
 
-  constructor(private storageKey: string) {
+  constructor(
+    private storageKey: string,
+    private endpoint = "/api/ask",
+  ) {
     this.snapshot = { messages: loadStored(storageKey), busy: false };
   }
 
@@ -134,7 +138,7 @@ export class AskSession {
     this.set({ messages: [], busy: false });
   };
 
-  private async ask(question: string, base: AskMessage[], { branch, year }: AskContext) {
+  private async ask(question: string, base: AskMessage[], ctx: AskContext) {
     const text = question.trim().slice(0, 1000);
     if (text.length < 2 || this.snapshot.busy) return;
 
@@ -162,10 +166,10 @@ export class AskSession {
     };
 
     try {
-      const res = await fetch("/api/ask", {
+      const res = await fetch(this.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ branch, year, question: text, history: buildHistory(base) }),
+        body: JSON.stringify({ ...ctx, question: text, history: buildHistory(base) }),
         signal: controller.signal,
       });
 
@@ -227,10 +231,10 @@ export class AskSession {
 
 const sessions = new Map<string, AskSession>();
 
-export function getAskSession(fileKey: string) {
+export function getAskSession(fileKey: string, endpoint?: string) {
   const key = storageKeyFor(fileKey);
   let session = sessions.get(key);
-  if (!session) sessions.set(key, (session = new AskSession(key)));
+  if (!session) sessions.set(key, (session = new AskSession(key, endpoint)));
   return session;
 }
 

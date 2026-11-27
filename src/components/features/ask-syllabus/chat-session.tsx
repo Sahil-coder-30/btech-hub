@@ -94,7 +94,7 @@ export function ChatSession({
   onCite: (page: number | null) => void;
   active: boolean;
 }) {
-  const chat = useAskStream({ branch: branch.code, year, fileKey, onUnauthorized, onNotReady });
+  const chat = useAskStream({ fileKey, body: { branch: branch.code, year }, onUnauthorized, onNotReady });
   const { messages, busy, send, retry, stop, reset } = chat;
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);

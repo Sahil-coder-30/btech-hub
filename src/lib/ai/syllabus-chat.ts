@@ -273,7 +273,7 @@ ${context}${lowConfidence}`;
 }
 
 /** Last 6 turns plus the question, with old [n] markers removed and roles alternating. */
-function chatMessages(history: AskTurn[], question: string) {
+export function chatMessages(history: AskTurn[], question: string) {
   const turns = [...history.slice(-6).map((t) => ({ role: t.role, content: t.role === "assistant" ? stripCitations(t.content) : t.content })), { role: "user" as ChatRole, content: question }];
   while (turns[0]?.role === "assistant") turns.shift();
   const merged: AskTurn[] = [];
@@ -302,7 +302,7 @@ function isRateLimit(err: unknown) {
   return errorStatus(err) === 429 || /\b429\b|quota|RESOURCE_EXHAUSTED|rate limit/i.test(text);
 }
 
-async function* streamAnswer(messages: { role: string; content: string }[], signal: AbortSignal): AsyncGenerator<string> {
+export async function* streamAnswer(messages: { role: string; content: string }[], signal: AbortSignal): AsyncGenerator<string> {
   for await (const chunk of await answerModel().stream(messages, { signal })) {
     const text = contentToText(chunk.content);
     if (text) yield text;
@@ -342,6 +342,15 @@ const encoder = new TextEncoder();
  * Failures after the stream started become one `error` event. Client disconnects abort the model.
  */
 export function askSyllabusStream(input: AskInput): ReadableStream<Uint8Array> {
+  return askEventStream(input.signal, (send, signal) => answer(input, send, signal));
+}
+
+/** NDJSON stream around `run`. Shared by every streamed chat (syllabus, circulars). */
+export function askEventStream(
+  requestSignal: AbortSignal | undefined,
+  run: (send: (e: AskStreamEvent) => void, signal: AbortSignal) => Promise<void>,
+): ReadableStream<Uint8Array> {
+  const input = { signal: requestSignal };
   const abort = new AbortController();
   const onAbort = () => abort.abort();
   input.signal?.addEventListener("abort", onAbort, { once: true });
@@ -358,7 +367,7 @@ export function askSyllabusStream(input: AskInput): ReadableStream<Uint8Array> {
         }
       };
       try {
-        await answer(input, send, abort.signal);
+        await run(send, abort.signal);
       } catch (err) {
         if (!abort.signal.aborted) {
           logger.error({ err }, "ask failed");
