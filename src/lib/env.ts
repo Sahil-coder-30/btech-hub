@@ -1,3 +1,5 @@
+import { createHash, timingSafeEqual } from "node:crypto";
+
 type ServerEnvKey =
   | "GOOGLE_CLIENT_ID"
   | "GOOGLE_CLIENT_SECRET"
@@ -58,10 +60,21 @@ export const adminEmails = () =>
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
-export const adminCredentials = () => ({
-  username: process.env.ADMIN_USERNAME || "admin_btech_hub",
-  password: process.env.ADMIN_PASSWORD || "BTechHub@Admin2026_SecureKey",
-});
+const sha256 = (value: string) => createHash("sha256").update(value).digest();
+
+/**
+ * Direct admin login check. No default credentials: when ADMIN_USERNAME or ADMIN_PASSWORD
+ * is missing (or the password is under 12 chars) admin login is turned off.
+ * Hashing first makes both sides the same length so timingSafeEqual never throws.
+ */
+export function isValidAdminLogin(username: string, password: string): boolean {
+  const expectedUser = process.env.ADMIN_USERNAME;
+  const expectedPassword = process.env.ADMIN_PASSWORD;
+  if (!expectedUser || !expectedPassword || expectedPassword.length < 12) return false;
+  const userOk = timingSafeEqual(sha256(username), sha256(expectedUser));
+  const passwordOk = timingSafeEqual(sha256(password), sha256(expectedPassword));
+  return userOk && passwordOk;
+}
 
 export const isPineconeConfigured = () =>
   Boolean(process.env.PINECONE_API_KEY && !process.env.PINECONE_API_KEY.startsWith("your-"));

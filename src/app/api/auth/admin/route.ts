@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { handler } from "@/lib/api";
 import { HttpError } from "@/lib/auth";
-import { adminCredentials } from "@/lib/env";
+import { isValidAdminLogin } from "@/lib/env";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession } from "@/lib/session";
 import { db } from "@/lib/supabase";
 import type { SessionUser } from "@/lib/types";
 
 export const POST = handler(async (request: Request) => {
+    // Slows password guessing: 5 tries per 15 minutes per IP
+    rateLimit(`admin-login:${clientKey(request)}`, 5, 15 * 60_000);
     const body = await request.json().catch(() => null);
     const { username, password } = body ?? {};
 
@@ -15,8 +18,7 @@ export const POST = handler(async (request: Request) => {
       throw new HttpError(400, "Username and password required");
     }
 
-    const creds = adminCredentials();
-    if (username !== creds.username || password !== creds.password) {
+    if (!isValidAdminLogin(String(username), String(password))) {
       throw new HttpError(401, "Invalid admin credentials");
     }
 

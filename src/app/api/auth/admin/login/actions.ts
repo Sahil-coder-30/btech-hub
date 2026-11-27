@@ -1,8 +1,9 @@
 "use server";
 
 import { logger } from "faultkit";
-import { cookies } from "next/headers";
-import { adminCredentials } from "@/lib/env";
+import { cookies, headers } from "next/headers";
+import { isValidAdminLogin } from "@/lib/env";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession } from "@/lib/session";
 import { db } from "@/lib/supabase";
 import type { SessionUser } from "@/lib/types";
@@ -20,8 +21,14 @@ export async function loginAdminAction(prevState: AdminLoginState | null, formDa
     return { error: "Please enter both username and password." };
   }
 
-  const creds = adminCredentials();
-  if (username !== creds.username || password !== creds.password) {
+  // Same limit and bucket as POST /api/auth/admin: 5 tries per 15 minutes per IP
+  try {
+    rateLimit(`admin-login:${clientKey(new Request("http://local", { headers: await headers() }))}`, 5, 15 * 60_000);
+  } catch {
+    return { error: "Too many attempts. Please wait 15 minutes and try again." };
+  }
+
+  if (!isValidAdminLogin(username, password)) {
     return { error: "Invalid admin credentials. Access denied." };
   }
 

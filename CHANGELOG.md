@@ -29,6 +29,11 @@ MAJOR for breaking changes, MINOR for new features, PATCH for fixes.
 - Guests see only public nav and footer links.
 - Every rate-limited route has its own bucket.
 
+### Security
+- Removed the hard-coded default admin username and password. Direct admin login is now off
+  unless `ADMIN_USERNAME` and `ADMIN_PASSWORD` (12+ chars) are set. **Rotate the old password.**
+- Admin login compares credentials in constant time and is rate limited (5 tries per 15 minutes per IP).
+
 ### Fixed
 - Stale sessions no longer loop between login and dashboard.
 - Logout wipes saved chats. Vac AI Studio needs login.
