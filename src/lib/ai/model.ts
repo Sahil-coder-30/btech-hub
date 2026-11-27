@@ -6,8 +6,7 @@ import { RunnableLambda, type Runnable, type RunnableConfig } from "@langchain/c
 import { convertToOpenAITool } from "@langchain/core/utils/function_calling";
 import { interopSafeParseAsync, type InteropZodType } from "@langchain/core/utils/types";
 import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { ChatMistralAI } from "@langchain/mistralai";
-import { agentModelName, agentProvider, embeddingModel, embeddingProvider, geminiModel, llmProvider, nvidiaModelName, requireEnv } from "../env";
+import { agentProvider, embeddingModel, embeddingProvider, geminiModel, llmProvider, nvidiaEmbeddingModel, nvidiaModelName, requireEnv } from "../env";
 
 /** Any of our chat models. The first signature keeps the zod schema's type on structured output. */
 export type ChatModel = {
@@ -202,63 +201,70 @@ class ChatNvidia extends BaseChatModel {
   }
 }
 
-function mistralChat(temperature: number) {
-  return new ChatMistralAI({ model: agentModelName(), apiKey: requireEnv("MISTRAL_API_KEY"), temperature, maxRetries: 2 });
-}
-
 /**
- * Model for the Vac agent. It makes the most calls (several per chat turn), so by default it runs on
- * Mistral's ministral-8b (188 requests/min on the free plan) and keeps Gemini's small daily quota
- * for quizzes, plans, doubts and grounded answers. AGENT_PROVIDER=nvidia runs it on NVIDIA
- * (NVIDIA_AGENT_MODEL, else NVIDIA_MODEL) with thinking on and Mistral as the backup.
- * AGENT_PROVIDER=gemini uses chatModel.
+ * Model for the Vac agent. It makes several calls per chat turn. NVIDIA (NVIDIA_AGENT_MODEL, else
+ * NVIDIA_MODEL) with thinking on and Gemini as the backup. AGENT_PROVIDER=gemini uses chatModel.
  */
 export function agentModel(temperature = 0.3): ChatModel {
   if (agentProvider() === "gemini") return chatModel(temperature);
-  if (agentProvider() === "nvidia") {
-    return new ChatNvidia({
-      temperature,
-      model: process.env.NVIDIA_AGENT_MODEL || nvidiaModelName(),
-      // Without thinking the agent skipped tools (no resource links, made up CGPA maths, claimed to save memories)
-      thinking: process.env.NVIDIA_AGENT_THINKING !== "false",
-      fallback: () => mistralChat(temperature),
-    });
-  }
-  return mistralChat(temperature);
+  return new ChatNvidia({
+    temperature,
+    model: process.env.NVIDIA_AGENT_MODEL || nvidiaModelName(),
+    // Without thinking the agent skipped tools (no resource links, made up CGPA maths, claimed to save memories)
+    thinking: process.env.NVIDIA_AGENT_THINKING !== "false",
+    fallback: () => geminiChat(temperature, 0),
+  });
 }
 
 type Embedder = { embedQuery: (text: string) => Promise<number[]>; embedDocuments: (texts: string[]) => Promise<number[][]> };
 
-/** Mistral embeddings (mistral-embed, 1024 dims) through the REST API. */
-const mistralEmbedder: Embedder = {
-  async embedDocuments(texts) {
-    const res = await fetch("https://api.mistral.ai/v1/embeddings", {
+/** NVIDIA embeddings (nemotron embed, cut to 1024 dims to fit the Pinecone index). */
+async function nvidiaEmbed(texts: string[], inputType: "query" | "passage"): Promise<number[][]> {
+  const out: number[][] = [];
+  for (let i = 0; i < texts.length; i += 64) {
+    const res = await fetch("https://integrate.api.nvidia.com/v1/embeddings", {
       method: "POST",
-      headers: { Authorization: `Bearer ${requireEnv("MISTRAL_API_KEY")}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: process.env.MISTRAL_EMBEDDING_MODEL || "mistral-embed", input: texts }),
+      headers: { Authorization: `Bearer ${requireEnv("NVIDIA_API_KEY")}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: nvidiaEmbeddingModel(),
+        input: texts.slice(i, i + 64),
+        input_type: inputType,
+        encoding_format: "float",
+        truncate: "END",
+        dimensions: 1024,
+      }),
       signal: AbortSignal.timeout(30_000),
     });
     if (!res.ok) {
-      const error = new Error(`Mistral embeddings failed (${res.status}): ${(await res.text()).slice(0, 200)}`);
+      const error = new Error(`NVIDIA embeddings failed (${res.status}): ${(await res.text()).slice(0, 200)}`);
       Object.assign(error, { status: res.status });
       throw error;
     }
     const data = (await res.json()) as { data: { index: number; embedding: number[] }[] };
-    return data.data.sort((a, b) => a.index - b.index).map((d) => d.embedding);
-  },
-  async embedQuery(text) {
-    return (await this.embedDocuments([text]))[0];
-  },
+    out.push(...data.data.sort((a, b) => a.index - b.index).map((d) => d.embedding));
+  }
+  return out;
+}
+
+const nvidiaEmbedder: Embedder = {
+  // NVIDIA's safety screen sometimes rejects plain syllabus text (422) and fails the whole batch.
+  // Retry one by one; a rejected chunk gets an empty vector and callers skip it.
+  embedDocuments: (texts) =>
+    nvidiaEmbed(texts, "passage").catch((err) => {
+      if ((err as { status?: number }).status !== 422) throw err;
+      return Promise.all(texts.map((t) => nvidiaEmbed([t], "passage").then((v) => v[0], () => [] as number[])));
+    }),
+  embedQuery: async (text) => (await nvidiaEmbed([text], "query"))[0],
 };
 
 let geminiEmbedder: GoogleGenerativeAIEmbeddings | null = null;
 
 /**
- * Embeddings for search queries. The provider must match the one the ML service used for the
- * documents (EMBEDDING_PROVIDER), otherwise the vectors are not comparable. Both give 1024 dims.
+ * Embeddings for documents and search queries (EMBEDDING_PROVIDER). Both providers give 1024 dims,
+ * but their vectors are not comparable, so each one has its own Pinecone namespace.
  */
 export function embedder(): Embedder {
-  if (embeddingProvider() === "mistral") return mistralEmbedder;
+  if (embeddingProvider() === "nvidia") return nvidiaEmbedder;
   if (!geminiEmbedder) {
     geminiEmbedder = new GoogleGenerativeAIEmbeddings({
       model: embeddingModel(),

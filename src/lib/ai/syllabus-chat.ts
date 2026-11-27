@@ -1,15 +1,15 @@
 import { HttpError } from "../auth";
-import { agentProvider, embeddingProvider, isPineconeConfigured } from "../env";
+import { embeddingProvider, isPineconeConfigured } from "../env";
 import { db } from "../supabase";
 import { getSyllabusSemesters } from "../syllabus";
 import type { AskStreamEvent, ChatRole, Source, SyllabusInfo } from "../types";
 import { agentModel, chatModel, contentToText, embedder } from "./model";
-import { MIN_SCORE, pineconeIndex } from "./rag";
+import { MIN_SCORE, pineconeIndex, VECTOR_FLOOR } from "./rag";
 
 /**
  * Chat over one official syllabus PDF: condense the follow-up, hybrid retrieval
  * (Pinecone vectors + Postgres full text, merged with Reciprocal Rank Fusion), then a
- * streamed, cited answer from Gemini with a Mistral fallback.
+ * streamed, cited answer from NVIDIA with a Gemini fallback.
  */
 
 export type AskTurn = { role: ChatRole; content: string };
@@ -144,8 +144,8 @@ async function vectorSearch(documentId: string, query: string, title: string): P
   if (!isPineconeConfigured()) return [];
   const vector = await embedQuery(query);
   const result = await pineconeIndex().query({ vector, topK: 10, includeMetadata: true, filter: { docId: { $eq: documentId } } });
-  // Mistral gives unrelated text about 0.63 to 0.69, so only junk is dropped here. RRF does the ranking.
-  const floor = embeddingProvider() === "mistral" ? 0.5 : 0.2;
+  // Only junk is dropped here. RRF does the ranking.
+  const floor = VECTOR_FLOOR[embeddingProvider()];
   return (result.matches ?? [])
     .filter((m) => m.metadata?.text && (m.score ?? 0) >= floor)
     .map((m) => ({
@@ -285,7 +285,7 @@ function chatMessages(history: AskTurn[], question: string) {
 
 // ---------- 4. Streaming answer ----------
 
-/** Main model (NVIDIA, Gemini as its backup) without internal retries: when both fail we switch to Mistral at once instead of waiting. */
+/** Main model (NVIDIA, Gemini as its backup) without internal retries, so a failure surfaces fast. */
 function answerModel() {
   return chatModel(0.2, 0);
 }
@@ -300,27 +300,8 @@ function isRateLimit(err: unknown) {
   return errorStatus(err) === 429 || /\b429\b|quota|RESOURCE_EXHAUSTED|rate limit/i.test(text);
 }
 
-function shouldFallback(err: unknown) {
-  const status = errorStatus(err) ?? 0;
-  const text = err instanceof Error ? err.message : String(err);
-  return isRateLimit(err) || status >= 500 || /\b5\d\d\b|overloaded|unavailable|fetch failed|ECONNRESET|Missing env var GEMINI/i.test(text);
-}
-
 async function* streamAnswer(messages: { role: string; content: string }[], signal: AbortSignal): AsyncGenerator<string> {
-  let started = false;
-  try {
-    for await (const chunk of await answerModel().stream(messages, { signal })) {
-      const text = contentToText(chunk.content);
-      if (!text) continue;
-      started = true;
-      yield text;
-    }
-    return;
-  } catch (err) {
-    if (started || signal.aborted || agentProvider() === "gemini" || !shouldFallback(err)) throw err;
-    console.warn("Main model failed before the first token, using Mistral:", err instanceof Error ? err.message.slice(0, 200) : err);
-  }
-  for await (const chunk of await agentModel(0.2).stream(messages, { signal })) {
+  for await (const chunk of await answerModel().stream(messages, { signal })) {
     const text = contentToText(chunk.content);
     if (text) yield text;
   }
@@ -335,7 +316,7 @@ function errorEvent(err: unknown): AskStreamEvent {
 
 /**
  * Grounded = the answer cites at least one real passage and is not a "not covered" reply.
- * Vector scores alone cannot decide this: Mistral gives unrelated syllabus text 0.7+ as well.
+ * Vector scores alone cannot decide this: unrelated syllabus text can still score close to real matches.
  */
 function isGrounded(answer: string, retrieval: Retrieval) {
   if (!retrieval.sources.length) return false;

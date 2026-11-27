@@ -353,26 +353,23 @@ async function fallbackIndex(body: {
     try {
       const { embedder } = await import("./ai/model");
       const { pineconeIndex } = await import("./ai/rag");
-      const vectors = await Promise.all(
-        chunks.map(async (chunkText, i) => {
-          const embedding = await embedder().embedQuery(chunkText);
-          return {
-            id: `${docId}_${i}`,
-            values: embedding,
-            metadata: {
-              docId,
-              title: body.title,
-              sourceUrl: body.source_url || "",
-              subjectCode: body.subject_codes || [],
-              branchCode: body.branch_codes || [],
-              year: body.years?.[0] || 0,
-              chunk: i,
-              text: chunkText,
-            },
-          };
-        }),
-      );
-      await pineconeIndex().upsert(vectors);
+      // One batched call: one request per chunk hits the provider's rate limit on big files
+      const embeddings = await embedder().embedDocuments(chunks);
+      const vectors = chunks.map((chunkText, i) => ({
+        id: `${docId}_${i}`,
+        values: embeddings[i],
+        metadata: {
+          docId,
+          title: body.title,
+          sourceUrl: body.source_url || "",
+          subjectCode: body.subject_codes || [],
+          branchCode: body.branch_codes || [],
+          year: body.years?.[0] || 0,
+          chunk: i,
+          text: chunkText,
+        },
+      }));
+      await pineconeIndex().upsert(vectors.filter((v) => v.values.length));
     } catch (err) {
       console.warn("[fallbackIndex] Vector indexing warning:", err);
     }

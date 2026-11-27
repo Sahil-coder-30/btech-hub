@@ -39,10 +39,12 @@ export function pineconeIndex() {
 // ---------- Retrieval ----------
 
 /**
- * Minimum cosine score for a chunk to count as relevant. Mistral scores everything higher:
- * measured on our data, real matches score 0.74 to 0.84 and unrelated questions 0.63 to 0.69.
+ * Minimum cosine score for a chunk to count as relevant, per embedding model.
+ * NVIDIA measured on our data: real matches score 0.28 to 0.61, unrelated questions 0.14 to 0.23.
  */
-export const MIN_SCORE = { mistral: 0.7, gemini: 0.35 } as const;
+export const MIN_SCORE = { nvidia: 0.26, gemini: 0.35 } as const;
+/** Lower floor for syllabus chat, where RRF does the ranking and only junk is dropped. */
+export const VECTOR_FLOOR = { nvidia: 0.15, gemini: 0.2 } as const;
 
 export type RetrieveFilter = { branchCode?: string | null; year?: number | null; subjectCode?: string | null };
 
