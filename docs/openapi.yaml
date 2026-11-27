@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Orvelo API
-  version: 2.0.0
+  version: 2.1.0
   description: |
     HTTP API behind the Orvelo web app (Next.js App Router route handlers under `src/app/api`,
     plus the Google OAuth routes under `src/pages/api/auth/google`).

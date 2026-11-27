@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Live in production, v2 hardening |
+| Status | Live in production, v2.1 |
 | Last updated | 2026-11-27 |
 | Product | Orvelo (web) |
 | Tagline | Your whole semester, in one orbit. |

@@ -20,6 +20,7 @@ Pinecone · LangChain · NVIDIA / Gemini models · Vercel
 - [Scripts](#scripts)
 - [Testing](#testing)
 - [CI/CD](#cicd)
+- [Versioning and releases](#versioning-and-releases)
 - [Project structure](#project-structure)
 - [Docs](#docs)
 
@@ -148,12 +149,25 @@ npm test
 |---|---|---|
 | [`ci.yml`](.github/workflows/ci.yml) | Push and PR | Install, typecheck, tests, parser check, production build |
 | [`deploy.yml`](.github/workflows/deploy.yml) | CI passes on `main` | Build and deploy to Vercel production |
+| [`release.yml`](.github/workflows/release.yml) | Tag `vX.Y.Z` pushed | GitHub Release with notes from `CHANGELOG.md` |
 
 Deploy needs these GitHub repo secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
 (the last two are in `.vercel/project.json` after `vercel link`). Runtime env vars live in Vercel project settings.
 
-If Vercel's own Git integration is also on, turn off its production auto-deploy, or every push deploys twice
-and an untested commit can go live.
+[`vercel.json`](vercel.json) turns off Vercel's own Git deploy for `main`, so production only ships through
+`deploy.yml` after CI passes. Other branches still get Vercel preview deploys.
+
+## Versioning and releases
+
+Versions follow [SemVer](https://semver.org). The version lives in `package.json` and `docs/openapi.yaml`.
+History is in [`CHANGELOG.md`](CHANGELOG.md).
+
+To ship a release:
+
+1. Move the `[Unreleased]` notes in `CHANGELOG.md` under a new version heading.
+2. Bump `version` in `package.json` (`npm version X.Y.Z --no-git-tag-version`) and in `docs/openapi.yaml`.
+3. Commit, then tag: `git tag -a vX.Y.Z -m "Orvelo vX.Y.Z"`.
+4. Push: `git push origin main --follow-tags`. CI, deploy, and the GitHub Release run on their own.
 
 ## Project structure
 
