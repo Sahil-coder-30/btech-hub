@@ -65,7 +65,7 @@ export default async function CircularsPage({ searchParams }: { searchParams: Se
           className="mt-6"
           icon={FileText}
           title={q || dept ? "No circular matches" : "No circulars yet"}
-          description={q || dept ? "Try a shorter word or another department." : "Circulars are synced from AKTU once a day."}
+          description={q || dept ? "Try a shorter word or another department." : "Circulars are synced from AKTU 4 times a day."}
         />
       ) : (
         <ul className="mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card/60">

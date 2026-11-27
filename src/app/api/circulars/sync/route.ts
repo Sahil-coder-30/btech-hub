@@ -19,7 +19,8 @@ function isCron(request: Request) {
 
 /**
  * GET /api/circulars/sync: pull the AKTU circular list, then summarise the newest few.
- * Called daily by Vercel Cron (Authorization: Bearer CRON_SECRET), or opened by a logged-in admin.
+ * Called by Vercel Cron 4 times a day, 10:00, 14:00, 17:00 and 22:00 IST (Authorization: Bearer CRON_SECRET),
+ * or opened by a logged-in admin.
  */
 export const GET = handler(async (request: Request) => {
   if (!isCron(request)) await requireAdmin();

@@ -129,7 +129,7 @@ export async function syncCirculars(): Promise<{ found: number }> {
   return { found: rows.length };
 }
 
-/** Newest circulars that still need a summary, for the daily job. */
+/** Newest circulars that still need a summary, for the sync job. */
 export async function pendingRecentIds(limit: number): Promise<string[]> {
   const res = await db().from("circulars").select("id").eq("status", "pending").order("published_on", { ascending: false, nullsFirst: false }).limit(limit);
   return ((check(res) ?? []) as { id: string }[]).map((r) => r.id);
