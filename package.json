@@ -9,7 +9,8 @@
     "lint": "tsc --noEmit",
     "test": "node --no-warnings --import ./tests/setup.ts --test 'tests/*.test.ts'",
     "check:parse": "node --no-warnings scripts/check_aktu_parse.ts",
-    "seed:csv": "python3 scripts/build_seed.py ../Old_Code"
+    "seed:csv": "python3 scripts/build_seed.py ../Old_Code",
+    "test:live": "node --no-warnings --env-file-if-exists=.env.local --import ./tests/setup.ts --test --test-concurrency=1 'tests/live/*.test.ts'"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
