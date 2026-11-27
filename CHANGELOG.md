@@ -21,6 +21,7 @@ MAJOR for breaking changes, MINOR for new features, PATCH for fixes.
 - Vercel deployment config and dynamic app URL.
 
 ### Changed
+- **Breaking (API):** error responses now use the faultkit envelope `{ success: false, error: { code, message, details, requestId } }` with an `x-request-id` header. Errors are logged with structured logging. The web frontend is updated.
 - Main LLM is NVIDIA Nemotron with Gemini as backup, for chat and for the Vac agent.
 - Embeddings moved from Mistral to NVIDIA. Pinecone namespace is now per provider.
 - PDF ingestion runs inside the app (serverless) instead of a separate ML service.
