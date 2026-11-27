@@ -59,17 +59,17 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
   useEffect(load, [load]);
 
   useEffect(() => {
-    if (!file || !file.type.startsWith("image/")) return setPreview(null);
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const pick = (f?: File) => {
     if (!f) return;
     if (f.size > 20 * 1024 * 1024) return toast.error("File must be under 20 MB");
     if (!/pdf|image\//.test(f.type)) return toast.error("Upload a PDF or an image");
     setFile(f);
+    setPreview(f.type.startsWith("image/") ? URL.createObjectURL(f) : null);
     setResult(null);
     if (!form.title) setForm((s) => ({ ...s, title: f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").slice(0, 150) }));
   };
@@ -117,6 +117,7 @@ export function UploadCenter({ subjects, defaults }: { subjects: SubjectOption[]
       setUploadStage("Completed!");
       setResult(data);
       setFile(null);
+      setPreview(null);
       setConsent(false);
       setForm((s) => ({ ...s, title: "", drive_url: "" }));
       toast.success("Uploaded! It goes live after a quick review.");

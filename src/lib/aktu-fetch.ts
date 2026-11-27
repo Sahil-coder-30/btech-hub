@@ -64,7 +64,7 @@ export function aktuGet(url: string, options: Options, redirects = 4, cookie = "
   return new Promise((resolve, reject) => {
     const req = client.get(
       target,
-      { ...(secure && { agent }), headers: { "User-Agent": "Mozilla/5.0 (compatible; OrveloBot/1.0)", ...(cookie && { Cookie: cookie }) }, timeout: timeoutMs },
+      { ...(secure && { agent }), headers: { "User-Agent": "Mozilla/5.0 (compatible; BTechHubBot/1.0)", ...(cookie && { Cookie: cookie }) }, timeout: timeoutMs },
       (res) => {
         const status = res.statusCode ?? 0;
         if (status >= 300 && status < 400 && res.headers.location) {

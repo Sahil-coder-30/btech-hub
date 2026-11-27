@@ -28,7 +28,7 @@ export type AskInput = {
   signal?: AbortSignal;
 };
 
-// ---------- Small LRU with TTL ----------
+// Small LRU with TTL
 
 class Lru<V> {
   private map = new Map<string, { at: number; value: V }>();
@@ -61,7 +61,7 @@ export function normalizeQuestion(q: string) {
   return q.toLowerCase().replace(/\s+/g, " ").trim().replace(/[?!.\s]+$/, "");
 }
 
-// ---------- 1. Condense follow-ups ----------
+// 1. Condense follow-ups
 
 const stripCitations = (text: string) => text.replace(/\s?(\[\d{1,2}\])+/g, "");
 
@@ -89,12 +89,13 @@ async function condenseQuestion(question: string, history: AskTurn[], signal: Ab
     );
     const query = contentToText(result.content).replace(/^["'\s]+|["'\s]+$/g, "").split("\n")[0].trim();
     return query.length >= 2 && query.length <= 300 ? query : fallback;
-  } catch {
+  } catch (err) {
+    logger.warn({ err: err instanceof Error ? err.message : String(err) }, "condenseQuestion failed, falling back to combined query");
     return fallback;
   }
 }
 
-// ---------- 2. Hybrid retrieval ----------
+// 2. Hybrid retrieval
 
 type Candidate = { key: string; title: string; text: string; page: number | null; pageEnd: number | null; score: number };
 
@@ -230,7 +231,7 @@ export async function retrieveSyllabus(documentId: string, query: string, title:
   };
 }
 
-// ---------- 3. Prompt ----------
+// 3. Prompt
 
 function courseList(semesters: SyllabusInfo["semesters"]) {
   if (!semesters.length) return "(no subject list in the database for this year)";
@@ -256,7 +257,7 @@ function systemPrompt(input: AskInput, semesters: SyllabusInfo["semesters"], ret
     ? ""
     : "\n\nNOTE: the search found no strong match in the PDF. Use a passage only if it really answers the question, otherwise say the syllabus does not mention it.";
 
-  return `You are the "Ask your Syllabus" assistant of Orvelo for AKTU B.Tech students. The student is reading the official AKTU syllabus PDF for ${input.branchName} (${input.branch}), Year ${input.year}.
+  return `You are the "Ask your Syllabus" assistant of B.Tech Hub for AKTU B.Tech students. The student is reading the official AKTU syllabus PDF for ${input.branchName} (${input.branch}), Year ${input.year}.
 
 Rules:
 - Answer ONLY from the CONTEXT passages (taken from that PDF) and the COURSE LIST. Never use outside knowledge for syllabus facts such as units, topics, books, credits, marks or subject codes.
@@ -265,7 +266,7 @@ Rules:
 - If something is not covered, say clearly "This syllabus does not mention ...". You may then add one short general explanation, clearly labelled "General note:".
 - Markdown, short and direct. Use a table (Unit | Topics) for unit-wise lists. LaTeX ($...$) for formulas. Reply in Hinglish only if the student writes in Hinglish.
 
-COURSE LIST (Year ${input.year}, from the Orvelo database):
+COURSE LIST (Year ${input.year}, from the B.Tech Hub database):
 ${courseList(semesters)}
 
 CONTEXT:
@@ -285,7 +286,7 @@ export function chatMessages(history: AskTurn[], question: string) {
   return merged;
 }
 
-// ---------- 4. Streaming answer ----------
+// 4. Streaming answer
 
 /** Main model (NVIDIA, Gemini as its backup) without internal retries, so a failure surfaces fast. */
 function answerModel() {

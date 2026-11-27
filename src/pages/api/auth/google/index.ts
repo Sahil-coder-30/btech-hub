@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       session: false,
       prompt: "select_account",
       callbackURL,
-    } as any)(req, res, (err: unknown) => (err ? reject(err) : resolve()));
+    })(req, res, (err: unknown) => (err ? reject(err) : resolve()));
   }).catch((err) => {
     logger.error({ err }, "Google auth start failed");
     if (!res.headersSent) res.redirect(302, "/login?error=start_failed");

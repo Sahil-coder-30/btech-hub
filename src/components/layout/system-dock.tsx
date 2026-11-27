@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, Terminal, Shield, Zap } from "lucide-react";
+import { Terminal } from "lucide-react";
 
 export function SystemDock() {
   return (
@@ -79,7 +79,7 @@ export function SystemDock() {
           </Link>
           <span style={{ color: "var(--border-strong)" }}>•</span>
           <span style={{ fontSize: "12.5px", fontWeight: 500 }}>
-            Orvelo v2.0
+            B.Tech Hub v2.0
           </span>
         </div>
       </div>

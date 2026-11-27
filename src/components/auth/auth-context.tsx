@@ -44,9 +44,18 @@ export function AuthProvider({
   };
 
   useEffect(() => {
-    if (!initialUser) {
-      refresh();
-    }
+    if (initialUser) return;
+    const controller = new AbortController();
+    fetch("/api/me", { cache: "no-store", signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : { user: null }))
+      .then((data) => setUser(data.user ?? null))
+      .catch(() => {
+        if (!controller.signal.aborted) setUser(null);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
   }, [initialUser]);
 
   return (

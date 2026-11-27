@@ -3,7 +3,7 @@
 import { ArrowRight, Check, ChevronDown, GraduationCap, Layers, NotebookPen, Sparkles, Target } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type SelectHTMLAttributes } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode, type SelectHTMLAttributes } from "react";
 import { toast } from "sonner";
 import { usePreferences } from "@/components/settings/preferences-context";
 import { SettingsHeader, SettingsSection } from "@/components/settings/primitives";
@@ -179,32 +179,31 @@ export function AcademicSettings({ initial, branches }: { initial: AcademicPaylo
 
   const set = <K extends keyof Form>(key: K, value: Form[K]) => setForm((f) => ({ ...f, [key]: value }));
 
-  // ---------- Elective slots follow the chosen branch and semester ----------
-  const slotCache = useRef(new Map<string, ElectiveSlotInfo[]>([[planKey(initial.academic.branch ?? "", initial.academic.semester), initial.electiveSlots]]));
+  const [slotMap, setSlotMap] = useState<Record<string, ElectiveSlotInfo[]>>(() => ({
+    [planKey(initial.academic.branch ?? "", initial.academic.semester)]: initial.electiveSlots,
+  }));
   const currentKey = planKey(form.branch, form.semester);
   const hasPlan = Boolean(form.branch && form.semester);
-  const [fetched, setFetched] = useState<{ key: string; slots: ElectiveSlotInfo[] | null }>({ key: currentKey, slots: initial.electiveSlots });
-  const cached = slotCache.current.get(currentKey);
-  const slots = !hasPlan ? [] : (cached ?? (fetched.key === currentKey ? fetched.slots : null));
+  const cachedSlots = slotMap[currentKey];
+  const slots = useMemo(() => (!hasPlan ? [] : (cachedSlots ?? null)), [hasPlan, cachedSlots]);
   const slotsLoading = hasPlan && slots === null;
 
   useEffect(() => {
-    if (!form.branch || !form.semester || slotCache.current.has(currentKey)) return;
+    if (!form.branch || !form.semester || cachedSlots !== undefined) return;
     const controller = new AbortController();
     fetch(`/api/onboarding/subjects?branch=${encodeURIComponent(form.branch)}&semester=${form.semester}`, { signal: controller.signal })
       .then(async (res) => (res.ok ? ((await res.json()) as { electiveSlots: ElectiveSlotInfo[] }) : Promise.reject(new Error(await errorOf(res)))))
       .then((data) => {
-        slotCache.current.set(currentKey, data.electiveSlots);
-        setFetched({ key: currentKey, slots: data.electiveSlots });
+        setSlotMap((prev) => ({ ...prev, [currentKey]: data.electiveSlots }));
       })
       .catch((error: Error) => {
         if (controller.signal.aborted) return;
         // Treat as "no electives" so the form still saves; the server validates electives anyway
-        setFetched({ key: currentKey, slots: [] });
+        setSlotMap((prev) => ({ ...prev, [currentKey]: [] }));
         toast.error("Could not load electives", { description: error.message });
       });
     return () => controller.abort();
-  }, [currentKey, form.branch, form.semester]);
+  }, [cachedSlots, currentKey, form.branch, form.semester]);
 
   const s = saved.academic;
   const planChanged = form.branch !== (s.branch ?? "") || form.semester !== s.semester;
@@ -222,7 +221,6 @@ export function AcademicSettings({ initial, branches }: { initial: AcademicPaylo
     setForm((f) => ({ ...f, electives: [...f.electives.filter((c) => !slotCodes.has(c)), ...(code ? [code] : [])] }));
   };
 
-  // ---------- Validation and the diff that gets saved ----------
   const batch = parseBatch(form.batchYear);
   const target = parseTarget(form.targetCgpa);
   const hasErrors = Boolean(batch.error || target.error);
@@ -268,7 +266,10 @@ export function AcademicSettings({ initial, branches }: { initial: AcademicPaylo
       return;
     }
     const payload = (await res.json()) as AcademicPayload;
-    slotCache.current.set(planKey(payload.academic.branch ?? "", payload.academic.semester), payload.electiveSlots);
+    setSlotMap((prev) => ({
+      ...prev,
+      [planKey(payload.academic.branch ?? "", payload.academic.semester)]: payload.electiveSlots,
+    }));
     setSaved(payload);
     setForm(toForm(payload.academic));
     setTriedSave(false);
@@ -325,7 +326,6 @@ export function AcademicSettings({ initial, branches }: { initial: AcademicPaylo
     return true;
   };
 
-  // ---------- Target CGPA hint ----------
   const stats = saved.stats;
   const sgpas = stats?.trend.map((t) => t.sgpa) ?? [];
   const need = target.value !== null && sgpas.length ? requiredSgpa(sgpas, target.value) : null;

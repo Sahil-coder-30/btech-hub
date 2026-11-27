@@ -36,8 +36,6 @@ type PlanRow = {
   progress?: Record<string, boolean> | null;
 };
 
-// ---------- v1 plans (one JSON blob, ticks keyed "day-task") ----------
-
 type LegacyInput = { startDate?: string; examDate?: string; hoursPerDay?: number; subjects?: { name: string; confidence: PlanSubject["confidence"]; examDate?: string | null }[]; notes?: string };
 type LegacyPlan = { summary?: string; finalTips?: string[]; days?: { date: string; theme?: string; tip?: string; tasks?: { subject: string; topic: string; hours: number; type: TaskType }[] }[] };
 
@@ -82,8 +80,6 @@ function legacyToV2(row: PlanRow): { settings: PlanSettings; doc: PlanDoc; start
   };
 }
 
-// ---------- Create ----------
-
 async function insertTasks(userId: string, planId: string, tasks: NewTask[]) {
   for (let i = 0; i < tasks.length; i += 500) {
     const chunk = tasks.slice(i, i + 500).map((t) => ({ ...t, plan_id: planId, user_id: userId, status: t.status ?? "todo", done_at: t.status === "done" ? new Date().toISOString() : null }));
@@ -117,8 +113,6 @@ export async function createPlan(userId: string, plan: { title: string; startDat
   }
   return id;
 }
-
-// ---------- Read ----------
 
 function toRecord(row: PlanRow, settings: PlanSettings, doc: PlanDoc, startDate: string, tasks: PlanTask[]): PlanRecord {
   return {
@@ -208,8 +202,6 @@ export async function getTodayAgenda(userId: string) {
   return { plan, tasks: error ? [] : ((data ?? []) as PlanTask[]) };
 }
 
-// ---------- Update ----------
-
 export async function setTaskStatus(userId: string, planId: string, taskId: string, status: TaskStatus) {
   const { data, error } = await db()
     .from("study_plan_tasks")
@@ -239,8 +231,6 @@ export async function deletePlan(userId: string, id: string) {
   if (error) throw error;
   if (!data?.length) throw new HttpError(404, "Plan not found.");
 }
-
-// ---------- Re-plan ----------
 
 type QueuedTask = Draft & { task: PlanTask };
 

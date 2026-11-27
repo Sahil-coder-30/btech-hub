@@ -31,8 +31,15 @@ BRANCHES = [
     ("CE", "Civil Engineering", 9),
 ]
 SYLLABUS_KEY_TO_BRANCH = {
-    "cse": "CSE", "cseds": "CSEDS", "aiml": "CSEAIML", "it": "IT", "ece": "ECE",
-    "ee": "EE", "eee": "EEE", "me": "ME", "ce": "CE",
+    "cse": "CSE",
+    "cseds": "CSEDS",
+    "aiml": "CSEAIML",
+    "it": "IT",
+    "ece": "ECE",
+    "ee": "EE",
+    "eee": "EEE",
+    "me": "ME",
+    "ce": "CE",
 }
 
 
@@ -85,21 +92,30 @@ def build_subjects(old: Path) -> list[dict]:
         options = split_top_level(title)
         codes = extract_codes(title)
         # "Cyber Security/Python programming (BCC301 / BCC302)" -> attach codes to names
-        if len(options) > 1 and len(options) == len(codes) and not extract_codes(options[0]):
-            options = [f"{re.sub(r'\s*\(.*$', '', o).strip()} ({c})" for o, c in zip(options, codes)]
-        rows.append({
-            "id": len(rows) + 1,
-            "title": title,
-            "primary_code": codes[0] if codes else "",
-            "codes": json.dumps(codes),
-            "options": json.dumps(options if len(options) > 1 else []),
-            "credits": credits,
-            "kind": subject_kind(title),
-            "year": YEAR[year_label],
-            "semester": semester_number(sem_label),
-            "branch_code": branch or "",
-            "sort_order": len(rows) + 1,
-        })
+        if (
+            len(options) > 1
+            and len(options) == len(codes)
+            and not extract_codes(options[0])
+        ):
+            options = [
+                f"{re.sub(r'\s*\(.*$', '', o).strip()} ({c})"
+                for o, c in zip(options, codes)
+            ]
+        rows.append(
+            {
+                "id": len(rows) + 1,
+                "title": title,
+                "primary_code": codes[0] if codes else "",
+                "codes": json.dumps(codes),
+                "options": json.dumps(options if len(options) > 1 else []),
+                "credits": credits,
+                "kind": subject_kind(title),
+                "year": YEAR[year_label],
+                "semester": semester_number(sem_label),
+                "branch_code": branch or "",
+                "sort_order": len(rows) + 1,
+            }
+        )
 
     for year_label, year_data in data.items():
         if year_label == "First Year":
@@ -117,7 +133,12 @@ def build_subjects(old: Path) -> list[dict]:
 def build_resources(old: Path) -> tuple[list[dict], int]:
     data = json.loads((old / "static/files/resource.json").read_text())
     rows, coming_soon = [], 0
-    type_map = {"notes": "notes", "pyq": "pyq", "lectures": "lecture", "imp_questions": "imp_question"}
+    type_map = {
+        "notes": "notes",
+        "pyq": "pyq",
+        "lectures": "lecture",
+        "imp_questions": "imp_question",
+    }
 
     def add(year_label, branch, sem_label, subject_title, kinds):
         nonlocal coming_soon
@@ -128,17 +149,19 @@ def build_resources(old: Path) -> tuple[list[dict], int]:
                 if not url or PLACEHOLDER in url:
                     url = ""
                     coming_soon += 1
-                rows.append({
-                    "id": len(rows) + 1,
-                    "subject_code": codes[0] if codes else "",
-                    "subject_title": subject_title,
-                    "year": YEAR[year_label],
-                    "semester": semester_number(sem_label),
-                    "branch_code": branch or "",
-                    "type": type_map.get(kind, kind),
-                    "label": label.replace("_", " ").title(),
-                    "url": url,
-                })
+                rows.append(
+                    {
+                        "id": len(rows) + 1,
+                        "subject_code": codes[0] if codes else "",
+                        "subject_title": subject_title,
+                        "year": YEAR[year_label],
+                        "semester": semester_number(sem_label),
+                        "branch_code": branch or "",
+                        "type": type_map.get(kind, kind),
+                        "label": label.replace("_", " ").title(),
+                        "url": url,
+                    }
+                )
 
     for year_label, year_data in data.items():
         if year_label == "First Year":
@@ -160,12 +183,14 @@ def build_syllabus(old: Path) -> list[dict]:
         if key not in SYLLABUS_KEY_TO_BRANCH:
             continue
         for year, url in re.findall(r"(\d):\s*'([^']+)'", body):
-            rows.append({
-                "id": len(rows) + 1,
-                "branch_code": SYLLABUS_KEY_TO_BRANCH[key],
-                "year": int(year),
-                "url": url,
-            })
+            rows.append(
+                {
+                    "id": len(rows) + 1,
+                    "branch_code": SYLLABUS_KEY_TO_BRANCH[key],
+                    "year": int(year),
+                    "url": url,
+                }
+            )
     return rows
 
 
@@ -183,10 +208,17 @@ def build_university_info(old: Path) -> list[dict]:
                 break
     raw = js[start:end]
     raw = re.sub(r",\s*([}\]])", r"\1", raw)  # trailing commas
-    raw = re.sub(r"<a href='([^']+)'[^>]*>([^<]+)</a>", r"[\2](\1)", raw)  # html link -> markdown
+    raw = re.sub(
+        r"<a href='([^']+)'[^>]*>([^<]+)</a>", r"[\2](\1)", raw
+    )  # html link -> markdown
     data = json.loads(raw)
     return [
-        {"id": key, "title": value.get("title", key), "sort_order": i + 1, "data": json.dumps(value, ensure_ascii=False)}
+        {
+            "id": key,
+            "title": value.get("title", key),
+            "sort_order": i + 1,
+            "data": json.dumps(value, ensure_ascii=False),
+        }
         for i, (key, value) in enumerate(data.items())
     ]
 
@@ -204,7 +236,10 @@ def main() -> None:
     old = Path(sys.argv[1] if len(sys.argv) > 1 else "../Old_Code").resolve()
     out = Path(__file__).resolve().parent.parent / "supabase" / "seed"
 
-    write_csv(out / "branches.csv", [{"code": c, "name": n, "sort_order": s} for c, n, s in BRANCHES])
+    write_csv(
+        out / "branches.csv",
+        [{"code": c, "name": n, "sort_order": s} for c, n, s in BRANCHES],
+    )
     write_csv(out / "subjects.csv", build_subjects(old))
     resources, coming_soon = build_resources(old)
     write_csv(out / "resources.csv", resources)

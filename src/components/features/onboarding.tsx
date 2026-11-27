@@ -79,8 +79,10 @@ export function Onboarding({ user, branches, profile, next, redo, savedResult }:
 
   const [branch, setBranch] = useState(user.branch_code ?? "");
   const [semester, setSemester] = useState(user.semester ?? 0);
-  const [plan, setPlan] = useState<{ subjects: CurrentSubject[]; electiveSlots: ElectiveSlot[] } | null>(null);
-  const [planLoading, setPlanLoading] = useState(false);
+  const [planState, setPlanState] = useState<{
+    key: string;
+    plan: { subjects: CurrentSubject[]; electiveSlots: ElectiveSlot[] } | null;
+  } | null>(null);
   const [electives, setElectives] = useState<Record<string, string>>({});
 
   const [goals, setGoals] = useState<string[]>(profile?.goals ?? []);
@@ -95,16 +97,18 @@ export function Onboarding({ user, branches, profile, next, redo, savedResult }:
   const lastResultSemester = resultSemesters.length ? Math.max(...resultSemesters.map((s) => s.semester)) : 0;
   const first = (result?.name ?? user.name)?.split(" ")[0] ?? "there";
 
+  const planKey = branch && semester ? `${branch}:${semester}` : "";
+  const planLoading = Boolean(planKey) && planState?.key !== planKey;
+  const plan = planKey && planState?.key === planKey ? planState.plan : null;
+
   // Subjects and elective slots for the chosen branch and semester
   useEffect(() => {
-    if (!branch || !semester) return setPlan(null);
-    let cancelled = false;
-    setPlanLoading(true);
-    fetch(`/api/onboarding/subjects?branch=${branch}&semester=${semester}`)
+    if (!planKey) return;
+    const controller = new AbortController();
+    fetch(`/api/onboarding/subjects?branch=${branch}&semester=${semester}`, { signal: controller.signal })
       .then(async (res) => (res.ok ? res.json() : Promise.reject(new Error(await errorOf(res)))))
       .then((data) => {
-        if (cancelled) return;
-        setPlan(data);
+        setPlanState({ key: planKey, plan: data });
         // Pre-select electives saved earlier (Update result flow)
         const saved: Record<string, string> = {};
         for (const slot of data.electiveSlots as ElectiveSlot[]) {
@@ -113,12 +117,11 @@ export function Onboarding({ user, branches, profile, next, redo, savedResult }:
         }
         setElectives(saved);
       })
-      .catch(() => !cancelled && setPlan(null))
-      .finally(() => !cancelled && setPlanLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [branch, semester, profile]);
+      .catch(() => {
+        if (!controller.signal.aborted) setPlanState({ key: planKey, plan: null });
+      });
+    return () => controller.abort();
+  }, [branch, semester, planKey, profile]);
 
   const upload = async (file: File | undefined) => {
     if (!file) return;

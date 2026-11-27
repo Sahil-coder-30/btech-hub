@@ -4,7 +4,7 @@ import { clearCoverageCache } from "./ai/coverage";
 import { HttpError } from "./auth";
 import { getBranches, getSubjects } from "./data";
 import { isPineconeConfigured } from "./env";
-import { isMlConfigured, mlDelete, mlIngest, type IngestResult } from "./ml";
+import { mlDelete, mlIngest, type IngestResult } from "./ml";
 import { db } from "./supabase";
 import type { SyllabusIndexStatus, SyllabusInfo, SyllabusLink } from "./types";
 
@@ -38,8 +38,6 @@ export type SyllabusDocRow = {
   updated_at: string;
 };
 
-// ---------- File key ----------
-
 /** Drive file id from a share link, else a stable hash of the url. */
 export function fileKeyFromUrl(url: string): string {
   const match = url.match(/\/d\/([\w-]+)/) ?? url.match(/[?&]id=([\w-]+)/);
@@ -64,8 +62,6 @@ export function syllabusFileName(branch?: string | null, year?: number | null) {
   const y = year && year >= 1 && year <= 4 ? `_Year_${year}` : "";
   return `AKTU_BTech${b}${y}_Syllabus.pdf`;
 }
-
-// ---------- Small caches ----------
 
 function memo<T>(ttlMs: number) {
   const entries = new Map<string, { at: number; value: Promise<T> }>();
@@ -95,8 +91,6 @@ function invalidateInfo() {
   infoCache.clear();
   linksMemo.clear();
 }
-
-// ---------- Links and catalogue ----------
 
 export function allSyllabusLinks(): Promise<SyllabusLinkRow[]> {
   return linksMemo.get("all", async () => {
@@ -199,8 +193,6 @@ export function buildSuggestions(semesters: SyllabusInfo["semesters"]): string[]
   return [...new Set(out)].slice(0, 6);
 }
 
-// ---------- syllabus_documents ----------
-
 function isMissingTable(error: { code?: string; message?: string } | null) {
   if (!error) return false;
   return error.code === "PGRST205" || error.code === "42P01" || /syllabus_documents/.test(error.message ?? "");
@@ -231,8 +223,6 @@ export async function readySyllabusDocument(link: SyllabusLinkRow) {
   const { status } = effectiveStatus(row);
   return status === "ready" && row?.document_id ? { documentId: row.document_id, status, row } : { documentId: null, status, row };
 }
-
-// ---------- SyllabusInfo ----------
 
 /** null when the branch is unknown. */
 export async function getSyllabusInfo(branchInput: string, year: number): Promise<SyllabusInfo | null> {
@@ -285,8 +275,6 @@ export async function getSyllabusInfo(branchInput: string, year: number): Promis
   if (info.status === "ready") infoCache.set(key, { at: Date.now(), value: info });
   return info;
 }
-
-// ---------- Indexing pipeline ----------
 
 export function assertIndexingConfigured() {
   if (!isPineconeConfigured()) throw new HttpError(503, INDEXING_NOT_CONFIGURED);

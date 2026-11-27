@@ -172,8 +172,6 @@ export function DashboardOverview({ user, branches, data, greeting, now }: Props
   );
 }
 
-// ---------- Hero and today ----------
-
 function Hero({ user, first, greeting, data }: { user: User; first: string; greeting: string; data: DashboardData }) {
   const where = [data.branchName ?? user.branch_code, user.semester ? `Sem ${user.semester}` : user.year ? `${ordinal(user.year)} year` : null].filter(Boolean).join(" · ");
   const streak = data.activity.streak;
@@ -341,8 +339,6 @@ function TodayCard({ data }: { data: DashboardData }) {
   );
 }
 
-// ---------- Stat tiles ----------
-
 function LatestSgpaTile({ data }: { data: DashboardData }) {
   const trend = data.stats.trend;
   const last = trend[trend.length - 1];
@@ -405,12 +401,9 @@ function StreakTile({ data }: { data: DashboardData }) {
   );
 }
 
-// ---------- Quick actions ----------
-
 const ACTIONS: { title: string; text: string; href?: string; icon: LucideIcon; accent: Accent }[] = [
-  { title: "Ask Vac", text: "Your AI study buddy", icon: Bot, accent: "violet" },
+  { title: "Ask Vac", text: "Chat or snap a photo", icon: Bot, accent: "violet" },
   { title: "AI Quiz", text: "Test a unit in 5 min", href: "/quiz", icon: CheckSquare, accent: "emerald" },
-  { title: "Doubt Solver", text: "Snap a question", href: "/doubt", icon: Camera, accent: "pink" },
   { title: "Study Planner", text: "Plan till exam day", href: "/planner", icon: CalendarRange, accent: "blue" },
   { title: "Ask Syllabus", text: "Answers with sources", href: "/ask", icon: Sparkles, accent: "cyan" },
   { title: "Notes & PYQs", text: "Every subject", href: "/resources", icon: FolderOpen, accent: "amber" },
@@ -447,8 +440,6 @@ function QuickActions() {
     </nav>
   );
 }
-
-// ---------- AI coach ----------
 
 function CoachPanel({ data, now }: { data: DashboardData; now: number }) {
   const router = useRouter();
@@ -538,8 +529,6 @@ function CoachPanel({ data, now }: { data: DashboardData; now: number }) {
   );
 }
 
-// ---------- Activity lists ----------
-
 type Tab = "quizzes" | "plans" | "doubts";
 
 function RecentActivity({ data, now }: { data: DashboardData; now: number }) {
@@ -611,7 +600,7 @@ function RecentActivity({ data, now }: { data: DashboardData; now: number }) {
               ))}
             </ul>
           ) : (
-            <EmptyHint icon={Camera} accent="pink" title="No doubts solved yet" text="Snap a photo of any question and get full steps." action={<Link href="/doubt" className={buttonVariants({ size: "sm" })}>Solve a doubt</Link>} />
+            <EmptyHint icon={Camera} accent="pink" title="No doubts solved yet" text="Attach a photo of any question in Vac AI Studio." action={<Link href="/vac" className={buttonVariants({ size: "sm" })}>Open Vac AI Studio</Link>} />
           ))}
       </div>
     </Panel>
@@ -663,8 +652,6 @@ function WeakTopics({ data }: { data: DashboardData }) {
   );
 }
 
-// ---------- This semester ----------
-
 function ThisSemester({ user, data }: { user: User; data: DashboardData }) {
   const credits = data.subjects.reduce((s, x) => s + (x.credits || 0), 0);
   const clean = (title: string) => title.replace(/\s*\([A-Z0-9/*\s]+\)$/, "");
@@ -714,8 +701,6 @@ function ThisSemester({ user, data }: { user: User; data: DashboardData }) {
     </Panel>
   );
 }
-
-// ---------- Library ----------
 
 const TYPE_LABEL: Record<Resource["type"], { label: string; accent: Accent }> = {
   notes: { label: "Notes", accent: "violet" },
@@ -799,8 +784,6 @@ function UploadsPanel({ data, now }: { data: DashboardData; now: number }) {
     </Panel>
   );
 }
-
-// ---------- Small pieces ----------
 
 function Pill({ accent, children }: { accent: Accent; children: ReactNode }) {
   return (

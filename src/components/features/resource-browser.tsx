@@ -26,32 +26,40 @@ export function ResourceBrowser({ branches, loggedIn, initial }: Props) {
   const [branch, setBranch] = useState(initial.branch);
   const [semester, setSemester] = useState(0);
   const [search, setSearch] = useState(initial.q);
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState<{ key: string; resources: Resource[] }>({ key: "", resources: [] });
   const [saved, setSaved] = useState<Set<number>>(new Set());
 
   const ready = year === 1 || Boolean(branch);
+  const currentKey = `${year}:${year > 1 ? branch : ""}:${semester}`;
+  const loading = ready && loaded.key !== currentKey;
+  const resources = useMemo(() => (ready && loaded.key === currentKey ? loaded.resources : []), [ready, loaded, currentKey]);
 
   useEffect(() => {
     if (!loggedIn) return;
     fetch("/api/resources/save")
       .then((r) => r.json())
       .then((d) => setSaved(new Set(d.ids ?? [])))
-      .catch(() => {});
+      .catch(() => {
+        // Bookmarks are supplementary; skip error toast on initial load.
+      });
   }, [loggedIn]);
 
   useEffect(() => {
     if (!ready) return;
-    setLoading(true);
+    const controller = new AbortController();
     const params = new URLSearchParams({ year: String(year) });
     if (year > 1) params.set("branch", branch);
     if (semester) params.set("semester", String(semester));
-    fetch(`/api/resources?${params}`)
+    fetch(`/api/resources?${params}`, { signal: controller.signal })
       .then((r) => r.json())
-      .then((d) => setResources(d.resources ?? []))
-      .catch(() => toast.error("Could not load resources"))
-      .finally(() => setLoading(false));
-  }, [year, branch, semester, ready]);
+      .then((d) => setLoaded({ key: currentKey, resources: d.resources ?? [] }))
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        toast.error("Could not load resources", { description: err instanceof Error ? err.message : undefined });
+        setLoaded({ key: currentKey, resources: [] });
+      });
+    return () => controller.abort();
+  }, [year, branch, semester, ready, currentKey]);
 
   // Group rows by subject, filtered by the search box
   const subjects = useMemo(() => {

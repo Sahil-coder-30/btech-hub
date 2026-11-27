@@ -2,30 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useTheme } from "next-themes";
-import { AnimatePresence, motion } from "motion/react";
 import { LayoutDashboard, LogOut, Settings, ShieldCheck, UserRound } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-context";
 import { displayName } from "@/lib/settings";
 import type { SessionUser } from "@/lib/types";
 import { clearClientData } from "@/lib/client-data";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export function Navbar({ user: initialUser }: { user: SessionUser | null }) {
   const { user: clientUser } = useAuth();
   const user = clientUser ?? initialUser;
   const pathname = usePathname() ?? "/";
 
-  const [userOpen, setUserOpen] = useState(false);
+  const [openForPath, setOpenForPath] = useState<string | null>(null);
+  const userOpen = openForPath === pathname;
 
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
   const isDark = resolvedTheme === "dark";
-
-  useEffect(() => {
-    setUserOpen(false);
-  }, [pathname]);
 
   const openCommand = () => window.dispatchEvent(new Event("command:open"));
 
@@ -48,10 +44,10 @@ export function Navbar({ user: initialUser }: { user: SessionUser | null }) {
     <header className="nav">
       <div className="wrap nav-in">
         {/* Brand with User's Logo Preserved */}
-        <Link href={user ? "/dashboard" : "/"} className="brand" aria-label={user ? "Orvelo dashboard" : "Orvelo home"}>
+        <Link href={user ? "/dashboard" : "/"} className="brand" aria-label={user ? "B.Tech Hub dashboard" : "B.Tech Hub home"}>
           <div className="flex items-center gap-2.5">
-            <img src="/images/logo.png" alt="Orvelo Logo" className="h-7 w-auto object-contain shrink-0" />
-            <span className="brand-t">Orvelo</span>
+            <img src="/images/logo.png" alt="B.Tech Hub Logo" className="h-7 w-auto object-contain shrink-0" />
+            <span className="brand-t">B.Tech Hub</span>
           </div>
         </Link>
 
@@ -94,7 +90,7 @@ export function Navbar({ user: initialUser }: { user: SessionUser | null }) {
             <button
               type="button"
               className="btn btn-sm btn-secondary hide-sm"
-              onClick={() => setUserOpen((v) => !v)}
+              onClick={() => setOpenForPath((v) => (v === pathname ? null : pathname))}
               aria-haspopup="menu"
               aria-expanded={userOpen}
               aria-label={`Account menu for ${displayName(user)}`}

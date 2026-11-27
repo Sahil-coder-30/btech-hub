@@ -62,7 +62,7 @@ export function AccountSettings({ initial }: { initial: AccountInfo }) {
   const { refresh } = useAuth();
   const [account, setAccount] = useState(initial);
 
-  // ---------- Display name ----------
+  // Display name
   const [name, setName] = useState(initial.displayName ?? "");
   const [savingName, setSavingName] = useState(false);
   const [announce, setAnnounce] = useState("");
@@ -113,7 +113,7 @@ export function AccountSettings({ initial }: { initial: AccountInfo }) {
     nameInput.current?.focus();
   };
 
-  // ---------- Email copy ----------
+  // Email copy
   const [copied, setCopied] = useState(false);
   useEffect(() => {
     if (!copied) return;
@@ -126,12 +126,14 @@ export function AccountSettings({ initial }: { initial: AccountInfo }) {
       await navigator.clipboard.writeText(account.email);
       setCopied(true);
       toast.success("Email copied");
-    } catch {
-      toast.error("Could not copy. Select the email and copy it by hand.");
+    } catch (err) {
+      toast.error("Could not copy. Select the email and copy it by hand.", {
+        description: err instanceof Error ? err.message : undefined,
+      });
     }
   };
 
-  // ---------- Sign out ----------
+  // Sign out
   const [signingOut, setSigningOut] = useState(false);
   const signOut = async () => {
     setSigningOut(true);
@@ -155,7 +157,7 @@ export function AccountSettings({ initial }: { initial: AccountInfo }) {
         }
       />
 
-      <SettingsSection title="Profile" description="How you appear across Orvelo and to Vac." icon={UserRound} accent="violet">
+      <SettingsSection title="Profile" description="How you appear across B.Tech Hub and to Vac." icon={UserRound} accent="violet">
         <div className="flex items-center gap-4 py-4">
           <Avatar src={account.avatarUrl} name={account.name} />
           <div className="min-w-0">
@@ -297,7 +299,7 @@ export function AccountSettings({ initial }: { initial: AccountInfo }) {
       </SettingsSection>
 
       <SettingsSection title="Session" icon={LogOut} accent="amber">
-        <SettingRow label="Sign out" description="Sign out of Orvelo on this device.">
+        <SettingRow label="Sign out" description="Sign out of B.Tech Hub on this device.">
           <button type="button" className="btn btn-secondary btn-sm" onClick={signOut} disabled={signingOut}>
             {signingOut ? <Spinner size={14} /> : <LogOut className="size-4" aria-hidden />}
             {signingOut ? "Signing out..." : "Sign out"}

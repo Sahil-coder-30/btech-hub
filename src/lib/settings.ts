@@ -19,7 +19,7 @@ export const preferencesSchema = z.object({
       theme: z.enum(THEMES).catch("dark").default("dark"),
       reduceMotion: z.boolean().catch(false).default(false),
     })
-    .default({}),
+    .prefault({}),
   vac: z
     .object({
       /** Reply language. "auto" mirrors the student. */
@@ -33,19 +33,19 @@ export const preferencesSchema = z.object({
       /** Show the floating Vac bubble on pages. The /vac page always works. */
       widget: z.boolean().catch(true).default(true),
     })
-    .default({}),
+    .prefault({}),
   study: z
     .object({
       quizDifficulty: z.enum(QUIZ_DIFFICULTIES).catch("medium").default("medium"),
       quizCount: z.number().int().min(3).max(15).catch(10).default(10),
     })
-    .default({}),
+    .prefault({}),
   privacy: z
     .object({
       /** Keep Vac chat transcripts in chat_messages. */
       saveChatHistory: z.boolean().catch(true).default(true),
     })
-    .default({}),
+    .prefault({}),
 });
 
 export type Preferences = z.infer<typeof preferencesSchema>;
@@ -99,11 +99,6 @@ export function mergePreferences(current: Preferences, patch: PreferencesPatch):
 export function displayName(user: Pick<User, "name"> & { display_name?: string | null }): string {
   return user.display_name?.trim() || user.name?.trim() || "Student";
 }
-
-// ---------- UI preference cookie ----------
-// The root layout needs a few preferences on every page. Reading them from a
-// small cookie avoids a DB call per page view. The DB stays the source of truth;
-// the cookie is rewritten whenever preferences change and at login.
 
 export const PREFS_COOKIE = "bh_prefs";
 

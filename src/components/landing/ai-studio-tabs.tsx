@@ -99,8 +99,8 @@ export function AiStudioTabs() {
               </svg>
             </span>
             <span>
-              <span className="ft">Photo Doubt Solver</span>
-              <span className="fd">Snap a question from your notebook. Get step by step working.</span>
+              <span className="ft">Photo Doubts in Vac</span>
+              <span className="fd">Snap or paste a question in Vac AI Studio. Get step by step working.</span>
             </span>
           </button>
 

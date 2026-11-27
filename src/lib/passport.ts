@@ -102,3 +102,9 @@ export function getPassport() {
 }
 
 export { appendCookie };
+
+declare module "passport-google-oauth20" {
+  interface AuthenticateOptionsGoogle {
+    callbackURL?: string;
+  }
+}

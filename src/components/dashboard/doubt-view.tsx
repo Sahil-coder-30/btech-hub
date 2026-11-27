@@ -22,8 +22,8 @@ export function DoubtView({ doubt }: { doubt: Doubt }) {
     try {
       await navigator.clipboard.writeText(doubt.answer);
       toast.success("Answer copied");
-    } catch {
-      toast.error("Could not copy. Select the text instead.");
+    } catch (err) {
+      toast.error("Could not copy. Select the text instead.", { description: err instanceof Error ? err.message : undefined });
     }
   };
 
@@ -59,8 +59,8 @@ export function DoubtView({ doubt }: { doubt: Doubt }) {
             <Button size="sm" onClick={() => askVac(`Follow-up on my doubt: ${question ?? "the photo question"}`)}>
               <MessageCircle /> Ask a follow-up
             </Button>
-            <Link href="/doubt" className={buttonVariants({ size: "sm", variant: "secondary" })}>
-              <Plus /> New doubt
+            <Link href="/vac" className={buttonVariants({ size: "sm", variant: "secondary" })}>
+              <Plus /> Ask in Vac Studio
             </Link>
             <Button size="sm" variant="outline" onClick={remove} disabled={deleting} aria-label="Delete doubt" className="hover:border-danger/40 hover:text-danger">
               <Trash2 /> <span className="hidden sm:inline">{deleting ? "Deleting..." : "Delete"}</span>

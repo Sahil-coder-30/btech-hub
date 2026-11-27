@@ -13,7 +13,7 @@ export const GET = handler(async (request: Request) => {
   return new Response(JSON.stringify(data, null, 2), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename="orvelo-data-${date}.json"`,
+      "Content-Disposition": `attachment; filename="btech-hub-data-${date}.json"`,
       "Cache-Control": "no-store",
     },
   });

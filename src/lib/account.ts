@@ -24,8 +24,6 @@ import type {
 export const BRANCH_CODES = ["CSE", "CSEAIML", "CSEDS", "IT", "ECE", "EE", "EEE", "ME", "CE"] as const;
 export type BranchCode = (typeof BRANCH_CODES)[number];
 
-// ---------- Read ----------
-
 export function getAccountInfo(user: User): AccountInfo {
   return {
     id: user.id,
@@ -148,13 +146,11 @@ function computeCompleteness(user: User, academic: AcademicProfile, slots: Elect
     const chosen = new Set(academic.electives);
     items.push({ key: "electives", label: "Choose your electives", done: slots.every((s) => s.choices.some((c) => chosen.has(c.code))), href: academicHref });
   }
-  items.push({ key: "memory", label: "Tell Vac one thing about you", done: memoryCount > 0, href: "/settings/memory" });
+  items.push({ key: "memory", label: "Tell Vac one thing about you", done: memoryCount > 0, href: "/dashboard/profile#vac-memory" });
 
   const done = items.filter((i) => i.done).length;
   return { percent: Math.round((done / items.length) * 100), items };
 }
-
-// ---------- Settings write ----------
 
 export const settingsPatchSchema = z
   .object({
@@ -208,8 +204,6 @@ export async function updateSettings(user: User, patch: SettingsPatch) {
     return { user: fresh, preferences: readPreferences(fresh), account: getAccountInfo(fresh), nameChanged };
   });
 }
-
-// ---------- Academic write ----------
 
 const optionalNullable = <T extends z.ZodTypeAny>(schema: T) => schema.nullable().optional();
 
@@ -305,8 +299,6 @@ async function writeProfile(userId: string, existing: StudentProfile | null, cha
   if (error) throw error;
   return data as StudentProfile;
 }
-
-// ---------- Account data ----------
 
 export const EXPORT_CHAT_LIMIT = 1000;
 

@@ -24,7 +24,7 @@ export function BeforeAfter() {
     <section id="why" className="sec-alt">
       <div className="wrap sec">
         <SectionHeader
-          eyebrow="Why Orvelo"
+          eyebrow="Why B.Tech Hub"
           title={
             <>
               Stop hunting. <span className="hl">Start studying.</span>
@@ -50,7 +50,7 @@ export function BeforeAfter() {
 
           <div className="cmp is-good">
             <p className="eyebrow" style={{ color: "var(--primary-text)" }}>
-              With Orvelo
+              With B.Tech Hub
             </p>
             <ul>
               {ROWS.map((r) => (

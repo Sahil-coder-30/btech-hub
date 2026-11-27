@@ -1,9 +1,5 @@
-import type { Metadata } from "next";
-import { AppearanceSettings } from "@/components/settings/appearance-settings";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Appearance" };
-
-/** Preferences come from the settings layout, so this page needs no data of its own. */
-export default function AppearanceSettingsPage() {
-  return <AppearanceSettings />;
+export default function AppearanceSettingsRedirect() {
+  redirect("/settings?tab=appearance");
 }

@@ -5,6 +5,18 @@ import { chatModel } from "./ai/model";
 import { aktuGet } from "./aktu-fetch";
 import { HttpError } from "./auth";
 import { isReadableText, parseCircularList } from "./circular-parse";
+import {
+  buildCircularOrFilter,
+  CIRCULAR_PAGE_SIZE,
+  NO_DEPARTMENT_VALUE,
+  normalizeCircularQuery,
+  periodDateBounds,
+  type CircularDepartmentCount,
+  type CircularFilter,
+  type CircularPeriod,
+  type CircularSort,
+  type CircularStats,
+} from "./circular-query";
 import { requireEnv } from "./env";
 import { db } from "./supabase";
 
@@ -78,17 +90,54 @@ function withLiveStatus(c: Circular): Circular {
   return stale ? { ...c, status: "failed", error: "Reading this circular took too long. Please try again." } : c;
 }
 
-// ---------- Read ----------
+// Read operations
 
-export const PAGE_SIZE = 30;
+export const PAGE_SIZE = CIRCULAR_PAGE_SIZE;
 
-export async function listCirculars({ q, department, page }: { q?: string; department?: string; page: number }) {
+export type ListCircularsInput = {
+  q?: string;
+  department?: string;
+  filter?: CircularFilter;
+  period?: CircularPeriod;
+  sort?: CircularSort;
+  page: number;
+};
+
+export async function listCirculars({ q, department, filter = "all", period = "all", sort = "newest", page }: ListCircularsInput) {
+  const normalized = normalizeCircularQuery({ q, dept: department, filter, period, sort, page });
   let query = db().from("circulars").select(COLUMNS, { count: "exact" });
-  // Escape LIKE wildcards so a search for "100%" stays literal
-  if (q) query = query.ilike("title", `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
-  if (department) query = query.eq("department", department);
-  const from = (page - 1) * PAGE_SIZE;
-  const res = await query.order("published_on", { ascending: false, nullsFirst: false }).order("id", { ascending: false }).range(from, from + PAGE_SIZE - 1);
+
+  if (normalized.q) {
+    const orFilter = buildCircularOrFilter(normalized.q);
+    if (orFilter) query = query.or(orFilter);
+    else query = query.ilike("title", `%${normalized.q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+  }
+
+  if (normalized.dept === NO_DEPARTMENT_VALUE) {
+    query = query.is("department", null);
+  } else if (normalized.dept) {
+    query = query.eq("department", normalized.dept);
+  }
+
+  if (normalized.filter === "students") {
+    query = query.contains("summary", { forStudents: true });
+  } else if (normalized.filter === "deadlines") {
+    query = query.not("summary->>deadline", "is", null);
+  } else if (normalized.filter === "ready") {
+    query = query.eq("status", "ready");
+  }
+
+  const bounds = periodDateBounds(normalized.period);
+  if (bounds?.gte) query = query.gte("published_on", bounds.gte);
+  if (bounds?.lte) query = query.lte("published_on", bounds.lte);
+  if (bounds?.lt) query = query.lt("published_on", bounds.lt);
+
+  const ascending = normalized.sort === "oldest";
+  const from = (normalized.page - 1) * PAGE_SIZE;
+  const res = await query
+    .order("published_on", { ascending, nullsFirst: false })
+    .order("id", { ascending })
+    .range(from, from + PAGE_SIZE - 1);
   const rows = check(res) as Circular[];
   return { circulars: rows.map(withLiveStatus), total: res.count ?? 0 };
 }
@@ -104,29 +153,115 @@ export async function getCircularText(id: string): Promise<string | null> {
   return row?.status === "ready" ? row.text : null;
 }
 
-let departmentsCache: { at: number; value: string[] } | null = null;
+let departmentsCache: { at: number; value: CircularDepartmentCount[] } | null = null;
+let statsCache: { at: number; value: CircularStats } | null = null;
 
-/** Department filter options, busiest first. Cached 10 minutes: the view scans every row. */
-export async function circularDepartments(): Promise<string[]> {
+/** Department filter options with counts, busiest first. Cached 10 minutes: the view scans every row. */
+export async function circularDepartmentCounts(): Promise<CircularDepartmentCount[]> {
   if (departmentsCache && Date.now() - departmentsCache.at < 10 * 60_000) return departmentsCache.value;
-  const res = await db().from("circular_departments").select("department").order("circulars", { ascending: false });
-  const value = ((check(res) ?? []) as { department: string }[]).map((r) => r.department);
+  const res = await db().from("circular_departments").select("department, circulars").order("circulars", { ascending: false });
+  const value = ((check(res) ?? []) as { department: string; circulars: number }[]).map((r) => ({
+    department: r.department,
+    count: r.circulars,
+  }));
   departmentsCache = { at: Date.now(), value };
   return value;
 }
 
-// ---------- Sync ----------
+/** Department filter names, busiest first. */
+export async function circularDepartments(): Promise<string[]> {
+  return (await circularDepartmentCounts()).map((d) => d.department);
+}
+
+/** High-level counts for quick filter pills and header stats. Cached 5 minutes. */
+export async function circularStats(): Promise<CircularStats> {
+  if (statsCache && Date.now() - statsCache.at < 5 * 60_000) return statsCache.value;
+  const [totalRes, readyRes, studentsRes, deadlineRes, uncatRes, latestRes] = await Promise.all([
+    db().from("circulars").select("id", { count: "exact", head: true }),
+    db().from("circulars").select("id", { count: "exact", head: true }).eq("status", "ready"),
+    db().from("circulars").select("id", { count: "exact", head: true }).contains("summary", { forStudents: true }),
+    db().from("circulars").select("id", { count: "exact", head: true }).not("summary->>deadline", "is", null),
+    db().from("circulars").select("id", { count: "exact", head: true }).is("department", null),
+    db().from("circulars").select("published_on").not("published_on", "is", null).order("published_on", { ascending: false }).limit(1),
+  ]);
+  check(totalRes);
+  check(readyRes);
+  check(studentsRes);
+  check(deadlineRes);
+  check(uncatRes);
+  check(latestRes);
+  const latestRows = (latestRes.data ?? []) as { published_on: string | null }[];
+  const value: CircularStats = {
+    total: totalRes.count ?? 0,
+    ready: readyRes.count ?? 0,
+    forStudents: studentsRes.count ?? 0,
+    withDeadline: deadlineRes.count ?? 0,
+    uncategorized: uncatRes.count ?? 0,
+    latestDate: latestRows[0]?.published_on ?? null,
+  };
+  statsCache = { at: Date.now(), value };
+  return value;
+}
+
+// Sync operations
 
 /** Pulls the full ERP list and inserts new circulars. Existing rows (and their summaries) are left alone. */
-export async function syncCirculars(): Promise<{ found: number }> {
+export async function syncCirculars(): Promise<{ found: number; added: number }> {
   const html = await aktuGet(LIST_URL, { timeoutMs: 90_000, maxBytes: 60 * 1024 * 1024 });
   const rows = parseCircularList(html.toString("utf8"));
   // A near empty list means the page layout changed or AKTU served an error page
   if (rows.length < 50) throw new HttpError(502, `AKTU circular page looks different (only ${rows.length} rows found).`);
+  let added = 0;
   for (let i = 0; i < rows.length; i += 1000) {
-    check(await db().from("circulars").upsert(rows.slice(i, i + 1000), { onConflict: "id", ignoreDuplicates: true }));
+    // With ignoreDuplicates only the newly inserted rows come back
+    const inserted = check(await db().from("circulars").upsert(rows.slice(i, i + 1000), { onConflict: "id", ignoreDuplicates: true }).select("id"));
+    added += inserted?.length ?? 0;
   }
-  return { found: rows.length };
+  departmentsCache = null;
+  statsCache = null;
+  return { found: rows.length, added };
+}
+
+/** One AKTU sync per 20 minutes for the whole site, shared by every student's refresh button. */
+export const REFRESH_COOLDOWN_MS = 20 * 60_000;
+const SYNCED_AT_KEY = "circulars_synced_at";
+
+/** Last sync time in epoch ms, or null if never stamped. Kept in site_stats so every server instance sees it. */
+async function lastSyncedAt(): Promise<number | null> {
+  const row = check(await db().from("site_stats").select("value").eq("key", SYNCED_AT_KEY).maybeSingle()) as { value: number } | null;
+  return row ? Number(row.value) : null;
+}
+
+/** Records a finished sync (cron or admin), so a student refresh right after it is blocked. */
+export async function markSynced(at = Date.now()): Promise<void> {
+  check(await db().from("site_stats").upsert({ key: SYNCED_AT_KEY, value: at }, { onConflict: "key" }));
+}
+
+/**
+ * Takes the global refresh slot or throws 429 with the wait time. Only one request can win:
+ * the update succeeds only if the stored time is still the one we read. Returns the previous
+ * time so a failed sync can hand the slot back.
+ */
+export async function claimRefresh(now = Date.now()): Promise<number> {
+  const stored = await lastSyncedAt();
+  const previous = stored ?? 0;
+  const waitMs = previous + REFRESH_COOLDOWN_MS - now;
+  if (waitMs > 0) {
+    const mins = Math.floor((now - previous) / 60_000);
+    const ago = mins < 1 ? "just now" : `${mins} min ago`;
+    throw new HttpError(429, `Circulars were updated from AKTU ${ago}. You can refresh again in ${Math.ceil(waitMs / 60_000)} min.`);
+  }
+  const won =
+    stored === null
+      ? check(await db().from("site_stats").upsert({ key: SYNCED_AT_KEY, value: now }, { onConflict: "key", ignoreDuplicates: true }).select("key"))
+      : check(await db().from("site_stats").update({ value: now }).eq("key", SYNCED_AT_KEY).eq("value", stored).select("key"));
+  if (!won?.length) throw new HttpError(429, "Someone just started a refresh. The new circulars will show up in a minute.");
+  return previous;
+}
+
+/** Gives the slot back after a failed sync, unless another sync has stamped it since. */
+export async function releaseRefresh(claimedAt: number, previous: number): Promise<void> {
+  check(await db().from("site_stats").update({ value: previous }).eq("key", SYNCED_AT_KEY).eq("value", claimedAt));
 }
 
 /** Newest circulars that still need a summary, for the sync job. */
@@ -135,7 +270,7 @@ export async function pendingRecentIds(limit: number): Promise<string[]> {
   return ((check(res) ?? []) as { id: string }[]).map((r) => r.id);
 }
 
-// ---------- Processing ----------
+// Processing operations
 
 /** Takes the per-circular lock. true means this caller must run processCircular. */
 export async function claimCircular(id: string): Promise<boolean> {
@@ -150,7 +285,8 @@ export async function claimCircular(id: string): Promise<boolean> {
   return ((check(res) ?? []) as unknown[]).length > 0;
 }
 
-async function downloadPdf(url: string): Promise<Buffer> {
+/** Downloads and validates an official AKTU PDF attachment. */
+export async function downloadPdf(url: string): Promise<Buffer> {
   const buffer = await aktuGet(url, { timeoutMs: 60_000, maxBytes: MAX_PDF_BYTES });
   if (buffer.subarray(0, 5).toString("latin1") !== "%PDF-") throw new HttpError(422, "The attachment is not a PDF.");
   return buffer;
@@ -158,11 +294,10 @@ async function downloadPdf(url: string): Promise<Buffer> {
 
 async function textLayer(pdf: Buffer): Promise<string> {
   try {
-    // The inner file: the package index reads a test PDF on import. It has no types of its own.
-    // @ts-expect-error no declaration for pdf-parse/lib/pdf-parse.js
-    const { default: parse } = (await import("pdf-parse/lib/pdf-parse.js")) as { default: typeof import("pdf-parse") };
+    const { default: parse } = await import("pdf-parse/lib/pdf-parse.js");
     return (await parse(pdf)).text ?? "";
-  } catch {
+  } catch (err) {
+    logger.warn({ message: err instanceof Error ? err.message : String(err) }, "pdf text layer parse failed");
     return "";
   }
 }

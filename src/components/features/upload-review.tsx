@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,18 +35,22 @@ const TABS = ["pending", "approved", "rejected", "failed"] as const;
 
 export function UploadReview() {
   const [tab, setTab] = useState<(typeof TABS)[number]>("pending");
-  const [items, setItems] = useState<ReviewItem[] | null>(null);
+  const [loaded, setLoaded] = useState<{ tab: (typeof TABS)[number]; items: ReviewItem[] } | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
 
-  const load = useCallback(() => {
-    setItems(null);
-    fetch(`/api/admin/uploads?status=${tab}`)
+  const items = loaded?.tab === tab ? loaded.items : null;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`/api/admin/uploads?status=${tab}`, { signal: controller.signal })
       .then((r) => r.json())
-      .then((d) => setItems(d.uploads ?? []))
-      .catch(() => setItems([]));
+      .then((d) => setLoaded({ tab, items: d.uploads ?? [] }))
+      .catch(() => {
+        if (!controller.signal.aborted) setLoaded({ tab, items: [] });
+      });
+    return () => controller.abort();
   }, [tab]);
-  useEffect(load, [load]);
 
   const review = async (id: string, action: "approve" | "reject") => {
     setBusy(id);
@@ -59,7 +63,7 @@ export function UploadReview() {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error?.message);
       toast.success(action === "approve" ? `Indexed ${data.chunks} chunks into Pinecone` : "Upload rejected");
-      setItems((list) => list?.filter((i) => i.id !== id) ?? null);
+      setLoaded((prev) => (prev ? { ...prev, items: prev.items.filter((i) => i.id !== id) } : null));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Review failed");
     } finally {

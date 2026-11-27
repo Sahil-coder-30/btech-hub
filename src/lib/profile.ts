@@ -15,8 +15,6 @@ export const MEMORY_LIMIT = 50;
 
 export const yearForSemester = (semester: number) => Math.ceil(semester / 2);
 
-// ---------- This semester's subjects ----------
-
 export type CurrentSubject = { code: string | null; title: string; credits: number; kind: Subject["kind"] };
 export type ElectiveSlot = { id: string; title: string; choices: { code: string; name: string }[] };
 
@@ -53,8 +51,6 @@ function applyElectives({ subjects, names }: SemesterData, electives: string[]) 
   });
   return { subjects: current, electiveSlots };
 }
-
-// ---------- Stats (plain code, no AI) ----------
 
 type TheoryRow = { code: string; name: string; grade: string; internal: number | null; external: number | null; semester: number };
 
@@ -109,8 +105,6 @@ export function computeStats(records: SgpaRecord[], target: number | null): Stud
   };
 }
 
-// ---------- Profile ----------
-
 /** Postgres numeric comes back as a string. */
 const targetOf = (profile: StudentProfile | null) => (profile?.target_cgpa == null ? null : Number(profile.target_cgpa));
 
@@ -152,8 +146,6 @@ export async function refreshInsights(user: User, profile: StudentProfile, recor
   invalidateStudentContext(user.id);
   return { stats, insights };
 }
-
-// ---------- Memory ----------
 
 const MEMORY_COLUMNS = "id, kind, content, source, pinned, created_at, updated_at";
 const LEGACY_MEMORY_COLUMNS = "id, kind, content, source, created_at, updated_at";
@@ -318,8 +310,6 @@ export async function clearMemories(userId: string, options: { keepPinned?: bool
   invalidateStudentContext(userId);
   return result.count ?? 0;
 }
-
-// ---------- Context for Vac ----------
 
 const list = (items: string[]) => items.filter(Boolean).join(", ");
 

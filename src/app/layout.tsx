@@ -18,7 +18,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "sw
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "Orvelo", template: "%s | Orvelo" },
+  title: { default: "B.Tech Hub", template: "%s | B.Tech Hub" },
   description:
     "AI powered toolkit for AKTU B.Tech students: SGPA and CGPA calculators, syllabus, notes, PYQs, AI quizzes, study planner and Vac, your study agent.",
   icons: { icon: "/favicon.svg" },

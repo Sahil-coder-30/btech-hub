@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, ShieldAlert, Sparkles, ArrowRight } from "lucide-react";
+import { Lock, ShieldAlert, ArrowRight } from "lucide-react";
 import { useAuth } from "./auth-context";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

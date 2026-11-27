@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { Brain, BrainCircuit, Pin, Search, SearchX, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -32,8 +31,18 @@ const normalize = (memory: StudentMemory): StudentMemory => ({ ...memory, pinned
 
 type PendingDelete = { memory: StudentMemory; index: number; timer: ReturnType<typeof setTimeout>; toastId: string | number };
 
-/** Everything on /settings/memory: limit meter, add form, search, filters and the list. */
-export function MemoryManager({ initial, limit, now }: { initial: StudentMemory[]; limit: number; now: number }) {
+/** Everything for Vac memory: limit meter, add form, search, filters and the list. */
+export function MemoryManager({
+  initial,
+  limit,
+  now,
+  embedded = false,
+}: {
+  initial: StudentMemory[];
+  limit: number;
+  now: number;
+  embedded?: boolean;
+}) {
   const { preferences, update } = usePreferences();
   const [memories, setMemories] = useState(() => initial.map(normalize));
   const [query, setQuery] = useState("");
@@ -105,8 +114,6 @@ export function MemoryManager({ initial, limit, now }: { initial: StudentMemory[
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // ---------- Derived lists ----------
-
   const searched = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q ? memories.filter((m) => m.content.toLowerCase().includes(q) || KIND_META[m.kind].label.toLowerCase().includes(q)) : memories;
@@ -125,8 +132,6 @@ export function MemoryManager({ initial, limit, now }: { initial: StudentMemory[
   const filtering = query.trim() !== "" || kindFilter !== "all";
   const full = memories.length >= limit;
   const pct = limit ? (memories.length / limit) * 100 : 0;
-
-  // ---------- Actions ----------
 
   const patchLocal = (id: string, patch: Partial<StudentMemory>) => setMemories((list) => list.map((m) => (m.id === id ? { ...m, ...patch } : m)));
 
@@ -272,8 +277,6 @@ export function MemoryManager({ initial, limit, now }: { initial: StudentMemory[
     announce(message);
   };
 
-  // ---------- Render ----------
-
   const renderList = (items: StudentMemory[]) => (
     <ul className="space-y-2">
       <AnimatePresence initial={false} mode="popLayout">
@@ -294,27 +297,43 @@ export function MemoryManager({ initial, limit, now }: { initial: StudentMemory[
   );
 
   const deleteCount = keepPinned && pinnedTotal > 0 ? memories.length - pinnedTotal : memories.length;
+  const clearAllButton =
+    memories.length > 0 ? (
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm text-[var(--danger)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]"
+        onClick={() => {
+          setKeepPinned(true);
+          setClearOpen(true);
+        }}
+      >
+        <Trash2 className="size-4" aria-hidden /> Clear all
+      </button>
+    ) : undefined;
+  const UsageHeading = embedded ? "h3" : "h2";
+  const GroupHeading = embedded ? "h4" : "h3";
 
   return (
     <>
-      <SettingsHeader
-        title="Memory"
-        description="Short notes Vac keeps about you so its help fits. Pin what matters, edit what changed, delete anything."
-        action={
-          memories.length > 0 ? (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm text-[var(--danger)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger)]"
-              onClick={() => {
-                setKeepPinned(true);
-                setClearOpen(true);
-              }}
-            >
-              <Trash2 className="size-4" aria-hidden /> Clear all
-            </button>
-          ) : undefined
-        }
-      />
+      {embedded ? (
+        <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
+            <h2 id="vac-memory-heading" className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+              <Brain className="size-5 text-primary" aria-hidden /> What Vac remembers
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              Short notes Vac keeps about you so its help fits. Pin what matters, edit what changed, delete anything.
+            </p>
+          </div>
+          {clearAllButton}
+        </header>
+      ) : (
+        <SettingsHeader
+          title="Memory"
+          description="Short notes Vac keeps about you so its help fits. Pin what matters, edit what changed, delete anything."
+          action={clearAllButton}
+        />
+      )}
 
       <p aria-live="polite" role="status" className="sr-only">
         {announcement}
@@ -332,10 +351,10 @@ export function MemoryManager({ initial, limit, now }: { initial: StudentMemory[
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 pt-5">
             <IconBadge icon={Brain} accent="violet" size="sm" />
             <div className="min-w-0 flex-1">
-              <h2 id="memory-usage" className="text-[15px] font-semibold tracking-tight">
+              <UsageHeading id="memory-usage" className="text-[15px] font-semibold tracking-tight">
                 <span className="font-mono tabular-nums">{memories.length}</span>
                 <span className="text-muted-foreground"> of {limit} memories</span>
-              </h2>
+              </UsageHeading>
               <p className="mt-0.5 text-[13px] text-muted-foreground">Pinned memories are never dropped. When full, the oldest unpinned one makes room.</p>
             </div>
             {pinnedTotal > 0 && (
@@ -412,20 +431,20 @@ export function MemoryManager({ initial, limit, now }: { initial: StudentMemory[
               <div className="mt-4 space-y-5">
                 {pinned.length > 0 && (
                   <div>
-                    <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    <GroupHeading className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                       <Pin className="size-3.5 text-primary" aria-hidden /> Pinned
                       <span className="font-mono tabular-nums">{pinned.length}</span>
-                    </h3>
+                    </GroupHeading>
                     {renderList(pinned)}
                   </div>
                 )}
                 {others.length > 0 && (
                   <div>
                     {pinned.length > 0 && (
-                      <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      <GroupHeading className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                         <BrainCircuit className="size-3.5" aria-hidden /> Everything else
                         <span className="font-mono tabular-nums">{others.length}</span>
-                      </h3>
+                      </GroupHeading>
                     )}
                     {renderList(others)}
                   </div>
@@ -497,15 +516,7 @@ function MemoryBanners({
       {!useProfile && (
         <Banner
           title="Vac is not using your memory right now"
-          text={
-            <>
-              Use my profile and memory is off in{" "}
-              <Link href="/settings/vac" className="link">
-                Vac AI settings
-              </Link>
-              , so every chat starts fresh.
-            </>
-          }
+          text="Use my profile and memory is currently off, so every chat starts fresh."
           actionLabel="Turn on"
           onAction={onEnableProfile}
         />

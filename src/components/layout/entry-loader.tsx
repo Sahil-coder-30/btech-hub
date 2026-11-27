@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -22,9 +22,7 @@ function finish() {
 }
 
 /**
- * The original Orvelo entry animation, ported 1:1 from home.js:
- * black screen fades to white, logo spins in, text logo pops, then the logo
- * zooms through the screen and the page rises in.
+ * Entry animation: logo spins in, pauses briefly, then zooms through the screen as the page rises in.
  */
 export function EntryGate({ children }: { children: ReactNode }) {
   const [playing, setPlaying] = useState(() => !hasPlayed);
@@ -51,14 +49,12 @@ export function EntryGate({ children }: { children: ReactNode }) {
     document.body.style.overflow = "hidden";
 
     gsap.set(loader.current, { backgroundColor: "var(--bg)" });
-    gsap.set([".entry-logo", ".entry-logo-text"], { opacity: 0, scale: 0, transformOrigin: "center center" });
+    gsap.set(".entry-logo", { opacity: 0, scale: 0, transformOrigin: "center center" });
 
     gsap
       .timeline()
       .to(".entry-logo", { duration: 0.6, opacity: 1, scale: 1, rotation: 360, ease: "power3.out" })
-      .to(".entry-logo-text", { duration: 0.4, opacity: 1, scale: 1, ease: "back.out(1.7)" })
-      .to(".entry-logo-text", { duration: 0.3, opacity: 0, scale: 0.8, ease: "power3.in", delay: 0.2 })
-      .to(".entry-logo", { duration: 0.4, scale: 8, opacity: 0, ease: "power4.in" })
+      .to(".entry-logo", { duration: 0.4, scale: 8, opacity: 0, ease: "power4.in", delay: 0.25 })
       .to(loader.current, {
         duration: 0.3,
         opacity: 0,
@@ -93,19 +89,6 @@ export function EntryGate({ children }: { children: ReactNode }) {
             className="entry-logo w-[max(6vw,72px)]"
             style={{ opacity: 0, transform: "scale(0)" }}
           />
-          <span
-            className="entry-logo-text mt-3 text-[max(3vw,36px)] font-extrabold tracking-tight"
-            style={{
-              opacity: 0,
-              transform: "scale(0)",
-              background: "linear-gradient(90deg, #FBB040, #E2457A 50%, #6A2BB8)",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-            }}
-          >
-            Orvelo
-          </span>
         </div>
       )}
       <div ref={page} style={startHidden ? { opacity: 0 } : undefined}>
@@ -115,14 +98,16 @@ export function EntryGate({ children }: { children: ReactNode }) {
   );
 }
 
+function subscribeEntryDone(onStoreChange: () => void) {
+  window.addEventListener("entry:done", onStoreChange);
+  return () => window.removeEventListener("entry:done", onStoreChange);
+}
+
 /** True once the entry animation has finished (or was skipped). Lets hero content animate after it. */
 export function useEntryDone() {
-  const [done, setDone] = useState(false);
-  useEffect(() => {
-    if (window.__entryDone) return setDone(true);
-    const onDone = () => setDone(true);
-    window.addEventListener("entry:done", onDone);
-    return () => window.removeEventListener("entry:done", onDone);
-  }, []);
-  return done;
+  return useSyncExternalStore(
+    subscribeEntryDone,
+    () => Boolean(window.__entryDone),
+    () => false,
+  );
 }

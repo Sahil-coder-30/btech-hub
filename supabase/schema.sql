@@ -1,5 +1,5 @@
 -- =============================================================
--- Orvelo: Supabase schema
+-- B.Tech Hub: Supabase schema
 -- Step 1: run this whole file in Supabase SQL Editor.
 -- Step 2: import CSVs from supabase/seed (see README).
 -- Step 3: run supabase/post_import.sql.

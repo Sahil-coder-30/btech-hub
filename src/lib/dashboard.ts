@@ -1,6 +1,6 @@
 import { getBranches } from "./data";
 import { tasksToDays } from "./planner/day-view";
-import type { PlanDoc, PlanTask } from "./planner/types";
+import type { PlanTask } from "./planner/types";
 import { computeStats, getProfile, getSemesterPlan, type CurrentSubject } from "./profile";
 import { db } from "./supabase";
 import type { QuizAttempt, Resource, SgpaRecord, StudentInsights, StudentStats, StudyPlan, StudyPlanDay, User } from "./types";
@@ -59,8 +59,6 @@ export type DashboardData = {
 /** Task ticks for a study plan, keyed "dayIndex-taskIndex". */
 export type PlanProgress = Record<string, true>;
 
-// ---------- Dates (students are in India, so days follow IST) ----------
-
 export const dayKey = (value: string | Date) => new Date(value).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 
 const addDays = (key: string, n: number) => {
@@ -70,8 +68,6 @@ const addDays = (key: string, n: number) => {
 };
 
 export const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
-
-// ---------- Pure helpers (also used by the detail pages) ----------
 
 export const quizPct = (q: Pick<QuizAttempt, "score" | "total">) => (q.total ? Math.round((q.score / q.total) * 100) : 0);
 
@@ -156,8 +152,6 @@ function pickActivePlan(rows: PlanRow[], today: string): ActivePlan | null {
   };
 }
 
-// ---------- Loader ----------
-
 /** Plans from the new planner keep tasks in study_plan_tasks. Fill in days and progress for those. */
 async function withV2Tasks(userId: string, plans: PlanRow[]): Promise<PlanRow[]> {
   const ids = plans.filter((p) => (p.plan as { version?: number } | null)?.version === 2).map((p) => p.id);
@@ -165,8 +159,8 @@ async function withV2Tasks(userId: string, plans: PlanRow[]): Promise<PlanRow[]>
   const res = await db().from("study_plan_tasks").select("plan_id, id, date, position, subject, subject_code, unit, topic, type, minutes, status, done_at, moved_from").eq("user_id", userId).in("plan_id", ids).order("date").order("position");
   const tasks = rows<PlanTask & { plan_id: string }>(res);
   return plans.map((p) => {
-    if (!ids.includes(p.id)) return p;
-    const { plan, progress } = tasksToDays(p.plan as unknown as PlanDoc, tasks.filter((t) => t.plan_id === p.id));
+    if (!p.plan || !ids.includes(p.id)) return p;
+    const { plan, progress } = tasksToDays(p.plan, tasks.filter((t) => t.plan_id === p.id));
     return { ...p, plan, progress };
   });
 }

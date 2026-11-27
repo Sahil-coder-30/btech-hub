@@ -1,6 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { circularId, decodeEntities, isReadableText, parseAktuDate, parseCircularList } from "@/lib/circular-parse";
+import {
+  buildCircularOrFilter,
+  buildCircularSearchParams,
+  escapeLikePattern,
+  hasActiveCircularFilters,
+  normalizeCircularQuery,
+  paginationRange,
+  periodDateBounds,
+} from "@/lib/circular-query";
 
 const row = (n: number, dept: string, title: string, date: string, href: string) => `
   <tr>
@@ -46,4 +55,56 @@ test("isReadableText accepts English and rejects legacy Hindi font gibberish", (
   assert.equal(isReadableText(english), true);
   assert.equal(isReadableText(krutiDev), false);
   assert.equal(isReadableText("short"), false);
+});
+
+test("normalizeCircularQuery and buildCircularSearchParams clamp and round-trip filters", () => {
+  const normalized = normalizeCircularQuery({
+    q: "  scholarship  ",
+    dept: " Examination ",
+    filter: "students",
+    period: "30d",
+    sort: "oldest",
+    page: "-5",
+  });
+  assert.deepEqual(normalized, {
+    q: "scholarship",
+    dept: "Examination",
+    filter: "students",
+    period: "30d",
+    sort: "oldest",
+    page: 1,
+  });
+
+  const fallback = normalizeCircularQuery({ filter: "bad", period: "nope", sort: "random", page: "99999" });
+  assert.deepEqual(fallback, { q: "", dept: "", filter: "all", period: "all", sort: "newest", page: 1000 });
+
+  assert.equal(buildCircularSearchParams({ q: "", dept: "", filter: "all", period: "all", sort: "newest", page: 1 }).toString(), "");
+  assert.equal(
+    buildCircularSearchParams({ q: "exam", dept: "Examination", filter: "deadlines", period: "2026", sort: "oldest", page: 3 }).toString(),
+    "q=exam&dept=Examination&filter=deadlines&period=2026&sort=oldest&page=3",
+  );
+  assert.equal(hasActiveCircularFilters({ q: "", dept: "", filter: "all", period: "all", sort: "newest" }), false);
+  assert.equal(hasActiveCircularFilters({ q: "", dept: "", filter: "students", period: "all", sort: "newest" }), true);
+});
+
+test("escapeLikePattern, buildCircularOrFilter, periodDateBounds, and paginationRange", () => {
+  assert.equal(escapeLikePattern("100%_test\\x"), "100\\%\\_test\\\\x");
+  assert.equal(
+    buildCircularOrFilter('100% "exam", (2026)'),
+    'title.ilike."%100\\\\% \\"exam\\" 2026%",summary->>gist.ilike."%100\\\\% \\"exam\\" 2026%",department.ilike."%100\\\\% \\"exam\\" 2026%"',
+  );
+  assert.equal(buildCircularOrFilter(",()"), null);
+
+  const ref = new Date("2026-11-27T08:00:00Z");
+  assert.deepEqual(periodDateBounds("all", ref), null);
+  assert.deepEqual(periodDateBounds("7d", ref), { gte: "2026-11-20" });
+  assert.deepEqual(periodDateBounds("30d", ref), { gte: "2026-10-28" });
+  assert.deepEqual(periodDateBounds("2026", ref), { gte: "2026-01-01", lte: "2026-12-31" });
+  assert.deepEqual(periodDateBounds("older", ref), { lt: "2024-01-01" });
+
+  assert.deepEqual(paginationRange(1, 1), [1]);
+  assert.deepEqual(paginationRange(1, 5), [1, 2, 3, 4, 5]);
+  assert.deepEqual(paginationRange(1, 20), [1, 2, "ellipsis", 20]);
+  assert.deepEqual(paginationRange(10, 20), [1, "ellipsis", 9, 10, 11, "ellipsis", 20]);
+  assert.deepEqual(paginationRange(19, 20), [1, "ellipsis", 18, 19, 20]);
 });

@@ -4,8 +4,8 @@ import { redirectToLogin } from "@/lib/login-redirect";
 
 export const metadata: Metadata = {
   title: {
-    default: "Dashboard | Orvelo",
-    template: "%s | Orvelo",
+    default: "Dashboard | B.Tech Hub",
+    template: "%s | B.Tech Hub",
   },
 };
 

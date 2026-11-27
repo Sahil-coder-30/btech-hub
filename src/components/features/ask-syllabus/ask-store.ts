@@ -81,7 +81,14 @@ export type AskContext = Record<string, unknown>;
 export type AskCallbacks = { onUnauthorized: () => void; onNotReady: () => void };
 type Snapshot = { messages: AskMessage[]; busy: boolean };
 
-const NOOP_CALLBACKS: AskCallbacks = { onUnauthorized: () => {}, onNotReady: () => {} };
+export const NOOP_CALLBACKS: AskCallbacks = {
+  onUnauthorized: () => {
+    // No mounted page is listening while navigating away.
+  },
+  onNotReady: () => {
+    // No mounted page is listening while navigating away.
+  },
+};
 
 /**
  * One chat per syllabus. It lives outside React, so leaving the page does not stop
@@ -92,13 +99,17 @@ export class AskSession {
   private listeners = new Set<() => void>();
   private abort: AbortController | null = null;
   /** Set by the mounted page. Empty while the student is on another page. */
-  callbacks: AskCallbacks = NOOP_CALLBACKS;
+  private callbacks: AskCallbacks = NOOP_CALLBACKS;
 
   constructor(
     private storageKey: string,
     private endpoint = "/api/ask",
   ) {
     this.snapshot = { messages: loadStored(storageKey), busy: false };
+  }
+
+  setCallbacks(callbacks: AskCallbacks) {
+    this.callbacks = callbacks;
   }
 
   subscribe = (listener: () => void) => {
@@ -155,14 +166,18 @@ export class AskSession {
     // Deltas arrive faster than the screen refreshes: render at most once per frame.
     let answer = "";
     let frame = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const flush = () => {
       frame = 0;
+      timer = null;
       const snapshot = answer;
       patch((m) => ({ ...m, content: snapshot }));
     };
     const cancelFlush = () => {
       if (frame) cancelAnimationFrame(frame);
+      if (timer) clearTimeout(timer);
       frame = 0;
+      timer = null;
     };
 
     try {
@@ -188,7 +203,10 @@ export class AskSession {
         } else if (event.type === "delta") {
           answer += event.text;
           // requestAnimationFrame pauses in a hidden tab, so fall back to a timer there.
-          if (!frame) frame = document.hidden ? (setTimeout(flush, 100) as unknown as number) : requestAnimationFrame(flush);
+          if (!frame && !timer) {
+            if (document.hidden) timer = setTimeout(flush, 100);
+            else frame = requestAnimationFrame(flush);
+          }
         } else if (event.type === "done") {
           cancelFlush();
           finished = true;

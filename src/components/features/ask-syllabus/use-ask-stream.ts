@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useSyncExternalStore } from "react";
-import { getAskSession, type AskMessage } from "./ask-store";
+import { getAskSession, NOOP_CALLBACKS, type AskMessage } from "./ask-store";
 
 export { askErrorMessage, storageKeyFor, type AskMessage } from "./ask-store";
 
@@ -16,7 +16,9 @@ type Options = {
 };
 
 const EMPTY: { messages: AskMessage[]; busy: boolean } = { messages: [], busy: false };
-const noopSubscribe = () => () => {};
+const noopSubscribe = () => () => {
+  // Static store snapshots do not push client updates.
+};
 
 /**
  * Chat state for one syllabus. The chat itself lives in ask-store, so an answer that
@@ -37,9 +39,9 @@ export function useAskStream({ fileKey, endpoint, body, onUnauthorized, onNotRea
   // Only the mounted page reacts to 401 / 409. Leaving the page detaches them.
   useEffect(() => {
     if (!session) return;
-    session.callbacks = { onUnauthorized, onNotReady };
+    session.setCallbacks({ onUnauthorized, onNotReady });
     return () => {
-      session.callbacks = { onUnauthorized: () => {}, onNotReady: () => {} };
+      session.setCallbacks(NOOP_CALLBACKS);
     };
   }, [session, onUnauthorized, onNotReady]);
 

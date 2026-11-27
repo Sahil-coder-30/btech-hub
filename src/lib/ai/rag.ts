@@ -36,8 +36,6 @@ export function pineconeIndex() {
 // Ingestion (text extraction, OCR, chunking, embeddings, upsert) lives in the ML service.
 // See src/lib/ml.ts (mlIngest, mlDelete, pdfToText) and ml-service/.
 
-// ---------- Retrieval ----------
-
 /**
  * Minimum cosine score for a chunk to count as relevant, per embedding model.
  * NVIDIA measured on our data: real matches score 0.28 to 0.61, unrelated questions 0.14 to 0.23.

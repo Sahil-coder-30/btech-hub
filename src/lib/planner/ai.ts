@@ -38,15 +38,11 @@ export type TopicResult = {
 
 export const slotKind = (type: TaskType, pinned: boolean): SlotKind => (type === "revise" && pinned ? "final" : type);
 
-// ---------- Syllabus grounding ----------
-
 /** Top syllabus passages for a subject, or "" when Pinecone is off or nothing matches. */
 export async function syllabusFor(subject: PlanSubject, filter: { branchCode?: string | null; year?: number | null }) {
   const sources = await retrieve(`${subject.name} ${subject.code ?? ""} syllabus units and topics`, filter, 3).catch(() => []);
   return sources.map((s) => s.snippet).join("\n").slice(0, 1500);
 }
-
-// ---------- AI call ----------
 
 const topicSchema = z.object({
   unit: z.string().nullable().describe("Syllabus unit, e.g. 'Unit 2'. null when unknown"),
@@ -139,8 +135,6 @@ export async function writeTopics(subjects: SubjectContext[], extra: { notes?: s
     aiTopics: true,
   };
 }
-
-// ---------- Fallback (no AI) ----------
 
 const UNITS = 5;
 

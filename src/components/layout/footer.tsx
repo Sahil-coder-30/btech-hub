@@ -64,11 +64,11 @@ export function Footer() {
           <Link
             href={user ? "/dashboard" : "/"}
             className="brand"
-            aria-label={user ? "Orvelo dashboard" : "Orvelo home"}
+            aria-label={user ? "B.Tech Hub dashboard" : "B.Tech Hub home"}
             style={{ display: "flex", alignItems: "center", gap: "10px" }}
           >
-            <img src="/images/logo.png" alt="Orvelo" style={{ height: "28px", width: "auto" }} />
-            <span className="brand-t">Orvelo</span>
+            <img src="/images/logo.png" alt="B.Tech Hub" style={{ height: "28px", width: "auto" }} />
+            <span className="brand-t">B.Tech Hub</span>
           </Link>
           <p style={{ marginTop: "14px", fontSize: "14px", color: "var(--muted)", maxWidth: "260px" }}>
             Seamless learning for brighter futures. Built for AKTU students.
@@ -108,7 +108,7 @@ export function Footer() {
           color: "var(--muted)",
         }}
       >
-        <span>© 2026 Orvelo. All rights reserved.</span>
+        <span>© 2026 B.Tech Hub. All rights reserved.</span>
         <span style={{ display: "flex", gap: "18px" }}>
           <Link href="/about">About</Link>
           <Link href="/terms">Terms</Link>

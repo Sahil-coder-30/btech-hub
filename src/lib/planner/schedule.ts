@@ -14,8 +14,6 @@ const MAX_SUBJECTS_PER_DAY = 3;
 /** Weak subjects get more time, strong ones less. */
 export const WEIGHT: Record<Confidence, number> = { weak: 1.6, okay: 1, strong: 0.65 };
 
-// ---------- Dates (plain YYYY-MM-DD keys, no time zones) ----------
-
 export const addDays = (key: string, n: number) => {
   const d = new Date(`${key}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);
@@ -44,8 +42,6 @@ export function dayCapacity(date: string, availability: Availability, examDates:
   return examDates.has(date) ? roundStep(minutes / 2) : minutes;
 }
 
-// ---------- Budgets ----------
-
 /**
  * Minutes each subject gets. Every day's time is shared by weight among subjects whose exam is
  * still ahead, and a subject gets a triple share on the day before its exam.
@@ -63,8 +59,6 @@ export function budgets(subjects: PlanSubject[], availability: Availability, sta
   }
   return budget.map((m) => Math.floor(m / STEP) * STEP);
 }
-
-// ---------- Task drafts ----------
 
 export type Draft = { subjectIndex: number; type: TaskType; minutes: number; pinDate?: string };
 
@@ -99,8 +93,6 @@ export function buildDrafts(subjectIndex: number, subject: PlanSubject, budget: 
   if (finalMinutes) drafts.push({ subjectIndex, type: "revise", minutes: finalMinutes, pinDate: eve });
   return drafts;
 }
-
-// ---------- Packing drafts into days ----------
 
 export type Placed<T> = T & { date: string; position: number };
 
@@ -187,8 +179,6 @@ export function pack<T extends Draft>(queues: T[][], subjects: PlanSubject[], av
   placed.sort((a, b) => a.date.localeCompare(b.date) || a.position - b.position);
   return { placed, overflow };
 }
-
-// ---------- Whole schedule + preview ----------
 
 export type ScheduleInput = { subjects: PlanSubject[]; availability: Availability; startDate: string };
 

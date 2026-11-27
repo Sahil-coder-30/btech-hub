@@ -8,6 +8,9 @@ import { redirectToLogin } from "@/lib/login-redirect";
 export const metadata: Metadata = { title: "Saved resources" };
 export const dynamic = "force-dynamic";
 
+const isResource = (value: unknown): value is Resource =>
+  typeof value === "object" && value !== null && "id" in value && "subject_title" in value;
+
 export default async function SavedPage() {
   const user = await getCurrentUser();
   if (!user) redirectToLogin("/dashboard/saved");
@@ -20,8 +23,7 @@ export default async function SavedPage() {
     .limit(200);
 
   const resources = (error ? [] : (data ?? []))
-    .map((s) => s.resources as unknown as Resource | null)
-    .filter((r): r is Resource => Boolean(r));
+    .flatMap((s: { resources: unknown }) => (isResource(s.resources) ? [s.resources] : []));
 
   return <SavedList initial={resources} />;
 }

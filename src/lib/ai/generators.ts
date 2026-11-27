@@ -3,11 +3,9 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { parsedResultSchema, type ParsedResult } from "../aktu-result";
 import type { QuizQuestion, StudentInsights, StudentStats, StudyPlan } from "../types";
-import { agentProvider, geminiModel, requireEnv } from "../env";
+import { agentProvider, requireEnv } from "../env";
 import { agentModel, chatModel, contentToText } from "./model";
 import { retrieve } from "./rag";
-
-// ---------- Quiz ----------
 
 const quizSchema = z.object({
   questions: z
@@ -73,8 +71,6 @@ export async function analyseQuiz(subject: string, wrong: { question: string; to
   ]);
 }
 
-// ---------- Study planner ----------
-
 const planSchema = z.object({
   summary: z.string().describe("2-3 line strategy overview"),
   days: z.array(
@@ -116,28 +112,33 @@ export async function generateStudyPlan(req: PlanRequest): Promise<StudyPlan> {
   ]);
 }
 
-// ---------- Photo doubt solver ----------
+// Photo doubt solver
 
-export async function solveDoubt(question: string, image?: { mimeType: string; base64: string }) {
-  const content: ({ type: "text"; text: string } | { type: "image_url"; image_url: string })[] = [
-    {
-      type: "text",
-      text:
-        (question || "Solve the question in this image.") +
-        "\n\nExplain step by step like a helpful senior. Use markdown headings, numbered steps and LaTeX ($...$, $$...$$) for math. " +
-        "End with a one line **Final Answer** and a short 'Concept used' note.",
-    },
-  ];
+export async function solveDoubt(
+  question: string,
+  image?: { mimeType: string; base64: string },
+  history?: { role: string; content: string }[],
+) {
+  const promptText =
+    (question.trim() || "Solve the question in this image.") +
+    "\n\nExplain step by step like a helpful senior. Use markdown headings, numbered steps and LaTeX ($...$, $$...$$) for math. " +
+    "End with a one line **Final Answer** and a short 'Concept used' note.";
+
+  const content: ({ type: "text"; text: string } | { type: "image_url"; image_url: string })[] = [{ type: "text", text: promptText }];
   if (image) content.push({ type: "image_url", image_url: `data:${image.mimeType};base64,${image.base64}` });
+
+  const priorTurns = (history ?? []).slice(-4).map((m) => ({
+    role: (m.role === "assistant" ? "assistant" : "user") as "assistant" | "user",
+    content: m.content,
+  }));
 
   const response = await chatModel(0.2).invoke([
     new SystemMessage("You are Vac, an expert engineering tutor for AKTU B.Tech students. Be accurate. If the image is unclear, say what you can read."),
+    ...priorTurns,
     new HumanMessage({ content }),
   ]);
   return contentToText(response.content);
 }
-
-// ---------- AKTU result fallback ----------
 
 /** Reads a One View result PDF with Gemini when the text parser finds nothing (scans, new layouts). */
 export async function parseResultWithGemini(pdfBase64: string): Promise<ParsedResult> {
@@ -205,8 +206,6 @@ export async function parseResultWithGemini(pdfBase64: string): Promise<ParsedRe
 
   throw lastError ?? new Error("Gemini returned empty response for PDF parse.");
 }
-
-// ---------- Student insights ----------
 
 const insightsSchema = z.object({
   headline: z.string().describe("One encouraging line that sums up where the student stands, with a number"),

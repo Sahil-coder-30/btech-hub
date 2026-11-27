@@ -6,7 +6,9 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Copy, ExternalLink, Image as ImageIcon, Maximize2, Mic, MicOff, Minimize2, Minus, RotateCcw, SendHorizontal, ThumbsDown, ThumbsUp, Wrench } from "lucide-react";
 import { Markdown } from "@/components/markdown";
+import { useEntryDone } from "@/components/layout/entry-loader";
 import type { ChatMessage, SessionUser } from "@/lib/types";
+import { useHydrated } from "@/lib/use-hydrated";
 import { useSpeech } from "@/lib/use-speech";
 import { cn } from "@/lib/utils";
 
@@ -35,34 +37,71 @@ function getPageContext(pathname: string): string {
   if (pathname.startsWith("/ask")) return "Ask your Syllabus";
   if (pathname.startsWith("/quiz")) return "AI Quiz Studio";
   if (pathname.startsWith("/planner")) return "Exam Study Planner";
-  if (pathname.startsWith("/doubt")) return "Doubt Solver";
+  if (pathname.startsWith("/settings")) return "Settings";
   if (pathname.startsWith("/dashboard")) return "Student Dashboard";
-  return "Orvelo Portal";
+  return "B.Tech Hub Portal";
 }
 
 function loadStored(): { sessionId: string; messages: ChatMessage[] } {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch {}
+  } catch {
+    // Storage may be unavailable or hold invalid JSON.
+  }
   return { sessionId: crypto.randomUUID(), messages: [WELCOME] };
+}
+
+function loadStoredSize(): { width: number; height: number } {
+  try {
+    const rawSize = localStorage.getItem(SIZE_STORAGE_KEY);
+    if (rawSize) {
+      const parsed = JSON.parse(rawSize);
+      if (typeof parsed.width === "number" && typeof parsed.height === "number") {
+        const maxWidth = Math.min(900, window.innerWidth - 32);
+        const maxHeight = Math.min(1000, window.innerHeight - 40);
+        return {
+          width: Math.max(MIN_WIDTH, Math.min(maxWidth, parsed.width)),
+          height: Math.max(MIN_HEIGHT, Math.min(maxHeight, parsed.height)),
+        };
+      }
+    }
+  } catch {
+    // Ignore invalid stored widget dimensions.
+  }
+  return { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
+}
+
+function saveStoredSize(size: { width: number; height: number }) {
+  try {
+    localStorage.setItem(SIZE_STORAGE_KEY, JSON.stringify(size));
+  } catch {
+    // Ignore storage quota or private-mode write errors.
+  }
 }
 
 export function VacChat({ user }: { user: SessionUser | null }) {
   const pathname = usePathname() ?? "/";
-  const [visible, setVisible] = useState(false);
+  const hydrated = useHydrated();
+  if (!hydrated || pathname === "/vac") return null;
+  return <VacChatInner user={user} pathname={pathname} />;
+}
+
+function VacChatInner({ user, pathname }: { user: SessionUser | null; pathname: string }) {
+  const entryDone = useEntryDone();
+  const [forcedVisible, setForcedVisible] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
+  const visible = pathname !== "/" || entryDone || timedOut || forcedVisible;
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
-  const [sessionId, setSessionId] = useState("");
+  const [initialStored] = useState(() => loadStored());
+  const [messages, setMessages] = useState<ChatMessage[]>(initialStored.messages);
+  const [sessionId, setSessionId] = useState(initialStored.sessionId);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   // Resizing state
-  const [size, setSize] = useState<{ width: number; height: number }>({
-    width: DEFAULT_WIDTH,
-    height: DEFAULT_HEIGHT,
-  });
+  const [size, setSize] = useState<{ width: number; height: number }>(() => loadStoredSize());
   const [isResizing, setIsResizing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const preExpandSizeRef = useRef<{ width: number; height: number } | null>(null);
@@ -89,50 +128,21 @@ export function VacChat({ user }: { user: SessionUser | null }) {
     if (final) inputRef.current?.focus();
   });
 
-  // Restore the conversation and saved size for this browser tab
-  useEffect(() => {
-    const stored = loadStored();
-    setSessionId(stored.sessionId);
-    setMessages(stored.messages);
-
-    try {
-      const rawSize = localStorage.getItem(SIZE_STORAGE_KEY);
-      if (rawSize) {
-        const parsed = JSON.parse(rawSize);
-        if (typeof parsed.width === "number" && typeof parsed.height === "number") {
-          const maxWidth = Math.min(900, window.innerWidth - 32);
-          const maxHeight = Math.min(1000, window.innerHeight - 40);
-          setSize({
-            width: Math.max(MIN_WIDTH, Math.min(maxWidth, parsed.width)),
-            height: Math.max(MIN_HEIGHT, Math.min(maxHeight, parsed.height)),
-          });
-        }
-      }
-    } catch {}
-  }, []);
-
   useEffect(() => {
     if (!sessionId) return;
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ sessionId, messages: messages.slice(-30) }));
-    } catch {}
+    } catch {
+      // Ignore sessionStorage errors in private mode.
+    }
   }, [messages, sessionId]);
 
-  // Entrance visibility
+  // Entrance fallback visibility
   useEffect(() => {
-    const w = window as unknown as { __entryDone?: boolean };
-    if (pathname !== "/" || w.__entryDone) {
-      setVisible(true);
-      return;
-    }
-    const show = () => setVisible(true);
-    window.addEventListener("entry:done", show);
-    const fallback = setTimeout(show, 3000);
-    return () => {
-      window.removeEventListener("entry:done", show);
-      clearTimeout(fallback);
-    };
-  }, [pathname]);
+    if (pathname !== "/" || entryDone || timedOut) return;
+    const fallback = setTimeout(() => setTimedOut(true), 3000);
+    return () => clearTimeout(fallback);
+  }, [pathname, entryDone, timedOut]);
 
   // Clamp on window resize
   useEffect(() => {
@@ -329,9 +339,7 @@ export function VacChat({ user }: { user: SessionUser | null }) {
         document.body.style.cursor = "";
 
         setSize((current) => {
-          try {
-            localStorage.setItem(SIZE_STORAGE_KEY, JSON.stringify(current));
-          } catch {}
+          saveStoredSize(current);
           return current;
         });
       };
@@ -385,9 +393,7 @@ export function VacChat({ user }: { user: SessionUser | null }) {
       const prev = preExpandSizeRef.current || { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
       setSize(prev);
       setIsExpanded(false);
-      try {
-        localStorage.setItem(SIZE_STORAGE_KEY, JSON.stringify(prev));
-      } catch {}
+      saveStoredSize(prev);
     } else {
       preExpandSizeRef.current = size;
       const expandedWidth = Math.min(680, window.innerWidth - 48);
@@ -402,9 +408,7 @@ export function VacChat({ user }: { user: SessionUser | null }) {
           y: Math.max(8, Math.min(window.innerHeight - expandedHeight - 8, curY)),
         };
       });
-      try {
-        localStorage.setItem(SIZE_STORAGE_KEY, JSON.stringify({ width: expandedWidth, height: expandedHeight }));
-      } catch {}
+      saveStoredSize({ width: expandedWidth, height: expandedHeight });
     }
   };
 
@@ -450,7 +454,7 @@ export function VacChat({ user }: { user: SessionUser | null }) {
 
   useEffect(() => {
     const onOpen = (e: Event) => {
-      setVisible(true);
+      setForcedVisible(true);
       setOpen(true);
       const prompt = (e as CustomEvent<{ prompt?: string }>).detail?.prompt;
       if (prompt) setTimeout(() => send(prompt), 150);
@@ -749,7 +753,7 @@ export function VacChat({ user }: { user: SessionUser | null }) {
                   send(input);
                 }}
               >
-                <Link href="/doubt" className="icon-btn" aria-label="Snap photo doubt" title="Snap question doubt">
+                <Link href="/vac" className="icon-btn" aria-label="Attach photo in Vac Studio" title="Attach photo in Vac Studio">
                   <ImageIcon className="i i-s" />
                 </Link>
 

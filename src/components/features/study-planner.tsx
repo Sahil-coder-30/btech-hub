@@ -2,6 +2,7 @@
 
 import { Plus, Sparkles, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { usePersistentState } from "@/lib/persist-state";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ const STAGE_LABEL: Record<PlanStage, string> = {
 
 export function StudyPlanner({ suggestions, prefill, loggedIn }: { suggestions: string[]; prefill: string[]; loggedIn: boolean }) {
   const router = useRouter();
-  const today = iso(new Date());
+  const [today] = useState(() => iso(new Date()));
   const firstExam = addDays(today, 14);
   const [title, setTitle] = usePersistentState("planner:title", "Semester exam plan");
   const [startDate, setStartDate] = usePersistentState("planner:startDate", today);

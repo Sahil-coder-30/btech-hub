@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { calculateSgpa, gradeFor, type SgpaRow } from "@/lib/grades";
 import type { Branch, Subject } from "@/lib/types";
@@ -34,7 +34,7 @@ export function SgpaCalculator({ subjects, branches, loggedIn }: Props) {
     setChoices({});
   };
 
-  const nameOf = (s: Subject) => (s.options.length ? s.options[choices[s.id] ?? 0] : s.title);
+  const nameOf = useCallback((s: Subject) => (s.options.length ? s.options[choices[s.id] ?? 0] : s.title), [choices]);
 
   // Live calculation rows
   const liveRows = useMemo(() => {
@@ -57,7 +57,7 @@ export function SgpaCalculator({ subjects, branches, loggedIn }: Props) {
         gradeObj: g,
       };
     });
-  }, [list, marks, choices]);
+  }, [list, marks, nameOf]);
 
   // Overall result if all filled
   const validFilledCount = liveRows.filter((r) => r.valid).length;
@@ -102,8 +102,8 @@ export function SgpaCalculator({ subjects, branches, loggedIn }: Props) {
         const err = await res.json().catch(() => ({}));
         toast.error(err.error ?? "Could not save");
       }
-    } catch {
-      toast.error("Network error while saving");
+    } catch (err) {
+      toast.error("Network error while saving", { description: err instanceof Error ? err.message : undefined });
     } finally {
       setSaving(false);
     }

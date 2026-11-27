@@ -155,7 +155,7 @@ export function Hero() {
         </div>
 
         {/* Vac stands bottom left, mirrored so he waves toward his own message card */}
-        <VacMascot size={176} flip glow eager className="hero-vac" alt="Vac, the Orvelo study buddy, waving" />
+        <VacMascot size={176} flip glow eager className="hero-vac" alt="Vac, the B.Tech Hub study buddy, waving" />
 
         {/* Vac target planner card sits bottom right, below the plane's far edge */}
         <div className="overlay-card vc" style={{ right: 0, bottom: "20px", width: "318px", padding: "14px" }}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /* Minimal typing for the Web Speech API, which is not in lib.dom yet. */
 type SpeechRecognitionLike = {
@@ -14,17 +14,35 @@ type SpeechRecognitionLike = {
   onerror: ((e: { error: string }) => void) | null;
 };
 
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionCtor;
+    webkitSpeechRecognition?: SpeechRecognitionCtor;
+  }
+}
+
+const subscribeSpeechSupport = () => () => {
+  // Browser SpeechRecognition support is static for the lifetime of the page.
+};
+
+const getSpeechSupport = () =>
+  typeof window !== "undefined" && Boolean(window.SpeechRecognition ?? window.webkitSpeechRecognition);
+
 /** Voice input through the browser's free speech recognition (Chrome, Edge, Safari). */
 export function useSpeech(onText: (text: string, final: boolean) => void) {
   const [listening, setListening] = useState(false);
-  const [supported, setSupported] = useState(false);
+  const supported = useSyncExternalStore(subscribeSpeechSupport, getSpeechSupport, () => false);
   const recognition = useRef<SpeechRecognitionLike | null>(null);
   const callback = useRef(onText);
-  callback.current = onText;
 
   useEffect(() => {
-    const w = window as unknown as { SpeechRecognition?: new () => SpeechRecognitionLike; webkitSpeechRecognition?: new () => SpeechRecognitionLike };
-    const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    callback.current = onText;
+  }, [onText]);
+
+  useEffect(() => {
+    const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!Ctor) return;
     const rec = new Ctor();
     rec.lang = "en-IN"; // understands Indian English and most Hinglish
@@ -38,7 +56,6 @@ export function useSpeech(onText: (text: string, final: boolean) => void) {
     rec.onend = () => setListening(false);
     rec.onerror = () => setListening(false);
     recognition.current = rec;
-    setSupported(true);
     return () => rec.stop();
   }, []);
 

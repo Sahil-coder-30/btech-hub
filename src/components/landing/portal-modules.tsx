@@ -50,7 +50,7 @@ const MODULES: Module[] = [
     iconBg: "var(--primary-soft)",
     tags: ["Cited sources", "Hinglish OK", "Step by step"],
     primary: { label: "Ask Vac", prompt: "Help me understand my semester syllabus and marks.", icon: <Bot className="size-3.5" /> },
-    secondary: { label: "Photo Doubt", href: "/doubt", icon: <Camera className="size-3.5" /> },
+    secondary: { label: "Open Vac Studio", href: "/vac", icon: <Camera className="size-3.5" /> },
   },
   {
     title: "AI Quiz & Study Planner",

@@ -1,13 +1,5 @@
-import type { Metadata } from "next";
-import { AccountSettings } from "@/components/settings/account-settings";
-import { getAccountInfo } from "@/lib/account";
-import { getCurrentUser } from "@/lib/auth";
-import { redirectToLogin } from "@/lib/login-redirect";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Account" };
-
-export default async function AccountSettingsPage() {
-  const user = await getCurrentUser();
-  if (!user) redirectToLogin("/settings/account");
-  return <AccountSettings initial={getAccountInfo(user)} />;
+export default function AccountSettingsRedirect() {
+  redirect("/settings?tab=account");
 }

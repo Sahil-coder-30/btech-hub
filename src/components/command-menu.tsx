@@ -2,9 +2,9 @@
 
 import { Command } from "cmdk";
 import {
+  Bot,
   Brain,
   Calculator,
-  Camera,
   CalendarCheck,
   FileSearch,
   FileText,
@@ -13,6 +13,7 @@ import {
   Landmark,
   LayoutDashboard,
   Library,
+  Settings,
   Sparkles,
   TrendingUp,
   UploadCloud,
@@ -24,7 +25,7 @@ import { useEffect, useState } from "react";
 
 const PAGES: { label: string; href: string; icon: LucideIcon; keywords?: string }[] = [
   { label: "Home", href: "/", icon: Home },
-  { label: "My Dashboard", href: "/dashboard", icon: LayoutDashboard, keywords: "profile progress" },
+  { label: "My Dashboard", href: "/dashboard", icon: LayoutDashboard, keywords: "progress" },
   { label: "SGPA Calculator", href: "/sgpa", icon: Calculator, keywords: "marks grade" },
   { label: "CGPA Calculator", href: "/cgpa", icon: TrendingUp, keywords: "percentage target" },
   { label: "Resources", href: "/resources", icon: Library, keywords: "notes pyq lectures" },
@@ -33,8 +34,9 @@ const PAGES: { label: string; href: string; icon: LucideIcon; keywords?: string 
   { label: "Ask your Syllabus", href: "/ask", icon: FileSearch, keywords: "syllabus pdf rag ai search chat" },
   { label: "AI Quiz", href: "/quiz", icon: Brain, keywords: "test mcq practice" },
   { label: "AI Study Planner", href: "/planner", icon: CalendarCheck, keywords: "timetable schedule exam" },
-  { label: "Photo Doubt Solver", href: "/doubt", icon: Camera, keywords: "image question solve" },
+  { label: "Vac AI Studio", href: "/vac", icon: Bot, keywords: "vac ai photo image doubt solve chat" },
   { label: "Upload notes", href: "/upload", icon: UploadCloud, keywords: "share pdf photo ocr contribute" },
+  { label: "Settings", href: "/settings", icon: Settings, keywords: "profile update profile vac memory appearance privacy faq about contact" },
 ];
 
 type SearchResult = {
@@ -42,12 +44,15 @@ type SearchResult = {
   resources: { id: number; subject_title: string; type: string; label: string; url: string }[];
 };
 
+const EMPTY_RESULTS: SearchResult = { subjects: [], resources: [] };
+
 /** Global Cmd+K / Ctrl+K palette. Opens on the shortcut or a "command:open" window event. */
 export function CommandMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult>({ subjects: [], resources: [] });
+  const [resultsState, setResultsState] = useState<{ query: string; data: SearchResult }>({ query: "", data: EMPTY_RESULTS });
+  const results = query.trim().length >= 2 && resultsState.query === query ? resultsState.data : EMPTY_RESULTS;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -67,16 +72,15 @@ export function CommandMenu() {
 
   // Debounced server search for subjects and resources
   useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults({ subjects: [], resources: [] });
-      return;
-    }
+    if (query.trim().length < 2) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
       fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal })
-        .then((r) => (r.ok ? r.json() : { subjects: [], resources: [] }))
-        .then(setResults)
-        .catch(() => {});
+        .then((r) => (r.ok ? r.json() : EMPTY_RESULTS))
+        .then((data: SearchResult) => setResultsState({ query, data }))
+        .catch(() => {
+          // Ignore aborted or transient autocomplete failures.
+        });
     }, 250);
     return () => {
       clearTimeout(timer);
@@ -105,7 +109,7 @@ export function CommandMenu() {
     <Command.Dialog
       open={open}
       onOpenChange={setOpen}
-      label="Search Orvelo"
+      label="Search B.Tech Hub"
       shouldFilter={true}
       overlayClassName="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm"
       contentClassName="fixed left-1/2 top-[12vh] z-[71] w-[min(92vw,640px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
@@ -116,7 +120,7 @@ export function CommandMenu() {
           value={query}
           onValueChange={setQuery}
           placeholder="Search pages, subjects, notes... or ask Vac"
-          className="h-14 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          className="h-14 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground focus-visible:shadow-none focus-visible:ring-0"
         />
       </div>
       <Command.List className="max-h-[60vh] overflow-y-auto p-2">
@@ -164,7 +168,7 @@ export function CommandMenu() {
       </Command.List>
       <div className="flex items-center justify-between border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
         <span>↑↓ to move · ↵ to open · esc to close</span>
-        <span>Orvelo</span>
+        <span>B.Tech Hub</span>
       </div>
     </Command.Dialog>
   );

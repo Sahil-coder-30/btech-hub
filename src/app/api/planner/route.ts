@@ -33,7 +33,7 @@ const bodySchema = z
     notes: z.string().trim().max(500).optional(),
   })
   .superRefine((b, ctx) => {
-    const issue = (message: string) => ctx.addIssue({ code: z.ZodIssueCode.custom, message });
+    const issue = (message: string) => ctx.addIssue({ code: "custom", message });
     // One day of slack so a plan made late at night in another time zone still works
     if (b.startDate < addDays(todayKey(), -1)) issue("The start date is in the past");
     if (b.subjects.some((s) => s.examDate <= b.startDate)) issue("Every exam date must be after the start date");

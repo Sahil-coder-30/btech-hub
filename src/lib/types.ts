@@ -147,8 +147,6 @@ export type StudyPlan = {
 /** page / pageEnd are 1-based PDF pages when the chunk was indexed page aware, otherwise absent. */
 export type Source = { index: number; title: string; url: string | null; snippet: string; score: number; page?: number | null; pageEnd?: number | null };
 
-// ---------- Ask your Syllabus ----------
-
 export type SyllabusIndexStatus = "pending" | "indexing" | "ready" | "failed";
 
 /** GET /api/syllabus?branch=&year= */
@@ -179,9 +177,14 @@ export type AskStreamEvent =
   | { type: "error"; message: string; status: number };
 
 export type ChatRole = "user" | "assistant";
-export type ChatMessage = { role: ChatRole; content: string; tools?: string[] };
-
-// ---------- Profile and settings payloads (shared by the settings APIs and pages) ----------
+export type ChatImage = { mimeType: "image/png" | "image/jpeg" | "image/webp" | "image/heic"; base64: string };
+export type ChatMessage = {
+  role: ChatRole;
+  content: string;
+  tools?: string[];
+  hasImage?: boolean;
+  imagePreview?: string;
+};
 
 export type ElectiveSlotInfo = { id: string; title: string; choices: { code: string; name: string }[] };
 

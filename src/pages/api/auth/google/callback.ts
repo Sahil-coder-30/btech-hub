@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const login = await new Promise<GoogleLogin>((resolve, reject) => {
-      getPassport().authenticate("google", { session: false, callbackURL } as any, (err: unknown, result: GoogleLogin | false) => {
+      getPassport().authenticate("google", { session: false, callbackURL }, (err: unknown, result: GoogleLogin | false) => {
         if (err) return reject(err);
         if (!result) return reject(new HttpError(400, "Google login was cancelled or state did not match."));
         resolve(result);

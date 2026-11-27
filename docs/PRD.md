@@ -1,11 +1,10 @@
-# Orvelo v2: Product Requirements Document
+# B.Tech Hub v2: Product Requirements Document
 
 | | |
 |---|---|
 | Status | Live in production, v2.1 |
 | Last updated | 2026-11-27 |
-| Product | Orvelo (web) |
-| Tagline | Your whole semester, in one orbit. |
+| Product | B.Tech Hub (web) |
 | Audience of this doc | Engineering, design, and anyone joining the project |
 
 ## 1. Problem

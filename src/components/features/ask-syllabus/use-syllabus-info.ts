@@ -21,25 +21,42 @@ export function useSyllabusInfo(branch: string, year: number, canPrepare: boolea
   const autoPrepared = useRef(false);
   const inFlight = useRef<AbortController | null>(null);
 
-  const load = useCallback(async () => {
-    inFlight.current?.abort();
-    const controller = new AbortController();
-    inFlight.current = controller;
-    try {
-      const res = await fetch(`/api/syllabus?branch=${encodeURIComponent(branch)}&year=${year}`, { cache: "no-store", signal: controller.signal });
-      const data = (await res.json().catch(() => null)) as (SyllabusInfo & { error?: { message?: string } }) | null;
-      if (!res.ok || !data) {
-        setLoadError(res.status === 404 ? data?.error?.message || "We do not have this branch yet." : data?.error?.message || "Could not load this syllabus.");
-        return;
+  const fetchSyllabus = useCallback(
+    async (signal?: AbortSignal) => {
+      inFlight.current?.abort();
+      const controller = new AbortController();
+      inFlight.current = controller;
+      const forwardAbort = () => controller.abort();
+      signal?.addEventListener("abort", forwardAbort, { once: true });
+      try {
+        const res = await fetch(`/api/syllabus?branch=${encodeURIComponent(branch)}&year=${year}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        const data = (await res.json().catch(() => null)) as (SyllabusInfo & { error?: { message?: string } }) | null;
+        if (!res.ok || !data) {
+          setLoadError(
+            res.status === 404
+              ? data?.error?.message || "We do not have this branch yet."
+              : data?.error?.message || "Could not load this syllabus.",
+          );
+          return;
+        }
+        setInfo(data);
+        setLoadError(null);
+      } catch {
+        if (!controller.signal.aborted) setLoadError("Could not reach the server. Check your connection.");
+      } finally {
+        signal?.removeEventListener("abort", forwardAbort);
+        if (inFlight.current === controller) inFlight.current = null;
       }
-      setInfo(data);
-      setLoadError(null);
-    } catch {
-      if (!controller.signal.aborted) setLoadError("Could not reach the server. Check your connection.");
-    } finally {
-      if (inFlight.current === controller) inFlight.current = null;
-    }
-  }, [branch, year]);
+    },
+    [branch, year],
+  );
+
+  const load = useCallback(() => {
+    void fetchSyllabus();
+  }, [fetchSyllabus]);
 
   const prepare = useCallback(async () => {
     setPreparing(true);
@@ -71,9 +88,15 @@ export function useSyllabusInfo(branch: string, year: number, canPrepare: boolea
   }, [branch, year]);
 
   useEffect(() => {
-    load();
-    return () => inFlight.current?.abort();
-  }, [load]);
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      void fetchSyllabus(controller.signal);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [fetchSyllabus]);
 
   // A PDF nobody has opened before: start indexing once, automatically.
   // Failed runs wait for the user to press Retry.

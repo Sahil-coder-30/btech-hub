@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, MessageSquare, Database } from "lucide-react";
+import { MessageSquare, Database } from "lucide-react";
 import { usePreferences } from "@/components/settings/preferences-context";
 import { SettingsHeader, SettingsSection } from "@/components/settings/primitives";
 import type { DataSummary } from "@/lib/types";
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 export function PrivacySettings({
   summary,
   email,
-  isAdmin,
+  isAdmin: _isAdmin,
 }: {
   summary: DataSummary;
   email: string;

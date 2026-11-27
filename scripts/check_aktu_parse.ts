@@ -32,15 +32,32 @@ function readCsv(path: string): Record<string, string>[] {
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (quoted) {
-      if (c === '"' && text[i + 1] === '"') (field += '"'), i++;
-      else if (c === '"') quoted = false;
-      else field += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ",") row.push(field), (field = "");
-    else if (c === "\n") row.push(field), rows.push(row), (row = []), (field = "");
-    else if (c !== "\r") field += c;
+      if (c === '"' && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (c === '"') {
+        quoted = false;
+      } else {
+        field += c;
+      }
+    } else if (c === '"') {
+      quoted = true;
+    } else if (c === ",") {
+      row.push(field);
+      field = "";
+    } else if (c === "\n") {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+    } else if (c !== "\r") {
+      field += c;
+    }
   }
-  if (field || row.length) row.push(field), rows.push(row);
+  if (field || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
   const [header, ...body] = rows;
   return body.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ""])));
 }

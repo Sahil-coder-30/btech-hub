@@ -11,8 +11,6 @@ import { cn } from "@/lib/utils";
  * (.card, .chip-*, .seg, .meter, .kpi, .eyebrow) so the planner looks like the dashboard.
  */
 
-// ---------- Meta ----------
-
 export const TASK_META: Record<TaskType, { label: string; icon: LucideIcon; chip: string; hint: string }> = {
   learn: { label: "Learn", icon: BookOpen, chip: "chip-p", hint: "Study a new topic from notes or the syllabus" },
   revise: { label: "Revise", icon: RotateCcw, chip: "chip-n", hint: "Go over what you learnt earlier" },
@@ -31,8 +29,6 @@ export const CONFIDENCE_META: Record<Confidence, { label: string; chip: string; 
 const HUES = [264, 150, 30, 330, 200, 90, 0, 290, 120, 60, 230, 350];
 export const subjectColor = (index: number) => `oklch(0.64 0.15 ${HUES[index % HUES.length]})`;
 
-// ---------- Dates ----------
-
 export const fmtDay = (date: string, opts: Intl.DateTimeFormatOptions = { weekday: "short", day: "numeric", month: "short" }) =>
   new Date(`${date}T00:00:00Z`).toLocaleDateString("en-IN", { ...opts, timeZone: "UTC" });
 
@@ -46,8 +42,6 @@ export function relativeDay(date: string, today = todayKey()) {
 }
 
 export { formatHours };
-
-// ---------- Components ----------
 
 export function TaskTypeChip({ type, className }: { type: TaskType; className?: string }) {
   const meta = TASK_META[type];

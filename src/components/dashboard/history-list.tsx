@@ -222,8 +222,8 @@ export function HistoryList({
                 icon={Camera}
                 accent="pink"
                 title={doubts.length ? "No doubt matches your search" : "No doubts solved yet"}
-                text={doubts.length ? undefined : "Snap a photo or type a question to get full steps."}
-                action={!doubts.length && <Link href="/doubt" className={buttonVariants({ size: "sm" })}>Solve a doubt</Link>}
+                text={doubts.length ? undefined : "Attach a photo or type a question in Vac AI Studio to get full steps."}
+                action={!doubts.length && <Link href="/vac" className={buttonVariants({ size: "sm" })}>Open Vac AI Studio</Link>}
               />
             }
           >

@@ -45,7 +45,7 @@ function citationComponents(sources: Source[], onCite: OnCite): Components {
   };
 }
 
-function Thinking({ sources }: { sources: Source[] }) {
+function Thinking({ sources, label }: { sources: Source[]; label: string }) {
   const pages = [...new Set(sources.map((s) => s.page).filter((p): p is number => !!p))].sort((a, b) => a - b).slice(0, 6);
   return (
     <div className="ask-thinking">
@@ -54,7 +54,7 @@ function Thinking({ sources }: { sources: Source[] }) {
         <i />
         <i />
       </span>
-      <span>{pages.length ? `Reading page${pages.length > 1 ? "s" : ""} ${pages.join(", ")}` : "Searching your syllabus"}</span>
+      <span>{pages.length ? `Reading page${pages.length > 1 ? "s" : ""} ${pages.join(", ")}` : label}</span>
     </div>
   );
 }
@@ -91,12 +91,14 @@ export const AssistantMessage = memo(function AssistantMessage({
   busy,
   onCite,
   onRetry,
+  thinkingLabel = "Searching your syllabus",
 }: {
   message: AskMessage;
   isLast: boolean;
   busy: boolean;
   onCite: OnCite;
   onRetry: () => void;
+  thinkingLabel?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const sources = useMemo(() => message.sources ?? [], [message.sources]);
@@ -109,7 +111,9 @@ export const AssistantMessage = memo(function AssistantMessage({
       await navigator.clipboard.writeText(message.content);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
-    } catch {}
+    } catch {
+      // Clipboard writes can fail when permission is denied or unfocused.
+    }
   };
 
   return (
@@ -118,7 +122,7 @@ export const AssistantMessage = memo(function AssistantMessage({
         <Sparkles className="i i-s" />
       </span>
       <div className="bbody" aria-live={streaming ? "polite" : undefined} aria-busy={streaming || undefined}>
-        {streaming && !message.content && <Thinking sources={sources} />}
+        {streaming && !message.content && <Thinking sources={sources} label={thinkingLabel} />}
         {message.content && <Markdown className="ask-md" components={components}>{text}</Markdown>}
 
         {message.state === "stopped" && <p className="ask-note">Stopped.</p>}

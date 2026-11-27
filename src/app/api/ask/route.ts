@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { askSyllabusStream } from "@/lib/ai/syllabus-chat";
 import { handler } from "@/lib/api";

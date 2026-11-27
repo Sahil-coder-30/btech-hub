@@ -21,11 +21,11 @@ export const SITE_PAGES: Record<string, { path: string; label: string }> = {
   university: { path: "/university", label: "University Info" },
   quiz: { path: "/quiz", label: "AI Quiz" },
   planner: { path: "/planner", label: "AI Study Planner" },
-  doubt: { path: "/doubt", label: "Photo Doubt Solver" },
+  doubt: { path: "/vac", label: "Vac AI Studio (upload a photo in chat)" },
   ask: { path: "/ask", label: "Ask your Syllabus (read the syllabus PDF and chat with it)" },
   dashboard: { path: "/dashboard", label: "My Dashboard" },
-  memory: { path: "/settings/memory", label: "Memory settings (what Vac remembers about me)" },
-  settings: { path: "/settings", label: "Settings (account, Vac preferences, privacy)" },
+  memory: { path: "/settings?tab=memory", label: "Vac memory (what Vac remembers about me)" },
+  settings: { path: "/settings", label: "Settings (profile, Vac preferences, privacy, FAQ & support)" },
   login: { path: "/login", label: "Login" },
 };
 
@@ -225,7 +225,7 @@ export function buildTools(user: User | null, options: { memoryEnabled?: boolean
     async ({ page }) => json(SITE_PAGES[page]),
     {
       name: "open_page",
-      description: "Get the link to a Orvelo page so the user can open it. Include the link in your answer as a markdown link.",
+      description: "Get the link to a B.Tech Hub page so the user can open it. Include the link in your answer as a markdown link.",
       schema: z.object({ page: z.enum(Object.keys(SITE_PAGES) as [string, ...string[]]) }),
     },
   );

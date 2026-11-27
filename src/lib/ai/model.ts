@@ -28,8 +28,6 @@ export function chatModel(temperature = 0.3, maxRetries = 2): ChatModel {
   return new ChatNvidia({ temperature, fallback: () => geminiChat(temperature, 0) });
 }
 
-// ---------- NVIDIA (build.nvidia.com, OpenAI compatible API) ----------
-
 const NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 const NVIDIA_TIMEOUT_MS = 45_000;
 

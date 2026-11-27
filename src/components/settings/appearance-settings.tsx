@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Monitor, Moon, Sun, Wand2 } from "lucide-react";
 import { usePreferences } from "@/components/settings/preferences-context";
 import { SettingsHeader, SettingsSection } from "@/components/settings/primitives";
+import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
 export function AppearanceSettings() {
@@ -12,8 +12,7 @@ export function AppearanceSettings() {
   const { theme, setTheme } = useTheme();
   // next-themes only knows the stored theme in the browser. Wait for mount so the
   // first client render matches the server HTML.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
 
   const themes = [
     { value: "system", label: "System", icon: Monitor, description: "Follow your device operating system appearance" },
@@ -28,7 +27,7 @@ export function AppearanceSettings() {
     <div className="space-y-6">
       <SettingsHeader
         title="Appearance"
-        description="Customize how Orvelo looks on your device. Themes and visual preferences sync automatically."
+        description="Customize how B.Tech Hub looks on your device. Themes and visual preferences sync automatically."
       />
 
       <SettingsSection title="Theme" description="Select your preferred color theme" icon={Sun} accent="amber">

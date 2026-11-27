@@ -1,9 +1,10 @@
 # Changelog
 
-All notable changes to Orvelo. Versions follow [Semantic Versioning](https://semver.org):
+All notable changes to B.Tech Hub. Versions follow [Semantic Versioning](https://semver.org):
 MAJOR for breaking changes, MINOR for new features, PATCH for fixes.
 
 ## [Unreleased]
+- Rename back from Orvelo to B.Tech Hub, keeping the new SVG favicon.
 
 ## [2.1.0] - 2026-11-27
 

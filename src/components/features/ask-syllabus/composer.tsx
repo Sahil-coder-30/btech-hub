@@ -12,6 +12,9 @@ export function Composer({
   onStop,
   busy,
   inputRef,
+  placeholder = "Ask about units, topics, credits...",
+  ariaLabel = "Ask a question about this syllabus",
+  hint = "Answers come only from this PDF.",
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -19,6 +22,9 @@ export function Composer({
   onStop: () => void;
   busy: boolean;
   inputRef: RefObject<HTMLTextAreaElement | null>;
+  placeholder?: string;
+  ariaLabel?: string;
+  hint?: string;
 }) {
   const speech = useSpeech((text, final) => {
     onChange(text);
@@ -61,8 +67,8 @@ export function Composer({
               if (canSend) onSend();
             }
           }}
-          placeholder={speech.listening ? "Listening..." : "Ask about units, topics, credits..."}
-          aria-label="Ask a question about this syllabus"
+          placeholder={speech.listening ? "Listening..." : placeholder}
+          aria-label={ariaLabel}
           enterKeyHint="send"
         />
         {speech.supported && (
@@ -92,7 +98,7 @@ export function Composer({
         <span className="ask-hide-touch">
           <kbd className="kbd">Enter</kbd> to send, <kbd className="kbd">Shift</kbd> + <kbd className="kbd">Enter</kbd> for a new line.{" "}
         </span>
-        Answers come only from this PDF.
+        {hint}
       </p>
     </form>
   );

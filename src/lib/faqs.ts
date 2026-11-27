@@ -1,6 +1,6 @@
 /** Shared by the FAQ page and the landing page FAQ section. */
 export const FAQS = [
-  { q: "Is Orvelo free?", a: "Yes. All calculators, resources and AI features are free for students." },
+  { q: "Is B.Tech Hub free?", a: "Yes. All calculators, resources and AI features are free for students." },
   { q: "How is SGPA calculated?", a: "Each subject's marks are converted to an AKTU grade point (A+ = 10 down to F = 0). SGPA = Σ(grade point × credits) / Σ credits." },
   { q: "How is CGPA converted to percentage?", a: "We use the AKTU formula: percentage = (CGPA − 0.75) × 10." },
   { q: "What is Vac?", a: "Vac is a LangChain AI agent powered by Gemini. It can call 12 tools, like calculating SGPA, finding PYQs, searching the syllabus and making study plans." },

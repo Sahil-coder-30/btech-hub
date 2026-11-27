@@ -1,7 +1,7 @@
 import { addDays } from "./schedule";
 import type { PlanRecord, PlanTask } from "./types";
 
-/** Client-safe helpers that connect plan tasks to the rest of Orvelo. */
+/** Client-safe helpers that connect plan tasks to the rest of B.Tech Hub. */
 
 export type TaskAction =
   | { kind: "link"; label: string; href: string }
@@ -39,7 +39,7 @@ export function taskActions(task: PlanTask): TaskAction[] {
   }
 }
 
-// ---------- Calendar export ----------
+// Calendar export
 
 const esc = (s: string) => s.replace(/[\\,;]/g, (m) => `\\${m}`).replace(/\n/g, "\\n");
 const stamp = () => new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
@@ -74,7 +74,7 @@ export function planToIcs(plan: PlanRecord) {
   });
   const exams = plan.settings.subjects.map((s, i) => event(`${plan.id}-exam-${i}`, s.examDate, `Exam: ${s.name}`, "All the best!"));
 
-  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Orvelo//Study Planner//EN", `X-WR-CALNAME:${esc(plan.title)}`, ...days, ...exams, "END:VCALENDAR"].join("\r\n");
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//B.Tech Hub//Study Planner//EN", `X-WR-CALNAME:${esc(plan.title)}`, ...days, ...exams, "END:VCALENDAR"].join("\r\n");
 }
 
 export function downloadIcs(plan: PlanRecord) {

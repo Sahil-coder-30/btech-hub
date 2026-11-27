@@ -51,8 +51,6 @@ export function AdminPanel({ branches, syllabus, pineconeReady }: { branches: Br
   );
 }
 
-// ---------- Overview ----------
-
 function Overview() {
   const [data, setData] = useState<{ stats: Record<string, number>; messages: { id: string; name: string; email: string; message: string; created_at: string }[] } | null>(null);
 
@@ -101,40 +99,38 @@ function Overview() {
   );
 }
 
-// ---------- Resources ----------
-
 const EMPTY = { subject_title: "", subject_code: "", year: 1, semester: 1, branch_code: "", type: "notes", label: "", url: "" };
 
 function Resources({ branches }: { branches: Branch[] }) {
   const [filters, setFilters] = useState({ year: "1", branch: "", q: "", missing: true });
-  const [rows, setRows] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [reloadNonce, setReloadNonce] = useState(0);
+  const [loaded, setLoaded] = useState<{ key: string; resources: Resource[] } | null>(null);
   const [edits, setEdits] = useState<Record<number, string>>({});
   const [form, setForm] = useState(EMPTY);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const p = new URLSearchParams({ year: filters.year, q: filters.q, missing: filters.missing ? "1" : "0" });
-    if (filters.branch) p.set("branch", filters.branch);
-    try {
-      const data = await api<{ resources: Resource[] }>(`/api/admin/resources?${p}`);
-      setRows(data.resources);
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, [filters]);
+  const currentKey = `${filters.year}:${filters.branch}:${filters.q}:${filters.missing}:${reloadNonce}`;
+  const loading = loaded?.key !== currentKey;
+  const rows = loaded?.key === currentKey ? loaded.resources : [];
 
   useEffect(() => {
-    load();
-  }, [load]);
+    const controller = new AbortController();
+    const p = new URLSearchParams({ year: filters.year, q: filters.q, missing: filters.missing ? "1" : "0" });
+    if (filters.branch) p.set("branch", filters.branch);
+    api<{ resources: Resource[] }>(`/api/admin/resources?${p}`, { signal: controller.signal })
+      .then((data) => setLoaded({ key: currentKey, resources: data.resources }))
+      .catch((e) => {
+        if (controller.signal.aborted) return;
+        toast.error((e as Error).message);
+        setLoaded({ key: currentKey, resources: [] });
+      });
+    return () => controller.abort();
+  }, [filters, currentKey]);
 
   const saveUrl = async (id: number) => {
     try {
       await api("/api/admin/resources", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, url: edits[id] || null }) });
       toast.success("Link saved");
-      setRows((r) => r.map((x) => (x.id === id ? { ...x, url: edits[id] || null } : x)));
+      setLoaded((prev) => (prev ? { ...prev, resources: prev.resources.map((x) => (x.id === id ? { ...x, url: edits[id] || null } : x)) } : prev));
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -144,7 +140,7 @@ function Resources({ branches }: { branches: Branch[] }) {
     if (!confirm("Delete this resource row?")) return;
     try {
       await api(`/api/admin/resources?id=${id}`, { method: "DELETE" });
-      setRows((r) => r.filter((x) => x.id !== id));
+      setLoaded((prev) => (prev ? { ...prev, resources: prev.resources.filter((x) => x.id !== id) } : prev));
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -159,7 +155,7 @@ function Resources({ branches }: { branches: Branch[] }) {
       });
       toast.success("Resource added");
       setForm(EMPTY);
-      load();
+      setReloadNonce((n) => n + 1);
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -252,8 +248,6 @@ function Resources({ branches }: { branches: Branch[] }) {
     </div>
   );
 }
-
-// ---------- Knowledge base (Pinecone) ----------
 
 function Knowledge({ branches, syllabus, pineconeReady }: { branches: Branch[]; syllabus: SyllabusLink[]; pineconeReady: boolean }) {
   const [docs, setDocs] = useState<Doc[]>([]);
