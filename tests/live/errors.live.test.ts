@@ -532,7 +532,7 @@ describe("planner and dashboard", () => {
     expectError(await call("DELETE", `/api/dashboard/users/${RANDOM_UUID}`, { auth: "student" }), 400, "VALIDATION_ERROR");
     expectError(await call("DELETE", `/api/dashboard/plans/abc`, { auth: "student" }), 400, "VALIDATION_ERROR");
     expectError(await call("DELETE", `/api/dashboard/quizzes/${RANDOM_UUID}`, { auth: "student" }), 404, "NOT_FOUND", "Not found.");
-    expectError(await call("PATCH", `/api/dashboard/quizzes/${RANDOM_UUID}`, { auth: "student", json: { progress: {} } }), 405, undefined, "Only study plans can be updated.");
+    expectError(await call("PATCH", `/api/dashboard/quizzes/${RANDOM_UUID}`, { auth: "student", json: { progress: {} } }), 405, "METHOD_NOT_ALLOWED", "Only study plans can be updated.");
     expectError(await call("PATCH", `/api/dashboard/plans/${RANDOM_UUID}`, { auth: "student", json: { progress: { abc: true } } }), 400, "VALIDATION_ERROR");
   });
   test("bug: dashboard progress with 200k keys is refused", async () => {
