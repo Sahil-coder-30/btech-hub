@@ -1,6 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [{ "path": "/api/circulars/sync", "schedule": "30 11 * * *" }],
+  "functions": {
+    "src/app/api/circulars/**/*.ts": { "regions": ["bom1"] }
+  },
   "git": {
     "deploymentEnabled": {
       "main": false
