@@ -46,7 +46,7 @@ export default async function HomePage() {
         {/* 5. AI Studio feature previews */}
         <AiStudioTabs />
 
-        {/* 6. The usual way vs B.Tech Hub */}
+        {/* 6. The usual way vs Orvelo */}
         <BeforeAfter />
 
         {/* 7. Onboarding in three steps */}

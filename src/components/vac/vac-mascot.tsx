@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Vac is the B.Tech Hub mascot. These are trimmed, animated WebP cuts of the original
+ * Vac is the Orvelo mascot. These are trimmed, animated WebP cuts of the original
  * vac-robot.gif (about a third of its size). Reduced motion users get a still frame.
  */
 const ART = {

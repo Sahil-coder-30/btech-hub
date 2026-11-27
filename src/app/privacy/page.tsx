@@ -19,7 +19,7 @@ export default function PrivacyPage() {
             <li>An anonymous visitor count.</li>
           </ul>
           <h3>How we use it</h3>
-          <p>Only to run and personalise B.Tech Hub. We do not sell data. Questions you send to AI features are processed by Google Gemini.</p>
+          <p>Only to run and personalise Orvelo. We do not sell data. Questions you send to AI features are processed by Google Gemini.</p>
           <h3>Cookies</h3>
           <p>We use one essential httpOnly cookie that holds your signed login session (JWT), plus short lived cookies during Google login for security. No advertising cookies.</p>
           <h3>Your choices</h3>

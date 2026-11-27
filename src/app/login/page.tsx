@@ -73,7 +73,7 @@ export default async function LoginPage({
       <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-6xl items-center gap-12 px-4 py-12 sm:px-6 lg:grid-cols-2">
         {/* Left: pitch */}
         <div className="hidden animate-rise lg:block">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">B.Tech Hub account</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Orvelo account</p>
           <h1 className="mt-4 text-5xl font-bold leading-[1.05] tracking-tight">
             One login. <br />
             <span className="text-gradient">Your whole degree.</span>
@@ -99,8 +99,8 @@ export default async function LoginPage({
             <div className="absolute -inset-4 -z-10 rounded-[2.5rem] bg-gradient-to-tr from-primary/30 via-secondary/15 to-accent/25 blur-3xl" />
             <div className="glass rounded-3xl p-7 sm:p-9">
               <div className="flex flex-col items-center text-center">
-                <img src="/images/logo.png" alt="B.Tech Hub logo" width={96} height={61} className="h-14 w-auto" />
-                <h2 className="mt-5 text-2xl font-bold tracking-tight sm:text-3xl">Welcome to B.Tech Hub</h2>
+                <img src="/images/logo.png" alt="Orvelo logo" width={96} height={61} className="h-14 w-auto" />
+                <h2 className="mt-5 text-2xl font-bold tracking-tight sm:text-3xl">Welcome to Orvelo</h2>
                 <p className="mt-2 text-sm text-muted-foreground">Sign in to save your progress and unlock a personal Vac.</p>
               </div>
 

@@ -37,7 +37,7 @@ function getPageContext(pathname: string): string {
   if (pathname.startsWith("/planner")) return "Exam Study Planner";
   if (pathname.startsWith("/doubt")) return "Doubt Solver";
   if (pathname.startsWith("/dashboard")) return "Student Dashboard";
-  return "B.Tech Hub Portal";
+  return "Orvelo Portal";
 }
 
 function loadStored(): { sessionId: string; messages: ChatMessage[] } {

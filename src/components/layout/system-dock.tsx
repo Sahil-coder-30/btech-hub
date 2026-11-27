@@ -79,7 +79,7 @@ export function SystemDock() {
           </Link>
           <span style={{ color: "var(--border-strong)" }}>•</span>
           <span style={{ fontSize: "12.5px", fontWeight: 500 }}>
-            B.Tech Hub v2.0
+            Orvelo v2.0
           </span>
         </div>
       </div>

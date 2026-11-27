@@ -16,7 +16,7 @@ const STACK = [
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <PageHeader eyebrow="About" icon={Info} title="All problems, one solution." description="B.Tech Hub helps AKTU students with calculators, syllabus, notes and an AI study companion called Vac." />
+      <PageHeader eyebrow="About" icon={Info} title="All problems, one solution." description="Orvelo helps AKTU students with calculators, syllabus, notes and an AI study companion called Vac." />
       <div className="grid gap-4 md:grid-cols-2">
         {STACK.map((s) => (
           <Card key={s.title}>
@@ -28,7 +28,7 @@ export default function AboutPage() {
         ))}
         <Card className="md:col-span-2">
           <CardContent className="pt-6 text-sm text-muted-foreground">
-            Built by Sahil Sharma for AKTU students. B.Tech Hub is a student-built engineering project and is not affiliated with AKTU. Always verify official notices on aktu.ac.in.
+            Built by Sahil Sharma for AKTU students. Orvelo is a student-built engineering project and is not affiliated with AKTU. Always verify official notices on aktu.ac.in.
           </CardContent>
         </Card>
       </div>

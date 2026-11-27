@@ -1,4 +1,6 @@
-# B.Tech Hub
+# Orvelo
+
+> Your whole semester, in one orbit.
 
 [![CI](https://github.com/Sahil-coder-30/btech-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/Sahil-coder-30/btech-hub/actions/workflows/ci.yml)
 

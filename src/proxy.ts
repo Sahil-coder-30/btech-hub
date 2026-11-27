@@ -56,5 +56,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Every page. API routes check auth themselves, static files and Next internals are skipped.
-  matcher: ["/((?!api|_next/static|_next/image|images|favicon\\.png|.*\\..*).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|images|favicon\\.svg|.*\\..*).*)"],
 };

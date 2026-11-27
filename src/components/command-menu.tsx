@@ -103,7 +103,7 @@ export function CommandMenu() {
     <Command.Dialog
       open={open}
       onOpenChange={setOpen}
-      label="Search B.Tech Hub"
+      label="Search Orvelo"
       shouldFilter={true}
       overlayClassName="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm"
       contentClassName="fixed left-1/2 top-[12vh] z-[71] w-[min(92vw,640px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
@@ -162,7 +162,7 @@ export function CommandMenu() {
       </Command.List>
       <div className="flex items-center justify-between border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
         <span>↑↓ to move · ↵ to open · esc to close</span>
-        <span>B.Tech Hub</span>
+        <span>Orvelo</span>
       </div>
     </Command.Dialog>
   );

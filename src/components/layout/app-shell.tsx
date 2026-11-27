@@ -300,7 +300,7 @@ export function AppShell({
             ]
           : []),
         {
-          title: "About B.Tech Hub",
+          title: "About Orvelo",
           href: "/about",
           icon: Info,
           description: "Curriculum mission & technology",
@@ -367,11 +367,11 @@ export function AppShell({
           <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2.5">
             <img
               src="/images/logo.png"
-              alt="B.Tech Hub"
+              alt="Orvelo"
               className="h-7 w-auto object-contain shrink-0"
             />
             <span className="font-bold text-base tracking-tight font-display">
-              B.Tech Hub
+              Orvelo
             </span>
           </Link>
         </div>
@@ -446,11 +446,11 @@ export function AppShell({
               >
                 <img
                   src="/images/logo.png"
-                  alt="B.Tech Hub"
+                  alt="Orvelo"
                   className="h-7 w-auto object-contain shrink-0"
                 />
                 <span className="font-bold text-base tracking-tight font-display">
-                  B.Tech Hub
+                  Orvelo
                 </span>
               </Link>
               <button
@@ -597,15 +597,15 @@ export function AppShell({
               <Link
                 href={user ? "/dashboard" : "/"}
                 className="flex items-center gap-2.5 overflow-hidden group py-1"
-                title="B.Tech Hub"
+                title="Orvelo"
               >
                 <img
                   src="/images/logo.png"
-                  alt="B.Tech Hub"
+                  alt="Orvelo"
                   className="h-7 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform"
                 />
                 <span className="font-bold text-base tracking-tight font-display truncate whitespace-nowrap">
-                  B.Tech Hub
+                  Orvelo
                 </span>
               </Link>
 

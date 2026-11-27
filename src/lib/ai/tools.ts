@@ -225,7 +225,7 @@ export function buildTools(user: User | null, options: { memoryEnabled?: boolean
     async ({ page }) => json(SITE_PAGES[page]),
     {
       name: "open_page",
-      description: "Get the link to a B.Tech Hub page so the user can open it. Include the link in your answer as a markdown link.",
+      description: "Get the link to a Orvelo page so the user can open it. Include the link in your answer as a markdown link.",
       schema: z.object({ page: z.enum(Object.keys(SITE_PAGES) as [string, ...string[]]) }),
     },
   );

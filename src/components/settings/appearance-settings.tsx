@@ -28,7 +28,7 @@ export function AppearanceSettings() {
     <div className="space-y-6">
       <SettingsHeader
         title="Appearance"
-        description="Customize how B.Tech Hub looks on your device. Themes and visual preferences sync automatically."
+        description="Customize how Orvelo looks on your device. Themes and visual preferences sync automatically."
       />
 
       <SettingsSection title="Theme" description="Select your preferred color theme" icon={Sun} accent="amber">

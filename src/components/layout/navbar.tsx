@@ -48,10 +48,10 @@ export function Navbar({ user: initialUser }: { user: SessionUser | null }) {
     <header className="nav">
       <div className="wrap nav-in">
         {/* Brand with User's Logo Preserved */}
-        <Link href={user ? "/dashboard" : "/"} className="brand" aria-label={user ? "B.Tech Hub dashboard" : "B.Tech Hub home"}>
+        <Link href={user ? "/dashboard" : "/"} className="brand" aria-label={user ? "Orvelo dashboard" : "Orvelo home"}>
           <div className="flex items-center gap-2.5">
-            <img src="/images/logo.png" alt="B.Tech Hub Logo" className="h-7 w-auto object-contain shrink-0" />
-            <span className="brand-t">B.Tech Hub</span>
+            <img src="/images/logo.png" alt="Orvelo Logo" className="h-7 w-auto object-contain shrink-0" />
+            <span className="brand-t">Orvelo</span>
           </div>
         </Link>
 

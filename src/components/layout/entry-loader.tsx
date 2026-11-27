@@ -22,7 +22,7 @@ function finish() {
 }
 
 /**
- * The original B.Tech Hub entry animation, ported 1:1 from home.js:
+ * The original Orvelo entry animation, ported 1:1 from home.js:
  * black screen fades to white, logo spins in, text logo pops, then the logo
  * zooms through the screen and the page rises in.
  */
@@ -93,12 +93,19 @@ export function EntryGate({ children }: { children: ReactNode }) {
             className="entry-logo w-[max(6vw,72px)]"
             style={{ opacity: 0, transform: "scale(0)" }}
           />
-          <img
-            src="/images/text-logo.png"
-            alt=""
-            className="entry-logo-text w-[max(8vw,110px)]"
-            style={{ opacity: 0, transform: "scale(0)" }}
-          />
+          <span
+            className="entry-logo-text mt-3 text-[max(3vw,36px)] font-extrabold tracking-tight"
+            style={{
+              opacity: 0,
+              transform: "scale(0)",
+              background: "linear-gradient(90deg, #FBB040, #E2457A 50%, #6A2BB8)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            Orvelo
+          </span>
         </div>
       )}
       <div ref={page} style={startHidden ? { opacity: 0 } : undefined}>

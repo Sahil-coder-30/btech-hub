@@ -155,7 +155,7 @@ export function AccountSettings({ initial }: { initial: AccountInfo }) {
         }
       />
 
-      <SettingsSection title="Profile" description="How you appear across B.Tech Hub and to Vac." icon={UserRound} accent="violet">
+      <SettingsSection title="Profile" description="How you appear across Orvelo and to Vac." icon={UserRound} accent="violet">
         <div className="flex items-center gap-4 py-4">
           <Avatar src={account.avatarUrl} name={account.name} />
           <div className="min-w-0">
@@ -297,7 +297,7 @@ export function AccountSettings({ initial }: { initial: AccountInfo }) {
       </SettingsSection>
 
       <SettingsSection title="Session" icon={LogOut} accent="amber">
-        <SettingRow label="Sign out" description="Sign out of B.Tech Hub on this device.">
+        <SettingRow label="Sign out" description="Sign out of Orvelo on this device.">
           <button type="button" className="btn btn-secondary btn-sm" onClick={signOut} disabled={signingOut}>
             {signingOut ? <Spinner size={14} /> : <LogOut className="size-4" aria-hidden />}
             {signingOut ? "Signing out..." : "Sign out"}

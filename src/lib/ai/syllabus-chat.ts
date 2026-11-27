@@ -254,7 +254,7 @@ function systemPrompt(input: AskInput, semesters: SyllabusInfo["semesters"], ret
     ? ""
     : "\n\nNOTE: the search found no strong match in the PDF. Use a passage only if it really answers the question, otherwise say the syllabus does not mention it.";
 
-  return `You are the "Ask your Syllabus" assistant of B.Tech Hub for AKTU B.Tech students. The student is reading the official AKTU syllabus PDF for ${input.branchName} (${input.branch}), Year ${input.year}.
+  return `You are the "Ask your Syllabus" assistant of Orvelo for AKTU B.Tech students. The student is reading the official AKTU syllabus PDF for ${input.branchName} (${input.branch}), Year ${input.year}.
 
 Rules:
 - Answer ONLY from the CONTEXT passages (taken from that PDF) and the COURSE LIST. Never use outside knowledge for syllabus facts such as units, topics, books, credits, marks or subject codes.
@@ -263,7 +263,7 @@ Rules:
 - If something is not covered, say clearly "This syllabus does not mention ...". You may then add one short general explanation, clearly labelled "General note:".
 - Markdown, short and direct. Use a table (Unit | Topics) for unit-wise lists. LaTeX ($...$) for formulas. Reply in Hinglish only if the student writes in Hinglish.
 
-COURSE LIST (Year ${input.year}, from the B.Tech Hub database):
+COURSE LIST (Year ${input.year}, from the Orvelo database):
 ${courseList(semesters)}
 
 CONTEXT:
